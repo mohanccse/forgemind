@@ -1,0 +1,6 @@
+{
+  "name": "ForgeMind — The De-Tutorializer",
+  "description": "Turn what you study into unfamiliar challenges that reveal what you can actually apply.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
