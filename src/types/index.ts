@@ -110,6 +110,7 @@ export interface GeneratedChallenge {
   mandate: string;
   constraints: string[];
   expectedOutputFormat: string;
+  microQuestions?: string[];
   
   // Hidden Evaluation Metadata (not shown during independent attempt)
   capabilityTested: string;
@@ -152,6 +153,7 @@ export interface LearnerAttempt {
 
   // Learner input
   response: string;
+  micro_responses?: { milestone: string; question: string; answer: string }[];
   attempt_number: number;
   retry_count: number; // 0 for initial attempt, 1+ for retries
   created_at: string;

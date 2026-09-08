@@ -68,22 +68,25 @@ export function getAllAttempts(specificLearnerId?: string): LearnerAttempt[] {
  * Get attempts specifically for a concept.
  */
 export function getAttemptsForConcept(conceptId: string): LearnerAttempt[] {
-  return getAllAttempts().filter((a) => a.concept_id === conceptId);
+  const sessionId = getOrCreateSessionId();
+  return getAllAttempts().filter((a) => a.concept_id === conceptId && a.session_id === sessionId);
 }
 
 /**
- * Get attempts specifically for a challenge.
+ * Get attempts specifically for a challenge in the active browser session.
  */
 export function getAttemptsForChallenge(challengeId: string): LearnerAttempt[] {
-  return getAllAttempts().filter((a) => a.challenge_id === challengeId);
+  const sessionId = getOrCreateSessionId();
+  return getAllAttempts().filter((a) => a.challenge_id === challengeId && a.session_id === sessionId);
 }
 
 /**
- * Calculate the next attempt number for this challenge.
+ * Calculate the next attempt number for this challenge strictly within the active browser session.
  */
 export function getNextAttemptNumber(conceptId: string, challengeId: string): number {
+  const sessionId = getOrCreateSessionId();
   const existing = getAllAttempts().filter(
-    (a) => a.challenge_id === challengeId || a.concept_id === conceptId
+    (a) => a.challenge_id === challengeId && a.session_id === sessionId
   );
   if (existing.length === 0) return 1;
   const maxNumber = Math.max(...existing.map((a) => a.attempt_number || 1));
@@ -150,11 +153,23 @@ export function getPersistedActiveChallenge(conceptId: string): GeneratedChallen
   }
 }
 
+/**
+ * Clear the active persisted challenge when returning to the Content Library or selecting a new topic.
+ */
+export function clearPersistedActiveChallenge(conceptId: string): void {
+  try {
+    sessionStorage.removeItem(`${STORAGE_KEYS.ACTIVE_CHALLENGE_PREFIX}${conceptId}`);
+  } catch (e) {
+    // ignore
+  }
+}
+
 export interface AttemptDraftState {
   confidence_before_attempt: number;
   response: string;
   stage: 'confidence' | 'attempt' | 'submitted';
   lastSaved: string;
+  microAnswers?: Record<number, string>;
 }
 
 /**

@@ -705,21 +705,9 @@ export const INITIAL_CONCEPTS: Concept[] = [
 export const DOMAINS: Domain[] = ['Product Management', 'AI / Technology', 'SQL / Data'];
 
 // Helper data-access functions for local/mock state and future Supabase binding
-export function getConcepts(domainFilter?: string, searchQuery?: string, includeUserGenerated = true): Concept[] {
-  let combined = [...INITIAL_CONCEPTS];
-  if (includeUserGenerated && typeof window !== 'undefined') {
-    try {
-      const raw = localStorage.getItem('forgemind_user_concepts');
-      if (raw) {
-        const userConcepts: Concept[] = JSON.parse(raw);
-        combined = [...userConcepts, ...INITIAL_CONCEPTS];
-      }
-    } catch {
-      // ignore
-    }
-  }
-
-  return combined.filter((c) => {
+export function getConcepts(domainFilter?: string, searchQuery?: string): Concept[] {
+  // Predefined Content Library strictly consists ONLY of initial pre-authored concepts
+  return INITIAL_CONCEPTS.filter((c) => {
     const matchesDomain = !domainFilter || domainFilter === 'All' || c.domain === domainFilter;
     const matchesSearch =
       !searchQuery ||
@@ -732,17 +720,19 @@ export function getConcepts(domainFilter?: string, searchQuery?: string, include
 }
 
 export function getConceptById(id: string): Concept | undefined {
+  const found = INITIAL_CONCEPTS.find((c) => c.id === id);
+  if (found) return found;
+
   if (typeof window !== 'undefined') {
     try {
-      const raw = localStorage.getItem('forgemind_user_concepts');
-      if (raw) {
-        const userConcepts: Concept[] = JSON.parse(raw);
-        const found = userConcepts.find((c) => c.id === id);
-        if (found) return found;
+      const activeRaw = sessionStorage.getItem('forgemind_active_user_concept');
+      if (activeRaw) {
+        const activeConcept: Concept = JSON.parse(activeRaw);
+        if (activeConcept.id === id) return activeConcept;
       }
     } catch {
       // ignore
     }
   }
-  return INITIAL_CONCEPTS.find((c) => c.id === id);
+  return undefined;
 }

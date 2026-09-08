@@ -135,17 +135,18 @@ CRITICAL RULES:
    - Require the learner to produce an answer (e.g. decision memo, architecture specification, SQL query, audit plan).
 4. AVOID REVEALING THE SOLUTION:
    - Do not give away the answer or optimal choice in the prompt text.
-5. HIDDEN EVALUATION METADATA:
+5. HIDDEN EVALUATION METADATA & TARGETED MICRO-QUESTIONS:
    - capabilityTested: Clear summary of the specific capability evaluated.
    - structuralMilestones: Array of 3-5 sequential reasoning milestones needed to solve this.
+   - microQuestions: Array of 3-5 short, targeted 1-line questions corresponding 1-to-1 to each structuralMilestone (e.g. "Unit Normalization: Does your Reach metric represent contractor accounts or sensors — and why, in one line?").
    - acceptableAlternativeReasoning: Array of 1-3 valid alternative perspectives or trade-off approaches.
    - referenceSolution: A rigorous, complete model answer and trade-off justification for internal evaluation.
 6. 5-TIER PROGRESSIVE HINT LADDER:
    - Tier 1: Nudge (A subtle observation prompt about what to inspect)
    - Tier 2: Direction (Points the learner toward the right mathematical or conceptual relationship)
    - Tier 3: Concept reminder (Recalls the core principle or mechanism without applying it)
-   - Tier 4: Structural guidance (Step-by-step calculation or architectural blueprint)
-   - Tier 5: Solution reveal (Full model resolution and trade-off defense)
+   - Tier 4: Structural guidance (Provides an analytical framework, step-by-step methodology, or structural blueprint to apply — MUST NOT contain explicit final numbers or copy-pasteable submission text)
+   - Tier 5: Reference explanation (Provides a conceptual explanation of the correct underlying reasoning and trade-off defense for internal understanding — MUST NOT be formatted as a copy-pasteable final submission)
    Each hint must have: tier (1-5), type ('Nudge' | 'Direction' | 'Concept reminder' | 'Structural guidance' | 'Solution reveal'), title, hint, penaltyDescription (e.g. '-5% on Raw Independence', '-12%', '-20%', '-35%', '-60%').`;
 
   const promptContent = `CONCEPT TO EVALUATE:
@@ -157,7 +158,7 @@ Key Capabilities: ${JSON.stringify(concept.capabilities || [])}
 Common Pitfalls / Failure Modes to Test Against: ${JSON.stringify(concept.commonFailureModes || [])}
 Target Difficulty: ${targetDifficulty}
 
-Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situation must independently apply this concept to solve an authentic dilemma. Make sure the scenario is novel, realistic, contains trade-offs, and produces the required 5-tier hint ladder and hidden metadata.`;
+Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situation must independently apply this concept to solve an authentic dilemma. Make sure the scenario is novel, realistic, contains trade-offs, and produces the required 5-tier hint ladder, microQuestions, and hidden metadata.`;
 
   try {
     const ai = getGenAI();
@@ -194,6 +195,11 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
               items: { type: Type.STRING },
               description: 'Key sequential reasoning milestones needed to solve this'
             },
+            microQuestions: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: 'Array of 3-5 short 1-line targeted prompts, corresponding 1-to-1 with structuralMilestones'
+            },
             acceptableAlternativeReasoning: {
               type: Type.ARRAY,
               items: { type: Type.STRING },
@@ -224,6 +230,7 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
             'expectedOutputFormat',
             'capabilityTested',
             'structuralMilestones',
+            'microQuestions',
             'acceptableAlternativeReasoning',
             'referenceSolution',
             'hints'
@@ -497,6 +504,10 @@ ${isUserGenerated
   : 'NOTE: This is a LIBRARY challenge with established benchmark milestones.'
 }`;
 
+      const structuredResponsesText = attempt.micro_responses && attempt.micro_responses.length > 0
+        ? attempt.micro_responses.map((m: any, idx: number) => `MILESTONE ${idx + 1}: ${m.milestone}\nQUESTION: ${m.question}\nLEARNER RESPONSE: ${m.answer}`).join('\n\n')
+        : responseText;
+
       const prompt = `
 CHALLENGE DETAILS:
 - Title: ${challenge.title}
@@ -525,7 +536,7 @@ ${challenge.referenceSolution}
 
 LEARNER INDEPENDENT ATTEMPT (Attempt #${attempt.attempt_number || 1}, Pre-attempt confidence: ${attempt.confidence_before_attempt || 3}/5):
 """
-${responseText}
+${structuredResponsesText}
 """
 
 Evaluate the learner's unassisted response now.

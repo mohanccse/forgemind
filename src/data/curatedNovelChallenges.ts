@@ -35,6 +35,13 @@ INITIATIVE 3: Project Apex (Enterprise ERP Multi-Entity Billing)
       'Provide an executive trade-off justification showing which single initiative gets cut due to the 6 engineer-month capacity ceiling.'
     ],
     expectedOutputFormat: 'Executive Prioritization Brief: 1) Normalized RICE Table; 2) Confidence Discount & Unit Rationale; 3) Capacity Cut Recommendation; 4) Inversion Sensitivity Threshold.',
+    microQuestions: [
+      'Unit Normalization: Does your Reach metric represent contractor accounts or telematics sensors — and why, in one line?',
+      'Confidence Discount: How much did you discount the Sales Director\'s 100% confidence claim, and why?',
+      'Raw & Adjusted Scores: What methodology did you use to compare Titan, Bedrock, and Apex?',
+      'Capacity Packaging: Which initiatives do you select to stay under the 6 engineer-month cap?',
+      'Inversion Sensitivity: What specific condition or threshold would cause your decision to flip?'
+    ],
     capabilityTested: 'Prioritizing competing initiatives using structured trade-offs, normalizing divergent reach units, and correcting stakeholder confidence bias.',
     structuralMilestones: [
       'Recognize the unit mismatch: measuring accounts vs measuring sensors/revenue exposure across initiatives',
@@ -89,15 +96,15 @@ Inversion Threshold: Apex flips out of the roadmap if Enterprise renewal churn c
       {
         tier: 4,
         type: 'Structural guidance',
-        title: 'Step-by-Step Calculation Breakdown',
-        hint: '1) Calculate raw account RICE: Titan = (520×2×0.8)/4 = 208; Bedrock = (148×3×0.5)/3 = 74; Apex = (5×3×1.0)/2 = 7.5. 2) Show how measuring by revenue/sensors shifts Bedrock. 3) Select the winning pair within the 6-month budget.',
+        title: 'Step-by-Step Calculation Framework',
+        hint: '1) Compute raw account scores by evaluating (Reach × Impact × Confidence) divided by Effort for each initiative. 2) Apply your chosen normalization (e.g. sensor volume or contract ARR) to evaluate Enterprise commercial exposure. 3) Test combinations against the 6 engineer-month capacity ceiling to select the optimal pair.',
         penaltyDescription: '-35% on Raw Independence'
       },
       {
         tier: 5,
         type: 'Solution reveal',
-        title: 'Full Model Resolution and Trade-off Defense',
-        hint: 'Recommend shipping Titan (4 months) and Apex (2 months), meeting the 6-month capacity cap. Bedrock must be deferred to Q4 because prototype field variance (50% confidence) introduces delivery risk. Apex is included despite low raw account score because its 2-month effort allows pairing with Titan to secure the $1.2M renewal.',
+        title: 'Reference Explanation of Trade-Off Defense',
+        hint: 'Under pure account weighting, Titan achieves the highest return per effort month, while Apex has low effort (2 mo) that fits within the remaining capacity. A robust defense balances immediate account coverage against enterprise renewal risk, choosing a combination that respects the 6-month capacity ceiling while explaining why higher-uncertainty initiatives are deferred.',
         penaltyDescription: '-60% on Raw Independence'
       }
     ]
@@ -136,6 +143,12 @@ GROUP BY m.merchant_id, m.business_name;`,
       'Explain the computational difference between pre-aggregating in Common Table Expressions (CTEs) vs correlated subqueries.'
     ],
     expectedOutputFormat: '1) Diagnostic of Fan-out Mechanics; 2) Validated Production SQL Query; 3) Performance & Edge-case Defense.',
+    microQuestions: [
+      'Cartesian Diagnostic: Why does joining multiple 1-to-many child tables directly produce incorrect total sums?',
+      'Distinct Fallacy: Why is `SUM(DISTINCT amount)` dangerous for financial ledger reporting?',
+      'Pre-Aggregation Pattern: How do CTEs or subqueries isolate child table cardinalities before joining?',
+      'Null Coalescing: How do you handle merchants with no refunds or surcharges without dropping records?'
+    ],
     capabilityTested: 'Preserving relational cardinality and monetary precision across multiple one-to-many joins using pre-aggregation patterns.',
     structuralMilestones: [
       'Identify that joining two or more independent 1-to-many child tables causes an M × N Cartesian product for each parent row',
@@ -248,6 +261,12 @@ ORDER BY m.merchant_id;`,
       'Specify how document hierarchical metadata (version, amendment date, section precedence) must be integrated into the index and prompt.'
     ],
     expectedOutputFormat: 'Architectural Diagnostic & System Blueprint: 1) Root Cause Analysis; 2) Index & Metadata Schema; 3) Reranking & Context Assembly Pipeline; 4) System Prompt Guardrail.',
+    microQuestions: [
+      'Retrieval vs Generation Flaw: Why did the baseline prohibition chunk get a higher similarity score than the amendment chunk, and why did the LLM ignore the amendment?',
+      'Attention Attenuation: What positional attention phenomenon caused Chunk 4 to be overlooked in the prompt context?',
+      'Metadata Schema: What specific metadata fields must be indexed on each chunk to resolve version precedence?',
+      'Pipeline & Prompt Fix: How should your reranking pipeline and system prompt handle conflicting document amendments?'
+    ],
     capabilityTested: 'Architecting grounded semantic retrieval pipelines that resolve contradictory context, temporal version precedence, and LLM attention dilution.',
     structuralMilestones: [
       'Diagnose the keyword/semantic bias: Chunk 1 directly echoes the negative prohibition keywords, giving it an artificially higher similarity score than Chunk 4',

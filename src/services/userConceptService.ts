@@ -7,6 +7,7 @@ import {
 import { getOrCreateLearnerId } from './attemptService';
 
 const STORAGE_KEY = 'forgemind_user_concepts';
+const SESSION_ACTIVE_KEY = 'forgemind_active_user_concept';
 
 /**
  * Normalizes a slug ID from concept name
@@ -20,42 +21,55 @@ function slugify(text: string): string {
 }
 
 /**
- * Loads all user-generated concepts isolated for the active learner
+ * Purges any dynamically injected user concepts from localStorage to keep the Predefined Content Library pristine
  */
-export function getUserGeneratedConcepts(specificLearnerId?: string): Concept[] {
-  if (typeof window === 'undefined') return [];
+export function purgeUserGeneratedConceptsFromLibrary(): void {
+  if (typeof window === 'undefined') return;
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const all: (Concept & { owner_id?: string })[] = JSON.parse(raw);
-    const activeLearnerId = specificLearnerId || getOrCreateLearnerId();
-    // Database Isolation: Only return user-generated concepts belonging to this learner
-    return all.filter((c) => !c.owner_id || c.owner_id === activeLearnerId);
+    localStorage.removeItem(STORAGE_KEY);
   } catch (err) {
-    console.error('Failed to load user concepts:', err);
-    return [];
+    console.warn('Failed to clear user concepts from storage:', err);
   }
 }
 
 /**
- * Finds a user concept by id
+ * Loads user-generated concepts (returns empty as predefined library must not be polluted)
  */
-export function getUserConceptById(id: string): Concept | undefined {
-  const all = getUserGeneratedConcepts();
-  return all.find((c) => c.id === id);
+export function getUserGeneratedConcepts(): Concept[] {
+  // Purge any previously added user concepts from localStorage
+  purgeUserGeneratedConceptsFromLibrary();
+  return [];
 }
 
 /**
- * Step 7: Stores the confirmed user concept as user-owned
- * - marks source_type = USER_GENERATED
- * - stores its capability model
- * - associates with active learner for database isolation
- * - prepares for routing into existing Challenge Engine
+ * Finds a user concept by id from the active session
+ */
+export function getUserConceptById(id: string): Concept | undefined {
+  if (typeof window === 'undefined') return undefined;
+  try {
+    const raw = sessionStorage.getItem(SESSION_ACTIVE_KEY);
+    if (raw) {
+      const active: Concept = JSON.parse(raw);
+      if (active.id === id) return active;
+    }
+  } catch (err) {
+    // ignore
+  }
+  return undefined;
+}
+
+/**
+ * Step 7: Constructs the confirmed user concept for the active Door 2 session.
+ * - Stores in sessionStorage so Door 2 can evaluate it in the active session
+ * - DOES NOT inject into the Predefined Content Library (Door 1 remains pristine)
  */
 export function saveConfirmedUserConcept(
   candidate: ExtractedConceptCandidate,
   normalizedContent: NormalizedStudyContent
 ): Concept {
+  // Purge any previously stored user concepts from localStorage
+  purgeUserGeneratedConceptsFromLibrary();
+
   const timestamp = Date.now();
   const slug = slugify(candidate.concept_name) || 'custom-concept';
   const conceptId = `ug_${slug}_${timestamp.toString(36)}`;
@@ -110,12 +124,9 @@ export function saveConfirmedUserConcept(
 
   if (typeof window !== 'undefined') {
     try {
-      const existing = getUserGeneratedConcepts();
-      // Prepend so the newest user concept appears first
-      const updated = [newConcept, ...existing.filter((c) => c.id !== conceptId)];
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      sessionStorage.setItem(SESSION_ACTIVE_KEY, JSON.stringify(newConcept));
     } catch (err) {
-      console.error('Failed to persist user concept:', err);
+      console.error('Failed to persist active session concept:', err);
     }
   }
 
@@ -123,14 +134,13 @@ export function saveConfirmedUserConcept(
 }
 
 /**
- * Deletes a user concept by id
+ * Deletes a user concept
  */
 export function deleteUserConcept(id: string): void {
+  purgeUserGeneratedConceptsFromLibrary();
   if (typeof window === 'undefined') return;
   try {
-    const existing = getUserGeneratedConcepts();
-    const updated = existing.filter((c) => c.id !== id);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    sessionStorage.removeItem(SESSION_ACTIVE_KEY);
   } catch (err) {
     console.error('Failed to delete user concept:', err);
   }

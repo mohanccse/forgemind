@@ -13,7 +13,7 @@ export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSele
   const [selectedDomain, setSelectedDomain] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
-  const allConcepts = useMemo(() => getConcepts(undefined, undefined, true), []);
+  const allConcepts = useMemo(() => getConcepts(undefined, undefined), []);
 
   const filteredConcepts = useMemo(() => {
     return allConcepts.filter((c) => {

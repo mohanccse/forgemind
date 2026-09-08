@@ -51,12 +51,37 @@ export const HINT_TIER_DEFINITIONS: Record<number, TierDefinition> = {
 
 /**
  * Get or initialize persistent hint state for a specific challenge.
+ * Strictly scoped to challengeId and isolated per browser session.
  */
 export function getHintState(challengeId: string, conceptId: string): ChallengeHintState {
+  if (!challengeId || challengeId.trim() === '') {
+    return {
+      challenge_id: '',
+      concept_id: conceptId,
+      current_tier: 0,
+      unlocked_tiers: [],
+      last_unlocked_at_attempt: 0,
+      attempts_since_last_hint: 0,
+      progression_frozen: false,
+      solution_revealed: false,
+      evaluation_flagged: false,
+      last_verdict: null
+    };
+  }
+
+  // Purge any legacy localStorage key to prevent stale test data leaks
   try {
-    const raw = localStorage.getItem(`${HINT_STATE_PREFIX}${challengeId}`);
+    localStorage.removeItem(`${HINT_STATE_PREFIX}${challengeId}`);
+  } catch (e) {}
+
+  try {
+    const raw = sessionStorage.getItem(`${HINT_STATE_PREFIX}${challengeId}`);
     if (raw) {
-      return JSON.parse(raw);
+      const parsed = JSON.parse(raw);
+      // Ensure state is valid and matches challengeId
+      if (parsed && parsed.challenge_id === challengeId) {
+        return parsed;
+      }
     }
   } catch (e) {
     console.warn('Failed to read hint state from storage:', e);
@@ -80,11 +105,62 @@ export function getHintState(challengeId: string, conceptId: string): ChallengeH
 }
 
 /**
- * Persist hint state to localStorage.
+ * Reset hint state to initial zero-hint state for a fresh attempt.
+ */
+export function resetHintState(challengeId: string, conceptId: string): ChallengeHintState {
+  const defaultState: ChallengeHintState = {
+    challenge_id: challengeId,
+    concept_id: conceptId,
+    current_tier: 0,
+    unlocked_tiers: [],
+    last_unlocked_at_attempt: 0,
+    attempts_since_last_hint: 0,
+    progression_frozen: false,
+    solution_revealed: false,
+    evaluation_flagged: false,
+    last_verdict: null
+  };
+  saveHintState(challengeId, defaultState);
+  try {
+    localStorage.removeItem(`${HINT_STATE_PREFIX}${challengeId}`);
+  } catch (e) {}
+  return defaultState;
+}
+
+/**
+ * Completely purges all cached hint states for a concept when returning to the Content Library or selecting a new topic.
+ */
+export function resetHintStateForConcept(conceptId: string): void {
+  if (!conceptId) return;
+  try {
+    for (let i = sessionStorage.length - 1; i >= 0; i--) {
+      const key = sessionStorage.key(i);
+      if (key && key.startsWith(HINT_STATE_PREFIX)) {
+        const raw = sessionStorage.getItem(key);
+        if (raw) {
+          try {
+            const parsed = JSON.parse(raw);
+            if (parsed && (parsed.concept_id === conceptId || key.includes(conceptId))) {
+              sessionStorage.removeItem(key);
+            }
+          } catch (e) {
+            sessionStorage.removeItem(key);
+          }
+        }
+      }
+    }
+  } catch (e) {
+    // ignore
+  }
+}
+
+/**
+ * Persist hint state to sessionStorage strictly scoped by challengeId.
  */
 export function saveHintState(challengeId: string, state: ChallengeHintState): void {
+  if (!challengeId || challengeId.trim() === '') return;
   try {
-    localStorage.setItem(`${HINT_STATE_PREFIX}${challengeId}`, JSON.stringify(state));
+    sessionStorage.setItem(`${HINT_STATE_PREFIX}${challengeId}`, JSON.stringify(state));
   } catch (e) {
     console.warn('Failed to save hint state:', e);
   }
@@ -214,11 +290,6 @@ export function recordAttemptEvaluationInHintState(
   // Store last_verdict in state
   state.last_verdict = verdict || null;
 
-  // If a hint has been unlocked, increment attempts made with that hint active
-  if (state.current_tier > 0) {
-    state.attempts_since_last_hint += 1;
-  }
-
   if (verdict === 'NEEDS_CLARIFICATION') {
     state.progression_frozen = true;
     state.frozen_reason =
@@ -227,6 +298,17 @@ export function recordAttemptEvaluationInHintState(
     // Unfreeze if a substantive verdict was returned
     state.progression_frozen = false;
     state.frozen_reason = undefined;
+  }
+
+  // Handle progressive hint unlocking on failed attempts
+  if (verdict === 'PARTIALLY_CORRECT' || verdict === 'WRONG_APPROACH') {
+    const nextTier = Math.min(5, state.current_tier + 1);
+    state.current_tier = nextTier;
+    if (!state.unlocked_tiers.includes(nextTier)) {
+      state.unlocked_tiers.push(nextTier);
+    }
+    state.last_unlocked_at_attempt = attemptNumber;
+    state.attempts_since_last_hint = 0;
   }
 
   saveHintState(challengeId, state);

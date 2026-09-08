@@ -217,7 +217,7 @@ async function fallbackAudioTranscription(
 
   const response = await executeWithTimeoutAndRetry(async () => {
     return await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+      model: 'gemini-3.8-flash',
       contents: [
         {
           inlineData: {

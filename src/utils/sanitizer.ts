@@ -51,8 +51,58 @@ export const STUDY_MATERIAL_LIMITS = {
 
 export const LEARNER_ATTEMPT_LIMITS = {
   MAX_CHARS: 2000,
-  MIN_CHARS: 5
+  MIN_CHARS: 4
 };
+
+/**
+ * Validates whether a micro-response input is substantive.
+ * Rejects empty text, single-character placeholders, repetitive single-character strings (e.g., "s", "ss", "aaaa"),
+ * generic filler phrases (e.g. "this is what", "i don't know"), keyboard mash patterns (e.g. "asdf", "qwerty"), and pure whitespace.
+ */
+export function isSubstantiveInput(text: string): { valid: boolean; reason?: string } {
+  const trimmed = (text || '').trim();
+
+  if (trimmed.length === 0) {
+    return { valid: false, reason: 'Field cannot be empty.' };
+  }
+
+  // Minimum length check (minimum 4 characters)
+  if (trimmed.length < 4) {
+    return {
+      valid: false,
+      reason: 'Please provide a substantive answer (at least 4 characters, not repetitive letters).'
+    };
+  }
+
+  // Check if text is just a single character repeated (e.g. "aaaa", "ssss", "1111", "....")
+  const cleanedAlpha = trimmed.toLowerCase().replace(/\s/g, '');
+  const uniqueChars = new Set(cleanedAlpha);
+  if (uniqueChars.size <= 1) {
+    return {
+      valid: false,
+      reason: 'Please provide a substantive answer (not repetitive single characters).'
+    };
+  }
+
+  // Check for common non-substantive filler phrases and keyboard mash patterns
+  const lower = trimmed.toLowerCase();
+  const fillerPhrases = [
+    'this is what', 'this is a test', 'this is test', "i don't know", 'idk',
+    'not sure', 'test test', 'hello world', 'sample text', 'placeholder',
+    'fill this in', 'nothing to say', 'some text', 'random text', 'default answer',
+    'asdf', 'qwerty', 'zxcv', '1234', 'abcd', 'fdsa', 'ytrewq', 'vcxz',
+    'aaaa', 'ssss', 'dddd', 'ffff', 'xxxx', 'zzzz', 'qqqq'
+  ];
+
+  if (fillerPhrases.some((pattern) => lower.includes(pattern))) {
+    return {
+      valid: false,
+      reason: 'Please provide a substantive answer (generic filler phrases like "this is what" or keyboard mashing are not allowed).'
+    };
+  }
+
+  return { valid: true };
+}
 
 export interface FileValidationResult {
   valid: boolean;

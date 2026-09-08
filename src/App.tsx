@@ -15,6 +15,8 @@ import { ConceptPreviewPage } from './components/ConceptPreviewPage';
 import { StudyMaterialPage } from './components/StudyMaterialPage';
 import { ChallengePage } from './components/ChallengePage';
 import { EvidencePage } from './components/EvidencePage';
+import { clearPersistedActiveChallenge, clearAttemptDraft } from './services/attemptService';
+import { resetHintStateForConcept } from './services/hintService';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('home');
@@ -60,7 +62,12 @@ export default function App() {
   };
 
   // Flow: Concept Explorer -> Select Concept -> Concept Preview
+  // Clear stale session states so selecting a topic from the library starts at Tier 0
   const handleSelectConcept = (concept: Concept) => {
+    clearPersistedActiveChallenge(concept.id);
+    resetHintStateForConcept(concept.id);
+    clearAttemptDraft(concept.id);
+
     setActiveConcept(concept);
     setCurrentTab('concept-preview');
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -68,6 +75,11 @@ export default function App() {
 
   // Flow: Concept Preview -> "Prove This" -> Challenge experience
   const handleProveThis = () => {
+    if (activeConcept) {
+      clearPersistedActiveChallenge(activeConcept.id);
+      resetHintStateForConcept(activeConcept.id);
+      clearAttemptDraft(activeConcept.id);
+    }
     setCurrentTab('challenge');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -75,6 +87,9 @@ export default function App() {
   const handleSelectFeaturedConcept = (conceptId: string) => {
     const concept = getConceptById(conceptId);
     if (concept) {
+      clearPersistedActiveChallenge(concept.id);
+      resetHintStateForConcept(concept.id);
+      clearAttemptDraft(concept.id);
       setActiveConcept(concept);
     }
     setCurrentTab('concept-preview');
@@ -82,6 +97,9 @@ export default function App() {
   };
 
   const handleConceptConfirmed = (concept: Concept) => {
+    clearPersistedActiveChallenge(concept.id);
+    resetHintStateForConcept(concept.id);
+    clearAttemptDraft(concept.id);
     setActiveConcept(concept);
     setCurrentTab('challenge');
     window.scrollTo({ top: 0, behavior: 'smooth' });
