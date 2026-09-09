@@ -46,7 +46,7 @@ export function useAssessmentEngine({
   const [stage, setStage] = useState<'confidence' | 'attempt' | 'submitted'>('confidence');
   const [confidenceBeforeAttempt, setConfidenceBeforeAttempt] = useState<number>(3);
   
-  // Step Deck Workspace States
+  // Step Deck Workspace States (Unified Form State)
   const [microAnswers, setMicroAnswers] = useState<Record<number, string>>({});
   const [activeStep, setActiveStep] = useState<number>(0);
   const [viewAllMilestones, setViewAllMilestones] = useState<boolean>(false);
@@ -63,7 +63,7 @@ export function useAssessmentEngine({
   const [isEvaluating, setIsEvaluating] = useState<boolean>(false);
   const [evaluationError, setEvaluationError] = useState<string | null>(null);
 
-  // Progressive Hint Ladder State (Scoped strictly to challenge.id)
+  // Progressive Hint Ladder State (Scoped strictly by challenge.id using fm_sess_${challenge_id})
   const [hintState, setHintState] = useState<ChallengeHintState>(() => {
     if (!challenge) {
       return {
@@ -88,20 +88,22 @@ export function useAssessmentEngine({
   const [isRequestingHint, setIsRequestingHint] = useState<boolean>(false);
   const [isOverrideRevealed, setIsOverrideRevealed] = useState<boolean>(false);
 
-  // LIFECYCLE ISOLATION: Flush state completely whenever challenge.id or concept.id changes
+  // TOPIC CACHE ISOLATION: Reset/restore state cleanly whenever challenge.id changes
   useEffect(() => {
     setActiveStep(0);
-    setMicroAnswers({});
-    setResponse('');
-    setStage('confidence');
-    setSubmittedAttempt(null);
-    setEvaluationResult(null);
-    setEvaluationError(null);
     setValidationError(null);
     setViewAllMilestones(false);
     setIsOverrideRevealed(false);
 
-    if (!challenge) return;
+    if (!challenge) {
+      setMicroAnswers({});
+      setResponse('');
+      setStage('confidence');
+      setSubmittedAttempt(null);
+      setEvaluationResult(null);
+      setEvaluationError(null);
+      return;
+    }
 
     // Check existing attempts for this challenge in the current session
     const attempts = getAttemptsForChallenge(challenge.id);
@@ -112,7 +114,7 @@ export function useAssessmentEngine({
 
     setHintState(initialHintState);
 
-    // Restore active draft if available
+    // Restore active draft if available for this specific challenge ID
     const draft = getAttemptDraft(challenge.id);
     if (draft) {
       setConfidenceBeforeAttempt(draft.confidence_before_attempt || 3);
@@ -124,10 +126,18 @@ export function useAssessmentEngine({
       if (draft.lastSaved) {
         setDraftSavedTimestamp(draft.lastSaved);
       }
+    } else {
+      // Clear inputs if no saved draft for this exact challenge ID
+      setMicroAnswers({});
+      setResponse('');
+      setStage('confidence');
+      setSubmittedAttempt(null);
+      setEvaluationResult(null);
+      setEvaluationError(null);
     }
   }, [challenge?.id, concept.id]);
 
-  // Handle micro-answer changes per step
+  // Handle micro-answer changes per step with unified form state persistence
   const handleMicroAnswerChange = useCallback(
     (stepIndex: number, val: string) => {
       setMicroAnswers((prev) => {
@@ -151,7 +161,7 @@ export function useAssessmentEngine({
           saveAttemptDraft(challenge.id, {
             confidence_before_attempt: confidenceBeforeAttempt,
             response: combinedText,
-            stage: 'attempt',
+            stage: stage === 'submitted' ? 'attempt' : stage,
             microAnswers: updated,
             lastSaved: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
           });
@@ -160,7 +170,7 @@ export function useAssessmentEngine({
         return updated;
       });
     },
-    [challenge, concept, confidenceBeforeAttempt, validationError]
+    [challenge, concept, confidenceBeforeAttempt, stage, validationError]
   );
 
   // Transition from Confidence Gate to Independent Attempt
@@ -180,14 +190,14 @@ export function useAssessmentEngine({
     }
   }, [challenge, confidenceBeforeAttempt, response, microAnswers]);
 
-  // Submit attempt with strict client heuristics and duplicate protection
+  // Submit attempt with strict client heuristics and attempt counter synchronization
   const handleSubmitAttempt = useCallback(async () => {
     if (!challenge || isSubmitting) return;
 
     const milestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
     const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
 
-    // Client-Side Input Quality Heuristic Check
+    // Client-Side Input Quality Heuristic Check: Block if any step has < 4 substantive chars
     const invalidStepDetails: { stepNum: number; reason: string }[] = [];
     milestones.forEach((_, idx) => {
       const text = (microAnswers[idx] || '').trim();
@@ -203,7 +213,7 @@ export function useAssessmentEngine({
     if (invalidStepDetails.length > 0) {
       const stepList = invalidStepDetails.map((s) => `Step ${s.stepNum}`).join(', ');
       setValidationError(
-        `Please provide a substantive answer (at least 4 characters, not repetitive letters or filler text) for all steps (${stepList}).`
+        `Please provide a substantive answer (at least 4 non-repetitive characters) for all steps (${stepList}).`
       );
       return;
     }
@@ -254,7 +264,6 @@ export function useAssessmentEngine({
 
       const recorded = recordAttempt(newAttempt);
       if (recorded) {
-        clearAttemptDraft(challenge.id);
         setSubmittedAttempt(newAttempt);
         setStage('submitted');
         setEvaluationResult(null);
@@ -339,11 +348,9 @@ export function useAssessmentEngine({
     [challenge, isRequestingHint, evaluationResult, submittedAttempt]
   );
 
-  // Retry attempt on the same challenge while PRESERVING unlocked hints
+  // Retry attempt on the same challenge while PRESERVING typed answers and unlocked hints
   const handleRetryAttempt = useCallback(() => {
     setActiveStep(0);
-    setResponse('');
-    setMicroAnswers({});
     setStage('attempt');
     setSubmittedAttempt(null);
     setEvaluationResult(null);

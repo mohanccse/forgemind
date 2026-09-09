@@ -7,7 +7,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'rice-prioritization',
     name: 'RICE Prioritization',
-    domain: 'Product Management',
+    domain: 'AI Product Management',
     description: 'A quantitative scoring model evaluating Reach, Impact, Confidence, and Effort to remove cognitive bias from roadmap decisions.',
     underlyingSkill: 'Prioritizing competing initiatives using structured trade-offs.',
     capabilities: [
@@ -71,7 +71,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'product-metrics',
     name: 'Product Metrics',
-    domain: 'Product Management',
+    domain: 'AI Product Management',
     description: 'Constructing input and output metric trees, isolating vanity metrics, and identifying leading indicators of retention.',
     underlyingSkill: 'Deconstructing top-line product performance into causal input drivers and guardrail health metrics.',
     capabilities: [
@@ -123,7 +123,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'jtbd',
     name: 'JTBD',
-    domain: 'Product Management',
+    domain: 'AI Product Management',
     description: 'Uncovering the underlying functional, emotional, and social progress a user is trying to make in a specific circumstance.',
     underlyingSkill: 'Isolating root customer progress and emotional friction from feature-level solution requests.',
     capabilities: [
@@ -175,7 +175,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'mvp-definition',
     name: 'MVP Definition',
-    domain: 'Product Management',
+    domain: 'AI Product Management',
     description: 'The smallest experiment or product slice that systematically validates or invalidates a core leap-of-faith assumption.',
     underlyingSkill: 'Designing minimal, uncertainty-reducing experiments that test risky behavioral hypotheses.',
     capabilities: [
@@ -227,7 +227,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'ab-testing',
     name: 'A/B Testing',
-    domain: 'Product Management',
+    domain: 'AI Product Management',
     description: 'Rigorous experimentation, sample sizing, hypothesis framing, statistical power, and avoiding p-hacking or peaking bias.',
     underlyingSkill: 'Evaluating experiment validity, detecting structural bias, and making statistically grounded release decisions.',
     capabilities: [
@@ -283,7 +283,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'rag',
     name: 'RAG',
-    domain: 'AI / Technology',
+    domain: 'AI Product Management',
     description: 'Retrieval-Augmented Generation: document chunking, semantic index querying, context window injection, and factual grounding.',
     underlyingSkill: 'Architecting grounded semantic retrieval pipelines that resist conflicting context and retrieval dilution.',
     capabilities: [
@@ -335,7 +335,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'embeddings',
     name: 'Embeddings',
-    domain: 'AI / Technology',
+    domain: 'AI Product Management',
     description: 'Vector representations of text in latent dimensional space, cosine similarity, clustering, and semantic retrieval boundaries.',
     underlyingSkill: 'Selecting, tuning, and querying vector space models for asymmetric semantic matching.',
     capabilities: [
@@ -387,7 +387,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'prompt-engineering',
     name: 'Prompt Engineering',
-    domain: 'AI / Technology',
+    domain: 'AI Product Management',
     description: 'Techniques for steering LLM reasoning: few-shot exemplars, chain-of-thought, role conditioning, structured output schema, and delimiters.',
     underlyingSkill: 'Constructing robust, injection-resistant system prompts that enforce structural execution contracts.',
     capabilities: [
@@ -439,7 +439,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'classification',
     name: 'Classification',
-    domain: 'AI / Technology',
+    domain: 'AI Product Management',
     description: 'Supervised categorization, confusion matrices, precision vs recall trade-offs, F1-scores, and probability calibration.',
     underlyingSkill: 'Optimizing decision thresholds based on real-world operational cost matrices and class imbalances.',
     capabilities: [
@@ -495,7 +495,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'sql-joins',
     name: 'SQL JOINs',
-    domain: 'SQL / Data',
+    domain: 'AI Product Management',
     description: 'Relational algebra combining rows across tables: INNER, LEFT, RIGHT, FULL OUTER, CROSS JOIN, and relational cardinality preservation.',
     underlyingSkill: 'Preserving correct row cardinality and aggregate calculations across one-to-many and many-to-many relational joins.',
     capabilities: [
@@ -547,7 +547,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'group-by',
     name: 'GROUP BY',
-    domain: 'SQL / Data',
+    domain: 'AI Product Management',
     description: 'Aggregating tabular data with aggregate functions (SUM, AVG, COUNT), HAVING filters, and multi-dimensional grouping sets.',
     underlyingSkill: 'Structuring multi-level aggregations and conditional cohort filtering across granular relational dimensions.',
     capabilities: [
@@ -599,7 +599,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'window-functions',
     name: 'Window Functions',
-    domain: 'SQL / Data',
+    domain: 'AI Product Management',
     description: 'Calculations across sets of table rows related to the current row without collapsing rows: OVER, PARTITION BY, ORDER BY, LAG, LEAD, ROW_NUMBER.',
     underlyingSkill: 'Computing analytical metrics over partitions and sliding frames while preserving row identity.',
     capabilities: [
@@ -651,7 +651,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   {
     id: 'ctes',
     name: 'CTEs',
-    domain: 'SQL / Data',
+    domain: 'AI Product Management',
     description: 'Common Table Expressions (WITH clauses): modularizing complex analytical queries, readability, and recursive CTEs for hierarchical data.',
     underlyingSkill: 'Modularizing complex logic and traversing hierarchical recursive datasets using CTE pipelines.',
     capabilities: [
@@ -702,7 +702,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
   }
 ];
 
-export const DOMAINS: Domain[] = ['Product Management', 'AI / Technology', 'SQL / Data'];
+export const DOMAINS: Domain[] = ['AI Product Management'];
 
 // Helper data-access functions for local/mock state and future Supabase binding
 export function getConcepts(domainFilter?: string, searchQuery?: string): Concept[] {

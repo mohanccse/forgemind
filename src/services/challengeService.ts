@@ -49,9 +49,15 @@ export async function generateNovelChallenge(
     }
 
     const data = await response.json();
+    const effectiveSource: ChallengeSourceType =
+      (concept.sourceType === 'USER_GENERATED' || sourceType === 'USER_GENERATED' || concept.isUserOwned)
+        ? 'USER_GENERATED'
+        : (data.challenge?.sourceType || sourceType);
+
     const challenge: GeneratedChallenge = {
       ...data.challenge,
-      sourceType: data.challenge.sourceType || sourceType
+      domain: 'AI Product Management',
+      sourceType: effectiveSource
     };
 
     // Validate structured response

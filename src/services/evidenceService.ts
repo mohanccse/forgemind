@@ -56,16 +56,24 @@ export function buildConceptEvidenceProfile(
   ).length;
 
   // Most recent attempt metrics
+  const latestEvaluatedAttempt = [...sortedAttempts]
+    .reverse()
+    .find((a) => a.verdict || a.evaluation?.verdict);
+
   const latestAttempt = sortedAttempts[sortedAttempts.length - 1];
-  const confidenceBeforeChallenge = latestAttempt?.confidence_before_attempt ?? 5;
+  const confidenceBeforeChallenge = (latestEvaluatedAttempt || latestAttempt)?.confidence_before_attempt ?? 5;
   const observedOutcome: EvaluationVerdict | null =
-    latestAttempt?.verdict || latestAttempt?.evaluation?.verdict || null;
+    latestEvaluatedAttempt?.verdict || latestEvaluatedAttempt?.evaluation?.verdict || latestAttempt?.verdict || latestAttempt?.evaluation?.verdict || null;
   const hintsUsed =
-    latestAttempt?.hint_tier_reached ?? latestAttempt?.hint_tier_used ?? 0;
-  const retryCount = latestAttempt?.retry_count ?? Math.max(0, totalAttempts - 1);
+    (latestEvaluatedAttempt || latestAttempt)?.hint_tier_reached ?? (latestEvaluatedAttempt || latestAttempt)?.hint_tier_used ?? 0;
+  const retryCount = (latestEvaluatedAttempt || latestAttempt)?.retry_count ?? Math.max(0, totalAttempts - 1);
   const solutionRevealed = sortedAttempts.some((a) => a.solution_revealed);
   const evaluatorConfidence =
-    latestAttempt?.evaluator_confidence ?? latestAttempt?.evaluation?.evaluator_confidence;
+    (latestEvaluatedAttempt || latestAttempt)?.evaluator_confidence ?? (latestEvaluatedAttempt || latestAttempt)?.evaluation?.evaluator_confidence;
+
+  const latestDemonstratedCaps = new Set(
+    (latestEvaluatedAttempt?.demonstrated_capabilities || latestEvaluatedAttempt?.evaluation?.demonstrated_capabilities || []).map(formatCapabilityLabel)
+  );
 
   // Canonical concept capabilities
   const canonicalCaps = concept.capabilities.map(formatCapabilityLabel);
@@ -131,45 +139,28 @@ export function buildConceptEvidenceProfile(
     const missCount = missStats?.count || 0;
     const quotes = Array.from(new Set(demStats?.quotes || []));
 
-    if (demCount > 0 && missCount === 0) {
-      // Demonstrated cleanly
+    const isDemonstratedInLatest = Array.from(latestDemonstratedCaps).some(
+      (k) => normalizeCapabilityKey(k) === normalizeCapabilityKey(cap)
+    );
+
+    if (demCount > 0 && (missCount === 0 || isDemonstratedInLatest || autoCount > 0 || demCount >= missCount)) {
+      // Demonstrated in recent attempt or unassisted
       const note =
-        demCount === 1
-          ? 'Demonstrated in 1 attempt (provisional evidence; additional non-overlapping challenges recommended for consistency)'
-          : `Demonstrated across ${demCount} attempts (${autoCount} autonomous unassisted)`;
+        missCount === 0
+          ? (demCount === 1
+              ? 'Demonstrated in 1 attempt (provisional evidence; additional non-overlapping challenges recommended for consistency)'
+              : `Demonstrated across ${demCount} attempts (${autoCount} autonomous unassisted)`)
+          : `Demonstrated in recent evaluated attempt (${demCount} verified observation${demCount > 1 ? 's' : ''})`;
 
       demonstratedItems.push({
         capability: cap,
         status: 'Demonstrated',
         demonstratedCount: demCount,
-        missingCount: 0,
+        missingCount: missCount,
         autonomousCount: autoCount,
         notes: note,
         evidenceQuotes: quotes
       });
-    } else if (demCount > 0 && missCount > 0) {
-      // Mixed evidence across attempts
-      if (demCount > missCount && autoCount > 0) {
-        demonstratedItems.push({
-          capability: cap,
-          status: 'Demonstrated',
-          demonstratedCount: demCount,
-          missingCount: missCount,
-          autonomousCount: autoCount,
-          notes: `Demonstrated in recent attempts; previously flagged as developing (${missCount} missing observations)`,
-          evidenceQuotes: quotes
-        });
-      } else {
-        developingItems.push({
-          capability: cap,
-          status: 'Developing',
-          demonstratedCount: demCount,
-          missingCount: missCount,
-          autonomousCount: autoCount,
-          notes: `Emerging demonstration (${demCount} observed vs ${missCount} missing across attempts)`,
-          evidenceQuotes: quotes
-        });
-      }
     } else if (missCount > 0 && demCount === 0) {
       // Strictly missing / developing
       developingItems.push({
@@ -180,6 +171,16 @@ export function buildConceptEvidenceProfile(
         autonomousCount: 0,
         notes: `Identified as missing in ${missCount} evaluated attempt${missCount > 1 ? 's' : ''}`,
         evidenceQuotes: []
+      });
+    } else if (demCount > 0 && missCount > 0) {
+      developingItems.push({
+        capability: cap,
+        status: 'Developing',
+        demonstratedCount: demCount,
+        missingCount: missCount,
+        autonomousCount: autoCount,
+        notes: `Emerging demonstration (${demCount} observed vs ${missCount} missing across attempts)`,
+        evidenceQuotes: quotes
       });
     } else {
       // Unobserved in current attempts

@@ -1,4 +1,4 @@
-export type Domain = 'Product Management' | 'AI / Technology' | 'SQL / Data';
+export type Domain = 'AI Product Management';
 
 export type DifficultyLevel = 'Foundational' | 'Applied' | 'Advanced' | 'Expert';
 

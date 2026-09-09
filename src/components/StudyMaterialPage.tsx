@@ -39,6 +39,7 @@ import {
   parseDocxFile,
   parseYoutubeUrl,
   parseAudioFile,
+  parseVideoFile,
   SAMPLE_STUDY_MATERIALS
 } from '../services/normalizedContentService';
 import { saveConfirmedUserConcept } from '../services/userConceptService';
@@ -247,6 +248,60 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
       const file = e.dataTransfer.files[0];
       handleAudioUpload(file);
+    }
+  };
+
+  // Step 14: Video Ingestion State
+  const videoFileInputRef = useRef<HTMLInputElement>(null);
+  const [selectedVideo, setSelectedVideo] = useState<File | null>(null);
+
+  // Step 14: Process Video File (demux audio stream -> gemini-3.8-flash)
+  const handleVideoUpload = async (file: File) => {
+    if (!file) return;
+    setExtractionError(null);
+    setExtractedCandidate(null);
+    setSelectedVideo(file);
+    setProcessingStatus('PROCESSING');
+
+    const parseRes = await parseVideoFile(file);
+
+    if (!parseRes.success || !parseRes.normalizedContent) {
+      setProcessingStatus('FAILED');
+      setExtractionError(parseRes.error || 'Failed to process video file.');
+      return;
+    }
+
+    setNormalizedContent(parseRes.normalizedContent);
+
+    try {
+      const extractRes = await extractConceptFromStudyMaterial(parseRes.normalizedContent);
+
+      if (!extractRes.success || !extractRes.candidate) {
+        setProcessingStatus('FAILED');
+        setExtractionError(extractRes.error || 'Unable to extract concept from video transcript.');
+        return;
+      }
+
+      setProcessingStatus('READY');
+      setExtractedCandidate(extractRes.candidate);
+    } catch (err: any) {
+      setProcessingStatus('FAILED');
+      setExtractionError(err.message || 'Processing pipeline error during video concept extraction.');
+    }
+  };
+
+  const handleVideoFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files[0]) {
+      handleVideoUpload(files[0]);
+    }
+  };
+
+  const handleVideoDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+      const file = e.dataTransfer.files[0];
+      handleVideoUpload(file);
     }
   };
 
@@ -796,8 +851,8 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                   <div className="text-[10px] text-zinc-500">Screen recordings, talks</div>
                 </div>
               </div>
-              <span className="rounded bg-zinc-800 text-zinc-400 text-[10px] font-mono px-1.5 py-0.5">
-                Step 13
+              <span className="rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono px-1.5 py-0.5">
+                Active
               </span>
             </button>
 
@@ -1252,51 +1307,83 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                   </div>
                 )}
               </div>
-            ) : (
-              /* Honest Expansion Notice: Input Adapter coming in next step */
-              <div className="py-8 px-4 text-center space-y-4">
-                <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-zinc-800/80 border border-zinc-700 text-amber-400">
-                  {(activeSourceType as string) === 'docx' && <FileCode className="h-6 w-6" />}
-                  {(activeSourceType as string) === 'audio' && <FileAudio className="h-6 w-6" />}
-                  {(activeSourceType as string) === 'video' && <Video className="h-6 w-6" />}
-                  {(activeSourceType as string) === 'youtube' && <Youtube className="h-6 w-6" />}
+            ) : activeSourceType === 'video' ? (
+              /* Step 14 Active: Video Ingestion Interface (ffmpeg audio demux) */
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-mono uppercase tracking-wider text-zinc-300">
+                    Upload Video Recording (Audio-Only Demux)
+                  </label>
+                  <span className="text-[11px] font-mono text-zinc-500">
+                    MP4, WEBM, MOV up to 50MB (ffmpeg audio demux)
+                  </span>
                 </div>
 
-                <div>
-                  <h3 className="font-serif text-lg font-medium text-zinc-200">
-                    {(activeSourceType as string) === 'docx' && 'Word (.DOCX) Extraction'}
-                    {(activeSourceType as string) === 'audio' && 'Audio Speech-to-Text Adapter'}
-                    {(activeSourceType as string) === 'video' && 'Video Multimodal Extractor'}
-                    {(activeSourceType as string) === 'youtube' && 'YouTube Lecture Transcript Adapter'}
-                  </h3>
-                  <div className="mt-2 inline-flex items-center space-x-1.5 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-1 text-xs font-mono text-amber-300">
-                    <Clock className="h-3 w-3" />
-                    <span>
-                      Coming in next input-expansion step (
-                      {(activeSourceType as string) === 'docx' && 'Step 11'}
-                      {(activeSourceType as string) === 'audio' && 'Step 12'}
-                      {(activeSourceType as string) === 'video' && 'Step 13'}
-                      {(activeSourceType as string) === 'youtube' && 'Step 14'}
-                      )
-                    </span>
+                {/* File Dropzone */}
+                <div
+                  id="video-dropzone"
+                  onDragOver={(e) => e.preventDefault()}
+                  onDrop={handleVideoDrop}
+                  onClick={() => videoFileInputRef.current?.click()}
+                  className="group relative flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-zinc-800 bg-zinc-950/80 p-8 text-center transition-all hover:border-amber-500/50 hover:bg-zinc-900/50 cursor-pointer"
+                >
+                  <input
+                    ref={videoFileInputRef}
+                    id="video-file-input"
+                    type="file"
+                    accept="video/*,.mp4,.webm,.mov,.avi"
+                    onChange={handleVideoFileInputChange}
+                    className="hidden"
+                  />
+
+                  <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 group-hover:scale-105 transition-transform">
+                    <Video className="h-6 w-6" />
+                  </div>
+
+                  <div className="mt-4 space-y-1">
+                    <p className="text-sm font-medium text-zinc-200">
+                      {selectedVideo ? selectedVideo.name : 'Click to upload or drag & drop a video file'}
+                    </p>
+                    <p className="text-xs text-zinc-500">
+                      {selectedVideo
+                        ? `${(selectedVideo.size / (1024 * 1024)).toFixed(2)} MB • Ready to demux audio`
+                        : 'Screen recordings, talks, demo videos (.mp4, .webm, .mov)'}
+                    </p>
+                  </div>
+
+                  <div className="mt-4 inline-flex items-center space-x-2 rounded-lg bg-zinc-800 px-3 py-1.5 text-xs font-medium text-zinc-300 group-hover:bg-zinc-700 transition-colors">
+                    <Upload className="h-3.5 w-3.5 text-amber-400" />
+                    <span>Select Video File</span>
                   </div>
                 </div>
 
-                <p className="mx-auto max-w-md text-xs text-zinc-400 leading-relaxed">
-                  ForgeMind does not simulate fake extraction. Dedicated media parsers for{' '}
-                  <strong className="text-zinc-300 uppercase">{activeSourceType.replace('_', ' ')}</strong>{' '}
-                  will be implemented in the scheduled input-expansion steps. In the meantime, you can copy and paste your text directly into the <strong>Paste Text</strong> tab or upload a <strong>PDF</strong>.
-                </p>
+                {/* Error Banner */}
+                {extractionError && (
+                  <div id="video-extraction-error-banner" className="rounded-lg border border-rose-900/50 bg-rose-950/30 p-4 text-xs text-rose-300 space-y-2">
+                    <div className="flex items-start space-x-2">
+                      <AlertTriangle className="h-4 w-4 shrink-0 mt-0.5 text-rose-400" />
+                      <div className="space-y-1">
+                        <span className="font-semibold text-rose-200 block">Video Ingestion Failure</span>
+                        <p className="text-rose-300/90 leading-relaxed font-mono">{extractionError}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
 
-                <div className="pt-2">
-                  <button
-                    onClick={() => setActiveSourceType('paste_text')}
-                    className="inline-flex items-center space-x-1.5 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
-                  >
-                    <span>Switch to Paste Text</span>
-                    <ArrowRight className="h-3.5 w-3.5 text-amber-400" />
-                  </button>
-                </div>
+                {/* Processing Spinner */}
+                {processingStatus === 'PROCESSING' && (
+                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-xs font-mono text-amber-300 flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <span className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-amber-400 border-t-transparent" />
+                      <span>Demuxing video audio track & building capability model...</span>
+                    </div>
+                    <span className="text-[11px] text-zinc-500">ffmpeg + gemini-3.8-flash</span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="py-8 px-4 text-center text-xs text-zinc-400">
+                Please select a study material input format from the options on the left.
               </div>
             )}
           </div>

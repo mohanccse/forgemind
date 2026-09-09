@@ -110,7 +110,7 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
   const [draftSavedTimestamp, setDraftSavedTimestamp] = useState<string | null>(null);
   const [submittedAttempt, setSubmittedAttempt] = useState<LearnerAttempt | null>(null);
   const [editorMode, setEditorMode] = useState<'text' | 'code'>(
-    concept.domain === 'SQL / Data' ? 'code' : 'text'
+    concept.id.includes('sql') ? 'code' : 'text'
   );
   const [previewTab, setPreviewTab] = useState<'write' | 'preview'>('write');
 

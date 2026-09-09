@@ -1,6 +1,11 @@
 import { NextResponse } from 'next/server';
 import { getGenAI, executeWithTimeoutAndRetry } from '@/lib/gemini';
 
+/**
+ * Step 13: Audio Ingestion API Route
+ * Uses Gemini Multimodal Audio API (gemini-3.8-flash) for verbatim Speech-to-Text transcription.
+ * Rate limit notes for free tier: ~25 calls/day, 2 requests/minute, 30 min audio duration per call.
+ */
 export async function POST(request: Request) {
   try {
     const body = await request.json();
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
             }
           },
           {
-            text: 'Transcribe the spoken audio content accurately and verbatim into English text. Output strictly the full transcript without conversational filler.'
+            text: 'You are an exact, verbatim audio transcriber. Transcribe the spoken audio content accurately and verbatim into English text. Output strictly the full transcript without conversational filler or summary.'
           }
         ]
       });
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
     const transcribedText = response.text?.trim() || '';
     if (!transcribedText || transcribedText.length < 10) {
       return NextResponse.json(
-        { success: false, error: 'Speech-to-text conversion yielded no clear transcript. Please check the audio file.' },
+        { success: false, error: 'Speech-to-text conversion yielded no clear transcript. Audio may be silent or missing spoken words.' },
         { status: 400 }
       );
     }
@@ -60,6 +65,20 @@ export async function POST(request: Request) {
     });
   } catch (err: any) {
     console.warn('Audio transcription error:', err.message);
+    const isRateLimit =
+      err?.status === 429 ||
+      (err?.message && (err.message.includes('429') || err.message.includes('RESOURCE_EXHAUSTED') || err.message.includes('Quota exceeded')));
+
+    if (isRateLimit) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Transcription rate limit reached. Please try again in a few moments.'
+        },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
       { success: false, error: err.message || 'Unable to transcribe audio file.' },
       { status: 400 }

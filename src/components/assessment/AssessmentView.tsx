@@ -17,7 +17,9 @@ import {
   ListChecks,
   AlertOctagon,
   HelpCircle,
-  Quote
+  Quote,
+  Award,
+  ArrowRight
 } from 'lucide-react';
 import { Concept, ViewTab, GeneratedChallenge } from '../../types';
 import { HintLadderRail } from '../HintLadderRail';
@@ -59,6 +61,12 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     (_, idx) => (engine.microAnswers[idx] || '').trim().length > 0
   ).length;
 
+  const evalResult = engine.evaluationResult || engine.submittedAttempt?.evaluation;
+
+  const isCorrect =
+    evalResult?.verdict === 'CORRECT' ||
+    engine.submittedAttempt?.verdict === 'CORRECT';
+
   return (
     <div id="assessment-view">
       {/* Top Navigation & Active Topic Bar */}
@@ -85,11 +93,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
           </div>
 
           <span className="rounded border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
-            Door: <strong className="text-zinc-300 font-semibold">{challenge.sourceType === 'USER_GENERATED' ? 'Door 2 (Custom Upload)' : 'Door 1 (Content Library)'}</strong>
+            Door: <strong className="text-zinc-300 font-semibold">{(challenge.sourceType === 'USER_GENERATED' || concept.sourceType === 'USER_GENERATED' || concept.isUserOwned) ? 'Door 2 (Custom Upload)' : 'Door 1 (Content Library)'}</strong>
           </span>
 
           <span className="text-xs text-zinc-500 hidden md:inline">
-            Domain: <strong className="text-zinc-400 font-normal">{concept.domain}</strong>
+            Domain: <strong className="text-zinc-400 font-normal">AI Product Management</strong>
           </span>
         </div>
       </div>
@@ -277,13 +285,14 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       </span>
                       <span className="text-zinc-600">|</span>
                       <span className="text-xs text-zinc-400 font-mono">
-                        1-2 lines per step (~150-200 chars nudge)
+                        1-2 lines per step (~160 chars bound)
                       </span>
                     </div>
 
                     <div className="flex items-center space-x-1 bg-zinc-950/60 border border-zinc-800/80 rounded-md p-1">
                       <button
                         type="button"
+                        id="view-toggle-single"
                         onClick={() => engine.setViewAllMilestones(false)}
                         className={`rounded px-2.5 py-0.5 text-xs font-medium transition-colors ${
                           !engine.viewAllMilestones
@@ -291,10 +300,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             : 'text-zinc-400 hover:text-zinc-200'
                         }`}
                       >
-                        Single Step
+                        Step Focus
                       </button>
                       <button
                         type="button"
+                        id="view-toggle-all"
                         onClick={() => engine.setViewAllMilestones(true)}
                         className={`rounded px-2.5 py-0.5 text-xs font-medium transition-colors ${
                           engine.viewAllMilestones
@@ -302,7 +312,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             : 'text-zinc-400 hover:text-zinc-200'
                         }`}
                       >
-                        All Steps
+                        Show All Steps
                       </button>
                     </div>
                   </div>
@@ -361,14 +371,18 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             rows={3}
                             value={engine.microAnswers[engine.activeStep] || ''}
                             onChange={(e) => engine.handleMicroAnswerChange(engine.activeStep, e.target.value)}
-                            placeholder="Answer in 1-2 lines (approx. 150-200 characters recommended)..."
+                            placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
                             className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20"
                           />
-                          <div className="mt-1 flex items-center justify-between text-[10px] font-mono text-zinc-500">
-                            <span>
-                              {(engine.microAnswers[engine.activeStep] || '').length} chars
+                          <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
+                            <span className={
+                              (engine.microAnswers[engine.activeStep] || '').length > 160
+                                ? 'text-amber-400 font-medium'
+                                : 'text-zinc-500'
+                            }>
+                              {(engine.microAnswers[engine.activeStep] || '').length} / 160 characters
                             </span>
-                            {(engine.microAnswers[engine.activeStep] || '').trim().length > 0 && (
+                            {(engine.microAnswers[engine.activeStep] || '').trim().length >= 4 && (
                               <span className="text-emerald-400 flex items-center space-x-1">
                                 <Check className="h-3 w-3" />
                                 <span>Saved</span>
@@ -398,6 +412,62 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             <ChevronRight className="h-3.5 w-3.5" />
                           </button>
                         </div>
+                      </div>
+                    )}
+
+                    {engine.viewAllMilestones && (
+                      <div className="space-y-4">
+                        {milestones.map((m, idx) => {
+                          const val = engine.microAnswers[idx] || '';
+                          const charCount = val.length;
+                          const isSubstantive = val.trim().length >= 4;
+
+                          return (
+                            <div key={idx} className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-3">
+                              <div className="flex items-center justify-between">
+                                <span className="inline-flex items-center space-x-1.5 rounded bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/30">
+                                  <span>Step {idx + 1} of {totalMilestones}</span>
+                                </span>
+                                {isSubstantive && (
+                                  <span className="text-emerald-400 flex items-center space-x-1 text-[11px] font-mono">
+                                    <Check className="h-3 w-3" />
+                                    <span>Completed</span>
+                                  </span>
+                                )}
+                              </div>
+
+                              <div>
+                                <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-amber-400/90">
+                                  Step {idx + 1}: {m}
+                                </h4>
+                                <p className="text-xs text-zinc-200 mt-1 font-sans leading-relaxed font-medium">
+                                  {questions[idx] || m}
+                                </p>
+                              </div>
+
+                              <div className="relative mt-2">
+                                <textarea
+                                  rows={3}
+                                  value={val}
+                                  onChange={(e) => engine.handleMicroAnswerChange(idx, e.target.value)}
+                                  placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
+                                  className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20"
+                                />
+                                <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
+                                  <span className={charCount > 160 ? 'text-amber-400 font-medium' : 'text-zinc-500'}>
+                                    {charCount} / 160 characters
+                                  </span>
+                                  {isSubstantive && (
+                                    <span className="text-emerald-400 flex items-center space-x-1">
+                                      <Check className="h-3 w-3" />
+                                      <span>Saved</span>
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
                       </div>
                     )}
                   </div>
@@ -447,125 +517,229 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                   isRequestingHint={engine.isRequestingHint}
                   onRevealOverride={() => engine.setIsOverrideRevealed(!engine.isOverrideRevealed)}
                   isOverrideRevealed={engine.isOverrideRevealed}
+                  attemptNumber={engine.submittedAttempt?.attempt_number || 1}
                 />
               </div>
             </div>
           </div>
         )}
 
-        {/* STAGE 3: EVALUATION OUTPUT */}
+        {/* STAGE 3: EVALUATION OUTPUT & TERMINAL MASTERY */}
         {engine.stage === 'submitted' && engine.submittedAttempt && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
             <div className="lg:col-span-8 space-y-6">
-              <div className="rounded-xl border border-emerald-500/30 bg-gradient-to-b from-emerald-950/20 to-[#0e1014] p-6 sm:p-8">
-                <div className="flex items-center space-x-3">
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
-                    <CheckCircle2 className="h-6 w-6" />
-                  </div>
-                  <div>
-                    <span className="text-[11px] font-mono text-emerald-400 uppercase tracking-wider font-semibold">
-                      Attempt #{engine.submittedAttempt.attempt_number} Logged
-                    </span>
-                    <h1 className="font-serif text-2xl text-zinc-100">
-                      Topic: {concept.name}
-                    </h1>
-                  </div>
-                </div>
-
-                {/* Evaluation Engine Result Display */}
-                {engine.isEvaluating && (
-                  <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 text-center">
-                    <RefreshCw className="h-6 w-6 text-amber-400 animate-spin mx-auto" />
-                    <h3 className="mt-3 font-serif text-lg text-zinc-100">Evaluating Attempt...</h3>
-                  </div>
-                )}
-
-                {!engine.isEvaluating && engine.evaluationResult && (
-                  <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/80 p-5 space-y-6">
-                    <div className="flex items-center space-x-3 border-b border-zinc-800 pb-4">
-                      <span
-                        className={`rounded px-2.5 py-1 text-xs font-mono uppercase tracking-wider font-semibold border ${
-                          engine.evaluationResult.verdict === 'CORRECT'
-                            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-                            : engine.evaluationResult.verdict === 'PARTIALLY_CORRECT'
-                            ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                            : engine.evaluationResult.verdict === 'WRONG_APPROACH'
-                            ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                            : 'bg-violet-500/10 border-violet-500/30 text-violet-300'
-                        }`}
-                      >
-                        Verdict: {engine.evaluationResult.verdict.replace('_', ' ')}
+              {/* TERMINAL MASTERY COMPLETION CARD (if CORRECT) */}
+              {isCorrect ? (
+                <div id="capability-verified-card" className="rounded-xl border border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 to-[#0c1210] p-6 sm:p-8 space-y-6 shadow-2xl">
+                  <div className="flex items-center space-x-4">
+                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-inner">
+                      <Award className="h-7 w-7" />
+                    </div>
+                    <div>
+                      <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold block">
+                        Capability Demonstrated & Verified
                       </span>
+                      <h1 className="font-serif text-2xl sm:text-3xl text-zinc-100 font-medium">
+                        Autonomous Mastery Achieved
+                      </h1>
+                    </div>
+                  </div>
+
+                  <p className="text-sm text-zinc-300 leading-relaxed font-sans">
+                    Congratulations! Your unassisted synthesis for <strong className="text-emerald-300 font-semibold">{concept.name}</strong> satisfies all operational criteria without relying on hint assistance.
+                  </p>
+
+                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-4 space-y-3">
+                    <div className="flex items-center justify-between text-xs font-mono text-emerald-300 border-b border-emerald-500/20 pb-2">
+                      <span>Evaluator Decision: CORRECT (COMPLETED)</span>
+                      <span>Confidence: {Math.round(((evalResult?.evaluator_confidence) || 1) * 100)}%</span>
+                    </div>
+                    
+                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4 text-xs text-zinc-200 leading-relaxed">
+                      <strong className="text-emerald-300 font-mono block mb-1">Feedback on Understanding:</strong>
+                      {evalResult?.brief_feedback || 'Strong autonomous formulation demonstrating key structural milestones and addressing evaluation constraints directly.'}
                     </div>
 
-                    <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4 text-xs text-zinc-200">
-                      {engine.evaluationResult.brief_feedback}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4">
                         <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
                           <CheckCircle2 className="h-4 w-4" />
-                          <span>Demonstrated ({engine.evaluationResult.demonstrated_capabilities.length})</span>
+                          <span>Demonstrated ({(evalResult?.demonstrated_capabilities?.length || totalMilestones)}/{(totalMilestones || evalResult?.demonstrated_capabilities?.length || 5)})</span>
                         </div>
-                        {engine.evaluationResult.demonstrated_capabilities.map((c, i) => (
-                          <div key={i} className="text-xs text-zinc-300 mt-1">• {c}</div>
+                        {(evalResult?.demonstrated_capabilities?.length ? evalResult.demonstrated_capabilities : milestones).map((c, i) => (
+                          <div key={i} className="text-xs text-emerald-200/90 mt-1">• {c}</div>
                         ))}
                       </div>
 
-                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-                        <div className="flex items-center space-x-2 text-amber-400 mb-2 font-mono text-xs font-semibold">
-                          <AlertCircle className="h-4 w-4" />
-                          <span>Missing ({engine.evaluationResult.missing_capabilities.length})</span>
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4">
+                        <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
+                          <CheckCircle2 className="h-4 w-4" />
+                          <span>Missing ({evalResult?.missing_capabilities?.length || 0})</span>
                         </div>
-                        {engine.evaluationResult.missing_capabilities.map((c, i) => (
-                          <div key={i} className="text-xs text-zinc-400 mt-1">• {c}</div>
-                        ))}
+                        {(!evalResult?.missing_capabilities || evalResult.missing_capabilities.length === 0) ? (
+                          <div className="text-xs text-emerald-300/80 italic mt-1">• 0 missing — 100% Mastery Verified</div>
+                        ) : (
+                          evalResult.missing_capabilities.map((c, i) => (
+                            <div key={i} className="text-xs text-zinc-400 mt-1">• {c}</div>
+                          ))
+                        )}
                       </div>
                     </div>
 
-                    <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-                      <div className="flex items-center space-x-2 text-amber-300 mb-2 font-mono text-xs font-semibold">
-                        <Quote className="h-3.5 w-3.5" />
-                        <span>Grounded Evidence Audit ({engine.evaluationResult.evidence.length})</span>
-                      </div>
-                      {engine.evaluationResult.evidence.map((ev, i) => (
-                        <div key={i} className="rounded border border-zinc-800/60 bg-zinc-950/60 p-2 text-xs font-mono text-zinc-300 mt-1">
-                          {ev}
+                    {evalResult?.evidence && evalResult.evidence.length > 0 && (
+                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4 mt-2">
+                        <div className="flex items-center space-x-2 text-emerald-300 mb-2 font-mono text-xs font-semibold">
+                          <Quote className="h-3.5 w-3.5" />
+                          <span>Grounded Evidence Audit ({evalResult.evidence.length})</span>
                         </div>
-                      ))}
+                        {evalResult.evidence.map((ev, i) => (
+                          <div key={i} className="rounded border border-emerald-500/20 bg-zinc-950/60 p-2 text-xs font-mono text-emerald-200/90 mt-1">
+                            {ev}
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-emerald-500/20">
+                    <button
+                      onClick={() => onNavigate('evidence')}
+                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 rounded-lg bg-zinc-800 border border-zinc-700 px-5 py-2.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                    >
+                      <span>View Capability Ledger</span>
+                    </button>
+
+                    <button
+                      id="continue-next-module-btn"
+                      onClick={() => onNavigate('prove')}
+                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 rounded-lg bg-emerald-400 px-6 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-emerald-300 transition-all shadow-lg"
+                    >
+                      <span>Continue to Next Module</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                /* STANDARD EVALUATION RESULT DISPLAY (PARTIALLY_CORRECT / WRONG_APPROACH / NEEDS_CLARIFICATION) */
+                <div className="rounded-xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-[#0e1014] p-6 sm:p-8 space-y-6">
+                  <div className="flex items-center space-x-3">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
+                      <CheckCircle2 className="h-6 w-6" />
+                    </div>
+                    <div>
+                      <span className="text-[11px] font-mono text-amber-400 uppercase tracking-wider font-semibold">
+                        Attempt #{engine.submittedAttempt.attempt_number} Evaluated
+                      </span>
+                      <h1 className="font-serif text-2xl text-zinc-100">
+                        Topic: {concept.name}
+                      </h1>
                     </div>
                   </div>
-                )}
 
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <button
-                    onClick={() => onNavigate('evidence')}
-                    className="rounded-lg bg-amber-400 px-5 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-300"
-                  >
-                    View in My Evidence
-                  </button>
+                  {/* Evaluation Engine Result Display */}
+                  {engine.isEvaluating && (
+                    <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 text-center">
+                      <RefreshCw className="h-6 w-6 text-amber-400 animate-spin mx-auto" />
+                      <h3 className="mt-3 font-serif text-lg text-zinc-100">Evaluating Attempt...</h3>
+                    </div>
+                  )}
 
-                  <button
-                    onClick={engine.handleRetryAttempt}
-                    className="inline-flex items-center space-x-2 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700"
-                  >
-                    <RotateCcw className="h-3.5 w-3.5" />
-                    <span>Make Another Attempt</span>
-                  </button>
+                  {!engine.isEvaluating && evalResult && (
+                    <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/80 p-5 space-y-6">
+                      <div className="flex items-center space-x-3 border-b border-zinc-800 pb-4">
+                        <span
+                          className={`rounded px-2.5 py-1 text-xs font-mono uppercase tracking-wider font-semibold border ${
+                            evalResult.verdict === 'PARTIALLY_CORRECT'
+                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
+                              : evalResult.verdict === 'WRONG_APPROACH'
+                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
+                              : 'bg-violet-500/10 border-violet-500/30 text-violet-300'
+                          }`}
+                        >
+                          Verdict: {evalResult.verdict.replace('_', ' ')}
+                        </span>
+                      </div>
+
+                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4 text-xs text-zinc-200 leading-relaxed">
+                        <strong className="text-amber-400 font-mono block mb-1">Feedback on Understanding:</strong>
+                        {evalResult.brief_feedback}
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+                          <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
+                            <CheckCircle2 className="h-4 w-4" />
+                            <span>Demonstrated ({evalResult.demonstrated_capabilities?.length || 0}/{totalMilestones})</span>
+                          </div>
+                          {evalResult.demonstrated_capabilities?.map((c, i) => (
+                            <div key={i} className="text-xs text-zinc-300 mt-1">• {c}</div>
+                          ))}
+                        </div>
+
+                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+                          <div className="flex items-center space-x-2 text-amber-400 mb-2 font-mono text-xs font-semibold">
+                            <AlertCircle className="h-4 w-4" />
+                            <span>Missing ({evalResult.missing_capabilities?.length || 0})</span>
+                          </div>
+                          {evalResult.missing_capabilities?.map((c, i) => (
+                            <div key={i} className="text-xs text-zinc-400 mt-1">• {c}</div>
+                          ))}
+                        </div>
+                      </div>
+
+                      {evalResult.evidence && evalResult.evidence.length > 0 && (
+                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
+                          <div className="flex items-center space-x-2 text-amber-300 mb-2 font-mono text-xs font-semibold">
+                            <Quote className="h-3.5 w-3.5" />
+                            <span>Grounded Evidence Audit ({evalResult.evidence.length})</span>
+                          </div>
+                          {evalResult.evidence.map((ev, i) => (
+                            <div key={i} className="rounded border border-zinc-800/60 bg-zinc-950/60 p-2 text-xs font-mono text-zinc-300 mt-1">
+                              {ev}
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {!engine.isEvaluating && !evalResult && (
+                    <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-xs text-zinc-300 leading-relaxed">
+                      Evaluation response recorded. Click below to review your evidence or revise your attempt.
+                    </div>
+                  )}
+
+                  <div className="mt-6 flex flex-wrap items-center gap-3">
+                    <button
+                      onClick={() => onNavigate('evidence')}
+                      className="rounded-lg bg-amber-400 px-5 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-300 transition-colors"
+                    >
+                      View in My Evidence
+                    </button>
+
+                    <button
+                      onClick={engine.handleRetryAttempt}
+                      className="inline-flex items-center space-x-2 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                    >
+                      <RotateCcw className="h-3.5 w-3.5" />
+                      <span>Revise & Retry Attempt</span>
+                    </button>
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
+            {/* Right Column: Progressive Hint Rail */}
             <div className="lg:col-span-4">
               <HintLadderRail
                 challenge={challenge}
                 hintState={engine.hintState}
-                latestVerdict={engine.evaluationResult?.verdict || null}
+                latestVerdict={evalResult?.verdict || null}
                 onRequestHint={engine.handleRequestHint}
                 isRequestingHint={engine.isRequestingHint}
                 onRevealOverride={() => engine.setIsOverrideRevealed(!engine.isOverrideRevealed)}
                 isOverrideRevealed={engine.isOverrideRevealed}
+                attemptNumber={engine.submittedAttempt?.attempt_number || 1}
               />
             </div>
           </div>

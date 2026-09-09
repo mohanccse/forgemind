@@ -362,6 +362,82 @@ export async function parseAudioFile(file: File): Promise<AudioParseResult> {
   }
 }
 
+export interface VideoParseResult {
+  success: boolean;
+  normalizedContent?: NormalizedStudyContent;
+  error?: string;
+}
+
+/**
+ * Step 14: Client handler for Video Ingestion via ffmpeg demuxing & Gemini Speech-to-Text
+ */
+export async function parseVideoFile(file: File): Promise<VideoParseResult> {
+  try {
+    if (!file) {
+      return { success: false, error: 'No video file selected.' };
+    }
+
+    if (file.size > 50 * 1024 * 1024) {
+      return {
+        success: false,
+        error: `Video file exceeds maximum allowed size of 50MB (selected file: ${(file.size / (1024 * 1024)).toFixed(1)}MB).`
+      };
+    }
+
+    const base64Data = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = (err) => reject(err);
+      reader.readAsDataURL(file);
+    });
+
+    const res = await fetch('/api/study-material/parse-video', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        fileData: base64Data,
+        fileName: file.name,
+        mimeType: file.type || 'video/mp4'
+      })
+    });
+
+    const isJson = res.headers.get('content-type')?.includes('application/json');
+    const data = isJson ? await res.json().catch(() => null) : null;
+
+    if (!res.ok || !data || !data.success) {
+      return {
+        success: false,
+        error: data?.error || `Server error (${res.status}). Failed to process video file.`
+      };
+    }
+
+    const normalized = createNormalizedContent({
+      source_type: 'video',
+      source_name: data.sourceName || file.name,
+      raw_text: data.text,
+      metadata: {
+        ...data.metadata,
+        original_filename: file.name,
+        file_size_bytes: file.size
+      },
+      status: 'READY'
+    });
+
+    return {
+      success: true,
+      normalizedContent: normalized
+    };
+  } catch (err: any) {
+    console.error('Error processing video:', err);
+    return {
+      success: false,
+      error: err.message || 'Error processing video transcription.'
+    };
+  }
+}
+
 /**
  * Calls the server-side extraction engine (Gemini)
  */

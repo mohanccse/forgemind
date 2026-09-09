@@ -78,7 +78,7 @@ export function saveConfirmedUserConcept(
   const newConcept: Concept & { owner_id?: string } = {
     id: conceptId,
     name: candidate.concept_name,
-    domain: candidate.domain || 'AI / Technology',
+    domain: 'AI Product Management',
     description: candidate.description,
     underlyingSkill: candidate.underlying_skill,
     capabilities: candidate.capabilities,

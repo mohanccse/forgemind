@@ -6,6 +6,7 @@ import { CURATED_NOVEL_CHALLENGES } from '@/data/curatedNovelChallenges';
 import { validateGeneratedChallenge } from '@/utils/challengeValidator';
 
 export async function POST(request: Request) {
+  let sourceType: 'LIBRARY' | 'USER_GENERATED' = 'LIBRARY';
   try {
     const body = await request.json();
     const { concept, difficulty } = body;
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
 
     const conceptId = concept.id || 'custom-concept';
     const targetDifficulty = difficulty || concept.approximateDifficulty || 'Applied';
-    const sourceType = (body.sourceType || concept.sourceType) === 'USER_GENERATED' ? 'USER_GENERATED' : 'LIBRARY';
+    sourceType = (body.sourceType || concept.sourceType) === 'USER_GENERATED' ? 'USER_GENERATED' : 'LIBRARY';
 
     // Door 1 (Content Library): Zero live LLM calls for challenge generation.
     if (sourceType === 'LIBRARY' || CURATED_NOVEL_CHALLENGES[conceptId]) {
@@ -188,13 +189,13 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     }
 
     const challenge = {
+      ...parsedData,
       id: `gen-${conceptId}-${Date.now()}`,
       conceptId,
       conceptName: concept.name,
-      domain: concept.domain,
+      domain: 'AI Product Management',
       difficulty: targetDifficulty,
-      sourceType,
-      ...parsedData
+      sourceType // STRICT GUARDRAIL: ALWAYS overrides parsedData.sourceType
     };
 
     const validation = validateGeneratedChallenge(challenge);
@@ -227,7 +228,10 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     const curatedFallback = CURATED_NOVEL_CHALLENGES['rice-prioritization'];
     if (curatedFallback) {
       return NextResponse.json({
-        challenge: curatedFallback,
+        challenge: {
+          ...curatedFallback,
+          sourceType // STRICT GUARDRAIL: ALWAYS preserves caller's sourceType
+        },
         source: 'curated-recovery',
         originalError: error.message
       });

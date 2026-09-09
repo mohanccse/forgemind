@@ -48,7 +48,7 @@ export async function POST(request: Request) {
         success: true,
         candidate: {
           concept_name: 'Unidentified Concept',
-          domain: 'AI / Technology',
+          domain: 'AI Product Management',
           description: 'The provided material is too brief to extract an operational capability model.',
           underlying_skill: 'Insufficient operational principles provided.',
           capabilities: [],
@@ -88,7 +88,7 @@ EVALUATION RULES:
 
 2. CONCEPT EXTRACTION (when confident):
    - concept_name: A clean, formal concept name (e.g. "PostgreSQL Window Functions", "Vector Embeddings in RAG", "WSJF Prioritization").
-   - domain: One of "Product Management", "AI / Technology", "SQL / Data". If the text discusses product strategy, roadmaps, user progress, pricing, or product execution, select "Product Management". If it discusses databases/queries, select "SQL / Data". If AI/models/ML/software engines, select "AI / Technology".
+   - domain: Set strictly to "AI Product Management".
    - description: 1-2 sentence description explaining what the concept achieves.
    - underlying_skill: The core operational skill (e.g. "Computing partitioned window aggregations under duplicate order frames", "Configuring vector chunking and reciprocal rank reranking").
    - capabilities: An array of 3-7 specific, observable capability statements starting with action verbs (e.g. ["Identify partition boundaries", "Select correct frame specification", "Distinguish ROWS from RANGE framing"]).

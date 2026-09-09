@@ -303,6 +303,20 @@ export async function POST(request: Request) {
     });
   } catch (err: any) {
     console.warn('[YouTube Pipeline] Extraction failed:', err.message);
+    const isRateLimit =
+      err?.status === 429 ||
+      (err?.message && (err.message.includes('429') || err.message.includes('RESOURCE_EXHAUSTED') || err.message.includes('Quota exceeded')));
+
+    if (isRateLimit) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Transcription rate limit reached. Please try again in a few moments.'
+        },
+        { status: 429 }
+      );
+    }
+
     return NextResponse.json(
       {
         success: false,

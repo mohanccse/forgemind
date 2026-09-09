@@ -130,15 +130,7 @@ export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSele
                     {/* Top Row: Domain Tag & Difficulty */}
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-1.5">
-                        <span
-                          className={`rounded px-2 py-0.5 text-[11px] font-mono font-medium tracking-wide uppercase ${
-                            concept.domain === 'Product Management'
-                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/20'
-                              : concept.domain === 'AI / Technology'
-                              ? 'bg-purple-500/10 text-purple-400 border border-purple-500/20'
-                              : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20'
-                          }`}
-                        >
+                        <span className="rounded px-2 py-0.5 text-[11px] font-mono font-medium tracking-wide uppercase bg-blue-500/10 text-blue-400 border border-blue-500/20">
                           {concept.domain}
                         </span>
                         {concept.sourceType === 'USER_GENERATED' && (

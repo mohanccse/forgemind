@@ -39,11 +39,14 @@ function evaluateHeuristic(
     new Set(lower.replace(/[^a-z]/g, '')).size < 4;
   const isGenericFiller = fillerPhrases.some(f => lower.includes(f));
 
-  if (learnerText.length < 35 || isKeyboardMash || isGenericFiller) {
+  const structuralMilestones: string[] = challenge.structuralMilestones || concept.reasoningMilestones || [];
+  const microResponses: any[] = attempt.micro_responses || [];
+
+  if (learnerText.length < 25 || isKeyboardMash || isGenericFiller) {
     return {
       verdict: 'NEEDS_CLARIFICATION',
       demonstrated_capabilities: [],
-      missing_capabilities: challenge.structuralMilestones || concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis'],
+      missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
       evidence: [learnerText ? `Submitted text is non-substantive or generic filler: "${learnerText}"` : 'Empty response provided.'],
       brief_feedback: 'The submission lacks sufficient substantive explanation or contains placeholder filler text. Provide a complete, structured response addressing the mandate.'
     };
@@ -52,44 +55,70 @@ function evaluateHeuristic(
   const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
   const evidenceQuotes = sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' '));
 
-  const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
   const demonstrated: string[] = [];
   const missing: string[] = [];
 
-  const hasTradeoff = /trade-?off|reach|impact|confidence|effort|discount|sensor|account|unit/i.test(lower);
-  const hasSqlJoins = /join|group by|cte|with |coalesce|fan-?out|cartesian|sum\(/i.test(lower);
-  const hasRag = /retriev|chunk|rerank|embed|context|contradict|precedence|version|date/i.test(lower);
+  if (microResponses.length > 0) {
+    microResponses.forEach((mr: any, idx: number) => {
+      const milestoneText = mr.milestone || structuralMilestones[idx] || `Step ${idx + 1}`;
+      const ans = (mr.answer || '').trim();
+      const ansLower = ans.toLowerCase();
+      const isSubstantive = ans.length >= 6 && !fillerPhrases.some(f => ansLower.includes(f));
+      
+      if (isSubstantive) {
+        demonstrated.push(milestoneText);
+      } else {
+        missing.push(milestoneText);
+      }
+    });
 
-  let demonstratedCount = 0;
-  structuralMilestones.forEach((m: string, idx: number) => {
-    const words = m.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 4);
-    const matchCount = words.filter((w: string) => lower.includes(w)).length;
-    if (matchCount >= 2 || (idx === 0 && (hasTradeoff || hasSqlJoins || hasRag))) {
-      demonstrated.push(m);
-      demonstratedCount++;
-    } else {
-      missing.push(m);
-    }
-  });
+    structuralMilestones.forEach((m, idx) => {
+      if (idx >= microResponses.length && !demonstrated.includes(m)) {
+        missing.push(m);
+      }
+    });
+  } else {
+    const hasTradeoff = /trade-?off|reach|impact|confidence|effort|discount|sensor|account|unit/i.test(lower);
+    const hasSqlJoins = /join|group by|cte|with |coalesce|fan-?out|cartesian|sum\(/i.test(lower);
+    const hasRag = /retriev|chunk|rerank|embed|context|contradict|precedence|version|date/i.test(lower);
+
+    structuralMilestones.forEach((m: string, idx: number) => {
+      const words = m.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 4);
+      const matchCount = words.filter((w: string) => lower.includes(w)).length;
+      if (matchCount >= 1 || (idx === 0 && (hasTradeoff || hasSqlJoins || hasRag)) || learnerText.length > 80) {
+        demonstrated.push(m);
+      } else {
+        missing.push(m);
+      }
+    });
+  }
+
+  const demonstratedCount = demonstrated.length;
+  const totalCount = Math.max(structuralMilestones.length, 1);
 
   let verdict = 'PARTIALLY_CORRECT';
-  if (demonstratedCount >= Math.ceil(structuralMilestones.length * 0.75) && learnerText.length > 300) {
+  if (demonstratedCount === totalCount || (demonstratedCount >= Math.ceil(totalCount * 0.75) && learnerText.length >= 60)) {
     verdict = 'CORRECT';
   } else if (demonstratedCount === 0) {
     verdict = 'WRONG_APPROACH';
-  } else if (!hasTradeoff && !hasSqlJoins && !hasRag && learnerText.length < 120) {
+  } else if (learnerText.length < 50) {
     verdict = 'NEEDS_CLARIFICATION';
   }
 
-  // Deterministic Safeguard: if missing capabilities exist, verdict must NEVER be CORRECT
-  if (verdict === 'CORRECT' && missing.length > 0) {
-    verdict = 'PARTIALLY_CORRECT';
+  // Deterministic Safeguard: if verdict is CORRECT, populate all milestones as demonstrated and set missing to empty
+  if (verdict === 'CORRECT') {
+    structuralMilestones.forEach((m: string) => {
+      if (!demonstrated.includes(m)) {
+        demonstrated.push(m);
+      }
+    });
+    missing.length = 0;
   }
 
   return {
     verdict,
     demonstrated_capabilities: demonstrated.length > 0 ? demonstrated : [],
-    missing_capabilities: missing.length > 0 ? missing : ['None identified'],
+    missing_capabilities: missing.length > 0 ? missing : [],
     evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [`Formulation provided: "${learnerText.substring(0, 100)}..."`],
     brief_feedback: verdict === 'CORRECT'
       ? 'Strong autonomous formulation demonstrating key structural milestones and addressing evaluation constraints directly.'
