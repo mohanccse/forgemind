@@ -54,10 +54,39 @@ export const LEARNER_ATTEMPT_LIMITS = {
   MIN_CHARS: 4
 };
 
+export const COMMON_FILLER_PHRASES = [
+  'this is it', 'this is what', 'this is a test', 'this is test',
+  'this is the answer', 'this is my answer', 'here it is', "i don't know", 'idk',
+  'not sure', 'test test', 'hello world', 'sample text', 'placeholder',
+  'fill this in', 'nothing to say', 'some text', 'random text', 'default answer',
+  'asdf', 'qwerty', 'zxcv', '1234', 'abcd', 'fdsa', 'ytrewq', 'vcxz',
+  'aaaa', 'ssss', 'dddd', 'ffff', 'xxxx', 'zzzz', 'qqqq', 'n/a', 'na',
+  'none', 'nothing', 'no idea', 'skip', 'pass', 'whatever', 'foo', 'bar',
+  'baz', 'abc', 'xyz', 'testing', 'done', 'finished'
+];
+
+/**
+ * Checks if a string matches a generic filler phrase using strict word boundaries or exact equality.
+ */
+export function isFillerPhrase(text: string): boolean {
+  const lower = (text || '').trim().toLowerCase();
+  if (!lower) return true;
+  // Substantive text over 35 characters is strictly NEVER a generic filler phrase
+  if (lower.length > 35) return false;
+  return COMMON_FILLER_PHRASES.some((pattern) => {
+    if (lower === pattern) return true;
+    if (pattern.length >= 4) {
+      const escaped = pattern.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i').test(lower) && lower.length < pattern.length + 15;
+    }
+    return false;
+  });
+}
+
 /**
  * Validates whether a micro-response input is substantive.
- * Rejects empty text, single-character placeholders, repetitive single-character strings (e.g., "s", "ss", "aaaa"),
- * generic filler phrases (e.g. "this is what", "i don't know"), keyboard mash patterns (e.g. "asdf", "qwerty"), and pure whitespace.
+ * Rejects empty text, brief responses under 12 characters, repetitive strings,
+ * generic filler phrases (e.g. "this is it", "i don't know"), keyboard mash patterns, and pure whitespace.
  */
 export function isSubstantiveInput(text: string): { valid: boolean; reason?: string } {
   const trimmed = (text || '').trim();
@@ -66,39 +95,44 @@ export function isSubstantiveInput(text: string): { valid: boolean; reason?: str
     return { valid: false, reason: 'Field cannot be empty.' };
   }
 
-  // Minimum length check (minimum 4 characters)
-  if (trimmed.length < 4) {
+  // Minimum length check (minimum 12 characters for substantive reasoning)
+  if (trimmed.length < 12) {
     return {
       valid: false,
-      reason: 'Please provide a substantive answer (at least 4 characters, not repetitive letters).'
+      reason: 'Please provide a substantive answer (at least 12 characters detailing your reasoning).'
     };
   }
 
-  // Check if text is just a single character repeated (e.g. "aaaa", "ssss", "1111", "....")
-  const cleanedAlpha = trimmed.toLowerCase().replace(/\s/g, '');
+  // Check if text has very low character diversity (e.g. "aaaaa", "s s s s s", "12121212")
+  const cleanedAlpha = trimmed.toLowerCase().replace(/[^a-z0-9]/g, '');
   const uniqueChars = new Set(cleanedAlpha);
-  if (uniqueChars.size <= 1) {
+  if (uniqueChars.size < 4 && cleanedAlpha.length > 5) {
     return {
       valid: false,
-      reason: 'Please provide a substantive answer (not repetitive single characters).'
+      reason: 'Please provide a substantive answer (avoid repetitive characters or keyboard mashing).'
     };
   }
 
-  // Check for common non-substantive filler phrases and keyboard mash patterns
-  const lower = trimmed.toLowerCase();
-  const fillerPhrases = [
-    'this is what', 'this is a test', 'this is test', "i don't know", 'idk',
-    'not sure', 'test test', 'hello world', 'sample text', 'placeholder',
-    'fill this in', 'nothing to say', 'some text', 'random text', 'default answer',
-    'asdf', 'qwerty', 'zxcv', '1234', 'abcd', 'fdsa', 'ytrewq', 'vcxz',
-    'aaaa', 'ssss', 'dddd', 'ffff', 'xxxx', 'zzzz', 'qqqq'
-  ];
-
-  if (fillerPhrases.some((pattern) => lower.includes(pattern))) {
+  // Check for exact non-substantive filler phrases using strict word boundaries or full equality
+  if (isFillerPhrase(trimmed)) {
     return {
       valid: false,
-      reason: 'Please provide a substantive answer (generic filler phrases like "this is what" or keyboard mashing are not allowed).'
+      reason: 'Please provide a substantive answer (generic filler phrases like "this is it" or "placeholder" are not allowed).'
     };
+  }
+
+  // Check for repeating short phrase loop (e.g. "this is it this is it")
+  const lower = trimmed.toLowerCase();
+  const words = lower.split(/\s+/);
+  if (words.length >= 4) {
+    const firstTwo = words.slice(0, 2).join(' ');
+    const rest = words.slice(2).join(' ');
+    if (rest.includes(firstTwo) && words.length <= 8 && new Set(words).size <= 3) {
+      return {
+        valid: false,
+        reason: 'Please provide a substantive answer (avoid repeating short phrases).'
+      };
+    }
   }
 
   return { valid: true };
@@ -148,4 +182,43 @@ export function validateStudyMaterialFile(file: File): FileValidationResult {
   const sanitizedName = stripHtml(name).replace(/[^a-zA-Z0-9._\- ]/g, '_');
 
   return { valid: true, sanitizedName };
+}
+
+/**
+ * Resolves the 1-based step number of a capability milestone string against a challenge's structural milestones array.
+ */
+export function resolveMilestoneStepNumber(
+  capabilityText: string,
+  milestones?: string[]
+): number | null {
+  if (!capabilityText || !milestones || !Array.isArray(milestones) || milestones.length === 0) {
+    return null;
+  }
+  const target = capabilityText.trim().toLowerCase();
+
+  // 1. Direct index check if string starts with "Step X:"
+  const stepMatch = target.match(/^step\s*(\d+)/i);
+  if (stepMatch && stepMatch[1]) {
+    const num = parseInt(stepMatch[1], 10);
+    if (num >= 1 && num <= milestones.length) return num;
+  }
+
+  // 2. Exact match against milestones array
+  for (let idx = 0; idx < milestones.length; idx++) {
+    const m = (milestones[idx] || '').trim().toLowerCase();
+    if (m === target) return idx + 1;
+  }
+
+  // 3. Substring / Keyword overlap matching
+  for (let idx = 0; idx < milestones.length; idx++) {
+    const m = (milestones[idx] || '').trim().toLowerCase();
+    const cleanM = m.replace(/^step\s*\d+:?\s*/i, '').trim();
+    const cleanTarget = target.replace(/^step\s*\d+:?\s*/i, '').trim();
+
+    if (cleanM.length > 5 && (cleanTarget.includes(cleanM) || cleanM.includes(cleanTarget))) {
+      return idx + 1;
+    }
+  }
+
+  return null;
 }

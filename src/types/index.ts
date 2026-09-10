@@ -1,4 +1,4 @@
-export type Domain = 'AI Product Management';
+export type Domain = string;
 
 export type DifficultyLevel = 'Foundational' | 'Applied' | 'Advanced' | 'Expert';
 
@@ -15,6 +15,8 @@ export interface Concept {
   id: string;
   name: string;
   domain: Domain;
+  category?: string;
+  subcategory?: string;
   description: string;
   underlyingSkill: string;
   capabilities: string[];
@@ -27,12 +29,7 @@ export interface Concept {
   
   // Scenarios and hints stored for the challenge phase
   challengePreview: ChallengeScenario;
-  hints: {
-    tier: number;
-    title: string;
-    hint: string;
-    penaltyDescription: string;
-  }[];
+  hints?: ProgressiveHint[];
 
   // Step 7: User-Owned / BYO Material extensions
   sourceType?: ChallengeSourceType; // 'LIBRARY' | 'USER_GENERATED'
@@ -42,7 +39,7 @@ export interface Concept {
 }
 
 // Step 7: BYO Study Material & Normalized Content Architecture
-export type StudyMaterialSourceType = 'paste_text' | 'pdf' | 'docx' | 'audio' | 'video' | 'youtube';
+export type StudyMaterialSourceType = 'paste_text' | 'pdf' | 'docx' | 'youtube';
 
 export type ContentProcessingStatus = 'UPLOADED' | 'PROCESSING' | 'READY' | 'FAILED';
 
@@ -87,11 +84,11 @@ export interface ExtractedConceptCandidate {
 export type ChallengeSourceType = 'LIBRARY' | 'USER_GENERATED';
 
 export type HintTier = 1 | 2 | 3 | 4 | 5;
-export type HintType = 'Nudge' | 'Direction' | 'Concept reminder' | 'Structural guidance' | 'Solution reveal';
+export type HintType = 'Nudge' | 'Direction' | 'Concept reminder' | 'Structural guidance' | 'Structure' | 'Solution reveal';
 
 export interface ProgressiveHint {
   tier: HintTier;
-  type: HintType;
+  type?: HintType;
   title: string;
   hint: string;
   penaltyDescription: string;
@@ -238,4 +235,4 @@ export interface ChallengeHintState {
   last_verdict?: EvaluationVerdict | null;
 }
 
-export type ViewTab = 'home' | 'prove' | 'concept-preview' | 'material' | 'challenge' | 'evidence';
+export type ViewTab = 'home' | 'prove' | 'concept-preview' | 'material' | 'challenge' | 'evidence' | 'account';

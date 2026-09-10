@@ -302,13 +302,7 @@ export function recordAttemptEvaluationInHintState(
 
   // Handle progressive hint unlocking on failed attempts
   if (verdict === 'PARTIALLY_CORRECT' || verdict === 'WRONG_APPROACH') {
-    const nextTier = Math.min(5, state.current_tier + 1);
-    state.current_tier = nextTier;
-    if (!state.unlocked_tiers.includes(nextTier)) {
-      state.unlocked_tiers.push(nextTier);
-    }
-    state.last_unlocked_at_attempt = attemptNumber;
-    state.attempts_since_last_hint = 0;
+    state.attempts_since_last_hint = (state.attempts_since_last_hint || 0) + 1;
   }
 
   saveHintState(challengeId, state);

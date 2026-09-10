@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serverChallengeStore, serverHintStateStore } from '@/lib/serverStore';
+import { saveChallengeToDb, getChallengeFromDb, saveHintStateToDb, getHintStateFromDb } from '@/lib/supabase-store';
 import { CURATED_NOVEL_CHALLENGES } from '@/data/curatedNovelChallenges';
 
 export async function POST(request: Request) {
@@ -18,10 +18,9 @@ export async function POST(request: Request) {
 
     const challengeId = bodyChallengeId || body.id;
     const learnerId = learner_id || altLearnerId || 'default_learner';
-    const stateKey = `${learnerId}:${challengeId}`;
 
     let challenge =
-      serverChallengeStore.get(challengeId) ||
+      (await getChallengeFromDb(challengeId)) ||
       CURATED_NOVEL_CHALLENGES[conceptId] ||
       CURATED_NOVEL_CHALLENGES[challengeId] ||
       clientChallenge;
@@ -40,9 +39,9 @@ export async function POST(request: Request) {
       );
     }
 
-    serverChallengeStore.set(challenge.id, challenge);
+    await saveChallengeToDb(challenge);
 
-    let hintState = serverHintStateStore.get(stateKey);
+    let hintState = await getHintStateFromDb(learnerId, challengeId, conceptId || challenge.conceptId);
     if (!hintState) {
       hintState = {
         challenge_id: challengeId,
@@ -56,14 +55,14 @@ export async function POST(request: Request) {
         solution_revealed: false,
         evaluation_flagged: false
       };
-      serverHintStateStore.set(stateKey, hintState);
+      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
     }
 
     if (lastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
       hintState.progression_frozen = true;
       hintState.frozen_reason =
         'Evaluation returned NEEDS_CLARIFICATION. Progression is frozen until a clarified attempt is submitted.';
-      serverHintStateStore.set(stateKey, hintState);
+      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
       return NextResponse.json(
         {
           success: false,
@@ -141,7 +140,7 @@ export async function POST(request: Request) {
       hintState.solution_revealed_at = new Date().toISOString();
     }
 
-    serverHintStateStore.set(stateKey, hintState);
+    await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
 
     return NextResponse.json({
       success: true,
@@ -159,7 +158,7 @@ export async function POST(request: Request) {
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Failed to process hint request.' },
+      { error: error.message || 'Database error processing hint request.' },
       { status: 500 }
     );
   }

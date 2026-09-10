@@ -3,7 +3,7 @@ import crypto from 'crypto';
 import { Type } from '@google/genai';
 import { getGenAI, executeWithTimeoutAndRetry } from '@/lib/gemini';
 import { validateEvaluationResult } from '@/utils/evaluationValidator';
-import { sanitizeText, LEARNER_ATTEMPT_LIMITS } from '@/utils/sanitizer';
+import { sanitizeText, LEARNER_ATTEMPT_LIMITS, isFillerPhrase } from '@/utils/sanitizer';
 
 /**
  * Extracts ONLY actual learner submitted answers, stripping out system context,
@@ -17,11 +17,47 @@ function extractLearnerAnswersOnly(attempt: any): string {
   }
 
   const rawText = attempt.response || '';
-  const responseMatches = rawText.match(/RESPONSE:\s*(.+)/gi);
+  const responseMatches = rawText.match(/ANSWER:\s*(.+)/gi) || rawText.match(/RESPONSE:\s*(.+)/gi);
   if (responseMatches && responseMatches.length > 0) {
-    return responseMatches.map((m: string) => m.replace(/RESPONSE:\s*/i, '').trim()).join('\n');
+    return responseMatches.map((m: string) => m.replace(/(?:ANSWER|RESPONSE):\s*/i, '').trim()).join('\n');
   }
   return rawText;
+}
+
+function checkMilestoneDomainRelevance(
+  answerText: string,
+  concept: any,
+  milestoneText: string
+): { demonstrated: boolean; isOffTopic: boolean } {
+  const text = (answerText || '').trim();
+  const lower = text.toLowerCase();
+
+  if (text.length < 15 || isFillerPhrase(text)) {
+    return { demonstrated: false, isOffTopic: false };
+  }
+
+  const isSqlAnswer = /\b(select\s+.+\s+from|left\s+join|inner\s+join|group\s+by|where\s+\w+\s*=)\b/i.test(lower);
+  const conceptNameDomain = `${concept.name || ''} ${concept.domain || ''}`.toLowerCase();
+  const isSqlConcept = /\b(sql|database|query|postgres|relational|join|table)\b/i.test(conceptNameDomain);
+
+  if (isSqlAnswer && !isSqlConcept) {
+    return { demonstrated: false, isOffTopic: true };
+  }
+
+  const targetWords = `${concept.name || ''} ${concept.domain || ''} ${concept.underlyingSkill || ''} ${milestoneText || ''}`
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 4 && !['defines', 'clear', 'constructs', 'formulates', 'establishes', 'step', 'target', 'using', 'with', 'from', 'this', 'that', 'have', 'what', 'when', 'where', 'which', 'concept', 'topic'].includes(w));
+
+  const matchedKeywords = targetWords.filter(w => lower.includes(w));
+  const hasAnalyticalTerms = /\b(trade-?off|metric|risk|bottleneck|constraint|impact|user|customer|process|system|performance|scale|methodology)\b/i.test(lower);
+
+  if (matchedKeywords.length >= 1 || hasAnalyticalTerms) {
+    return { demonstrated: true, isOffTopic: false };
+  }
+
+  return { demonstrated: false, isOffTopic: true };
 }
 
 /**
@@ -37,57 +73,83 @@ function evaluateHeuristic(
   const learnerText = extractLearnerAnswersOnly(attempt).trim();
   const lower = learnerText.toLowerCase();
 
-  const fillerPhrases = [
-    'this is what', 'this is a test', 'this is test', "i don't know", 'idk',
-    'not sure', 'test test', 'hello world', 'sample text', 'placeholder',
-    'fill this in', 'nothing to say', 'some text', 'random text', 'default answer'
-  ];
   const isKeyboardMash =
     /asdfghjkl|qwertyuiop|zxcvbnm|123456|abcdef/i.test(lower) ||
-    new Set(lower.replace(/[^a-z]/g, '')).size < 4;
-  const isGenericFiller = fillerPhrases.some((f) => lower.includes(f));
+    (lower.length > 10 && new Set(lower.replace(/[^a-z]/g, '')).size < 4);
+  const isGenericFiller = isFillerPhrase(learnerText);
+
+  const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
+  const microResponses: any[] = attempt.micro_responses || [];
+
+  let substantiveStepCount = 0;
+  if (microResponses.length > 0) {
+    microResponses.forEach((mr: any) => {
+      const ans = (mr.answer || '').trim();
+      if (ans.length >= 12 && !isFillerPhrase(ans)) {
+        substantiveStepCount++;
+      }
+    });
+  }
 
   // Non-substantive or low-effort filler input -> MUST return NEEDS_CLARIFICATION
-  if (learnerText.length < 35 || isKeyboardMash || isGenericFiller) {
+  if (learnerText.length < 60 || isKeyboardMash || isGenericFiller || (microResponses.length > 0 && substantiveStepCount < Math.ceil(microResponses.length / 2))) {
     return {
       verdict: 'NEEDS_CLARIFICATION',
       demonstrated_capabilities: [],
-      missing_capabilities: challenge.structuralMilestones || concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis'],
-      evidence: [learnerText ? `Submitted text is non-substantive filler: "${learnerText}"` : 'Empty response provided.'],
-      brief_feedback: 'The submission consists of generic placeholder or non-substantive text. Please provide an explicit, structured response addressing the mandate.'
+      missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
+      evidence: [learnerText ? `Submitted text is non-substantive filler or incomplete: "${learnerText.substring(0, 120)}"` : 'Empty response provided.'],
+      brief_feedback: 'The submission consists of generic placeholder or non-substantive text ("This is it"). Please provide an explicit, structured response addressing the mandate.'
     };
   }
 
   const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
   const evidenceQuotes = sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' '));
 
-  const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
   const demonstrated: string[] = [];
   const missing: string[] = [];
+  let hasOffTopicContent = false;
 
-  const hasTradeoff = /trade-?off|reach|impact|confidence|effort|discount|sensor|account|unit/i.test(lower);
-  const hasSqlJoins = /join|group by|cte|with |coalesce|fan-?out|cartesian|sum\(/i.test(lower);
-  const hasRag = /retriev|chunk|rerank|embed|context|contradict|precedence|version|date/i.test(lower);
+  if (microResponses.length > 0) {
+    microResponses.forEach((mr: any, idx: number) => {
+      const milestoneText = mr.milestone || structuralMilestones[idx] || `Step ${idx + 1}`;
+      const ans = (mr.answer || '').trim();
+      const check = checkMilestoneDomainRelevance(ans, concept, milestoneText);
+      
+      if (check.demonstrated) {
+        demonstrated.push(milestoneText);
+      } else {
+        missing.push(milestoneText);
+        if (check.isOffTopic) hasOffTopicContent = true;
+      }
+    });
 
-  let demonstratedCount = 0;
-  structuralMilestones.forEach((m: string, idx: number) => {
-    const words = m.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 4);
-    const matchCount = words.filter((w: string) => lower.includes(w)).length;
-    if (matchCount >= 2 || (idx === 0 && (hasTradeoff || hasSqlJoins || hasRag))) {
-      demonstrated.push(m);
-      demonstratedCount++;
-    } else {
-      missing.push(m);
-    }
-  });
+    structuralMilestones.forEach((m: string, idx: number) => {
+      if (idx >= microResponses.length && !demonstrated.includes(m)) {
+        missing.push(m);
+      }
+    });
+  } else {
+    structuralMilestones.forEach((m: string) => {
+      const check = checkMilestoneDomainRelevance(learnerText, concept, m);
+      if (check.demonstrated) {
+        demonstrated.push(m);
+      } else {
+        missing.push(m);
+        if (check.isOffTopic) hasOffTopicContent = true;
+      }
+    });
+  }
+
+  const demonstratedCount = demonstrated.length;
+  const totalCount = Math.max(structuralMilestones.length, 1);
 
   let verdict = 'PARTIALLY_CORRECT';
-  if (demonstratedCount >= Math.ceil(structuralMilestones.length * 0.75) && learnerText.length > 300) {
+  if (demonstratedCount === totalCount && learnerText.length >= 150 && !hasOffTopicContent) {
     verdict = 'CORRECT';
+  } else if (hasOffTopicContent) {
+    verdict = 'NEEDS_CLARIFICATION';
   } else if (demonstratedCount === 0) {
     verdict = 'WRONG_APPROACH';
-  } else if (!hasTradeoff && !hasSqlJoins && !hasRag && learnerText.length < 120) {
-    verdict = 'NEEDS_CLARIFICATION';
   }
 
   if (verdict === 'CORRECT' && missing.length > 0) {

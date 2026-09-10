@@ -19,7 +19,6 @@ import {
   updateAttemptHintInfo,
   saveAttemptDraft,
   getAttemptDraft,
-  clearAttemptDraft,
   getAttemptsForChallenge
 } from '../services/attemptService';
 import {
@@ -45,9 +44,9 @@ export function useAssessmentEngine({
   // Workflow Stage: 'confidence' -> 'attempt' -> 'submitted'
   const [stage, setStage] = useState<'confidence' | 'attempt' | 'submitted'>('confidence');
   const [confidenceBeforeAttempt, setConfidenceBeforeAttempt] = useState<number>(3);
-  
-  // Step Deck Workspace States (Unified Form State)
-  const [microAnswers, setMicroAnswers] = useState<Record<number, string>>({});
+
+  // Single Unified Form Model: All step answers live in a parent Record<string, string>
+  const [stepAnswers, setStepAnswers] = useState<Record<string, string>>({});
   const [activeStep, setActiveStep] = useState<number>(0);
   const [viewAllMilestones, setViewAllMilestones] = useState<boolean>(false);
   const [response, setResponse] = useState<string>('');
@@ -88,7 +87,7 @@ export function useAssessmentEngine({
   const [isRequestingHint, setIsRequestingHint] = useState<boolean>(false);
   const [isOverrideRevealed, setIsOverrideRevealed] = useState<boolean>(false);
 
-  // TOPIC CACHE ISOLATION: Reset/restore state cleanly whenever challenge.id changes
+  // TOPIC CACHE & SESSION SCOPING: Reset/restore state cleanly whenever challenge.id changes
   useEffect(() => {
     setActiveStep(0);
     setValidationError(null);
@@ -96,7 +95,7 @@ export function useAssessmentEngine({
     setIsOverrideRevealed(false);
 
     if (!challenge) {
-      setMicroAnswers({});
+      setStepAnswers({});
       setResponse('');
       setStage('confidence');
       setSubmittedAttempt(null);
@@ -105,7 +104,18 @@ export function useAssessmentEngine({
       return;
     }
 
-    // Check existing attempts for this challenge in the current session
+    // Strict session scoping: session key format fm_sess_${challenge_id}
+    const sessionKey = `fm_sess_${challenge.id}`;
+    let savedSession: any = null;
+    try {
+      if (typeof window !== 'undefined' && window.sessionStorage) {
+        const raw = sessionStorage.getItem(sessionKey);
+        if (raw) savedSession = JSON.parse(raw);
+      }
+    } catch {
+      // ignore
+    }
+
     const attempts = getAttemptsForChallenge(challenge.id);
     const initialHintState =
       attempts.length === 0
@@ -114,21 +124,27 @@ export function useAssessmentEngine({
 
     setHintState(initialHintState);
 
-    // Restore active draft if available for this specific challenge ID
-    const draft = getAttemptDraft(challenge.id);
+    // Restore active draft or session state for this specific challenge ID
+    const draft = getAttemptDraft(challenge.id) || savedSession;
     if (draft) {
       setConfidenceBeforeAttempt(draft.confidence_before_attempt || 3);
       setResponse(draft.response || '');
       setStage(draft.stage || 'confidence');
-      if (draft.microAnswers) {
-        setMicroAnswers(draft.microAnswers);
+      if (draft.stepAnswers || draft.microAnswers) {
+        const restoredAnswers = draft.stepAnswers || draft.microAnswers;
+        // Normalize keys to string
+        const normalized: Record<string, string> = {};
+        Object.keys(restoredAnswers).forEach((k) => {
+          normalized[k] = restoredAnswers[k];
+        });
+        setStepAnswers(normalized);
       }
       if (draft.lastSaved) {
         setDraftSavedTimestamp(draft.lastSaved);
       }
     } else {
       // Clear inputs if no saved draft for this exact challenge ID
-      setMicroAnswers({});
+      setStepAnswers({});
       setResponse('');
       setStage('confidence');
       setSubmittedAttempt(null);
@@ -137,11 +153,12 @@ export function useAssessmentEngine({
     }
   }, [challenge?.id, concept.id]);
 
-  // Handle micro-answer changes per step with unified form state persistence
+  // Handle step answer changes with unified form state persistence
   const handleMicroAnswerChange = useCallback(
     (stepIndex: number, val: string) => {
-      setMicroAnswers((prev) => {
-        const updated = { ...prev, [stepIndex]: val };
+      const stepKey = String(stepIndex);
+      setStepAnswers((prev) => {
+        const updated = { ...prev, [stepKey]: val };
         if (validationError) setValidationError(null);
 
         const milestones = challenge?.structuralMilestones || concept.reasoningMilestones || [];
@@ -150,7 +167,7 @@ export function useAssessmentEngine({
         const combinedText = milestones
           .map((m, idx) => {
             const q = questions[idx] || m;
-            const ans = (updated[idx] || '').trim();
+            const ans = (updated[String(idx)] || '').trim();
             return `STEP ${idx + 1}: ${m}\nQUESTION: ${q}\nRESPONSE: ${ans}`;
           })
           .join('\n\n');
@@ -158,13 +175,25 @@ export function useAssessmentEngine({
         setResponse(combinedText);
 
         if (challenge) {
-          saveAttemptDraft(challenge.id, {
+          const activeStage: 'confidence' | 'attempt' | 'submitted' = stage === 'submitted' ? 'attempt' : stage;
+          const sessionPayload = {
             confidence_before_attempt: confidenceBeforeAttempt,
             response: combinedText,
-            stage: stage === 'submitted' ? 'attempt' : stage,
+            stage: activeStage,
+            stepAnswers: updated,
             microAnswers: updated,
             lastSaved: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          });
+          };
+
+          saveAttemptDraft(challenge.id, sessionPayload);
+
+          try {
+            if (typeof window !== 'undefined' && window.sessionStorage) {
+              sessionStorage.setItem(`fm_sess_${challenge.id}`, JSON.stringify(sessionPayload));
+            }
+          } catch {
+            // ignore
+          }
         }
 
         return updated;
@@ -179,28 +208,37 @@ export function useAssessmentEngine({
     setActiveStep(0);
     if (challenge) {
       const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-      saveAttemptDraft(challenge.id, {
+      const sessionPayload = {
         confidence_before_attempt: confidenceBeforeAttempt,
         response,
-        stage: 'attempt',
-        microAnswers,
+        stage: 'attempt' as const,
+        stepAnswers,
+        microAnswers: stepAnswers,
         lastSaved: now
-      });
+      };
+      saveAttemptDraft(challenge.id, sessionPayload);
+      try {
+        if (typeof window !== 'undefined' && window.sessionStorage) {
+          sessionStorage.setItem(`fm_sess_${challenge.id}`, JSON.stringify(sessionPayload));
+        }
+      } catch {
+        // ignore
+      }
       setDraftSavedTimestamp(now);
     }
-  }, [challenge, confidenceBeforeAttempt, response, microAnswers]);
+  }, [challenge, confidenceBeforeAttempt, response, stepAnswers]);
 
-  // Submit attempt with strict client heuristics and attempt counter synchronization
+  // Submit attempt with IMMEDIATE EVALUATION RESET (clears stale feedback banners immediately)
   const handleSubmitAttempt = useCallback(async () => {
     if (!challenge || isSubmitting) return;
 
     const milestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
     const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
 
-    // Client-Side Input Quality Heuristic Check: Block if any step has < 4 substantive chars
+    // Client-Side Input Validation: Block if any step answer is under 4 substantive characters
     const invalidStepDetails: { stepNum: number; reason: string }[] = [];
     milestones.forEach((_, idx) => {
-      const text = (microAnswers[idx] || '').trim();
+      const text = (stepAnswers[String(idx)] || '').trim();
       const check = isSubstantiveInput(text);
       if (!check.valid) {
         invalidStepDetails.push({
@@ -211,15 +249,22 @@ export function useAssessmentEngine({
     });
 
     if (invalidStepDetails.length > 0) {
+      const firstError = invalidStepDetails[0];
       const stepList = invalidStepDetails.map((s) => `Step ${s.stepNum}`).join(', ');
       setValidationError(
-        `Please provide a substantive answer (at least 4 non-repetitive characters) for all steps (${stepList}).`
+        `Validation failed for ${stepList}: ${firstError.reason}`
       );
       return;
     }
 
     setValidationError(null);
     setIsSubmitting(true);
+
+    // CRITICAL: Immediate Loading & Evaluation Reset — clear stale feedback banners BEFORE API call
+    setEvaluationResult(null);
+    setSubmittedAttempt(null);
+    setEvaluationError(null);
+    setIsEvaluating(true);
 
     try {
       const learnerId = getOrCreateLearnerId();
@@ -231,7 +276,7 @@ export function useAssessmentEngine({
       const microResponsesPayload = milestones.map((m, idx) => ({
         milestone: m,
         question: questions[idx] || m,
-        answer: (microAnswers[idx] || '').trim()
+        answer: (stepAnswers[String(idx)] || '').trim()
       }));
 
       const finalResponseText =
@@ -266,9 +311,6 @@ export function useAssessmentEngine({
       if (recorded) {
         setSubmittedAttempt(newAttempt);
         setStage('submitted');
-        setEvaluationResult(null);
-        setEvaluationError(null);
-        setIsEvaluating(true);
 
         const res = await evaluateLearnerAttempt({
           challenge,
@@ -284,7 +326,7 @@ export function useAssessmentEngine({
           );
           updateAttemptEvaluation(newAttempt.attempt_id, res.evaluation);
 
-          // Update hint progression state machine
+          // Update hint progression state machine (synchronizes hint ladder immediately)
           const updatedState = recordAttemptEvaluationInHintState(
             challenge.id,
             concept.id,
@@ -307,7 +349,7 @@ export function useAssessmentEngine({
     challenge,
     concept,
     isSubmitting,
-    microAnswers,
+    stepAnswers,
     response,
     sourceType,
     confidenceBeforeAttempt,
@@ -393,7 +435,8 @@ export function useAssessmentEngine({
     setStage,
     confidenceBeforeAttempt,
     setConfidenceBeforeAttempt,
-    microAnswers,
+    stepAnswers,
+    microAnswers: stepAnswers, // Backwards compatibility alias
     activeStep,
     setActiveStep,
     viewAllMilestones,

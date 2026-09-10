@@ -1,13 +1,12 @@
 'use client';
 
-import React from 'react';
+import React, { useRef, useEffect } from 'react';
 import {
   ArrowLeft,
   Lock,
   CheckCircle2,
   RefreshCw,
   AlertCircle,
-  Save,
   Send,
   ShieldCheck,
   RotateCcw,
@@ -15,15 +14,15 @@ import {
   ChevronRight,
   ChevronLeft,
   ListChecks,
-  AlertOctagon,
-  HelpCircle,
   Quote,
   Award,
-  ArrowRight
+  ArrowRight,
+  Flag
 } from 'lucide-react';
 import { Concept, ViewTab, GeneratedChallenge } from '../../types';
-import { HintLadderRail } from '../HintLadderRail';
+import { HintLadderRail } from './HintLadderRail';
 import { useAssessmentEngine } from '../../hooks/useAssessmentEngine';
+import { resolveMilestoneStepNumber } from '../../utils/sanitizer';
 
 interface AssessmentViewProps {
   concept: Concept;
@@ -46,6 +45,19 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     sourceType: challenge.sourceType || concept.sourceType || 'LIBRARY'
   });
 
+  // Reference to active step textarea for auto-focus navigation
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  // Auto-focus target step textarea whenever activeStep changes or view mode toggles
+  useEffect(() => {
+    if (engine.stage === 'attempt' && !engine.viewAllMilestones) {
+      const timer = setTimeout(() => {
+        textareaRef.current?.focus();
+      }, 50);
+      return () => clearTimeout(timer);
+    }
+  }, [engine.activeStep, engine.viewAllMilestones, engine.stage]);
+
   const confidenceOptions = [
     { value: 1, label: '1 — Not confident', desc: 'Little to no certainty on independent derivation' },
     { value: 2, label: '2', desc: 'Vague recall of general mechanics' },
@@ -58,7 +70,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
   const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
   const totalMilestones = milestones.length;
   const answeredCount = milestones.filter(
-    (_, idx) => (engine.microAnswers[idx] || '').trim().length > 0
+    (_, idx) => (engine.stepAnswers[String(idx)] || '').trim().length > 0
   ).length;
 
   const evalResult = engine.evaluationResult || engine.submittedAttempt?.evaluation;
@@ -66,6 +78,13 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
   const isCorrect =
     evalResult?.verdict === 'CORRECT' ||
     engine.submittedAttempt?.verdict === 'CORRECT';
+
+  // Step Answer change handler enforcing 2000 character maximum bound
+  const handleStepInput = (idx: number, rawVal: string) => {
+    const maxBound = 2000;
+    const boundedVal = rawVal.length > maxBound ? rawVal.slice(0, maxBound) : rawVal;
+    engine.handleMicroAnswerChange(idx, boundedVal);
+  };
 
   return (
     <div id="assessment-view">
@@ -97,7 +116,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
           </span>
 
           <span className="text-xs text-zinc-500 hidden md:inline">
-            Domain: <strong className="text-zinc-400 font-normal">AI Product Management</strong>
+            Domain: <strong className="text-zinc-400 font-normal">{concept.domain || 'AI Product Management'}</strong>
           </span>
         </div>
       </div>
@@ -250,9 +269,10 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
               </div>
             </div>
 
+            {/* Independent Column Alignment with Fixed Sticky Positioning */}
             <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-              {/* Primary Workspace (8 Cols) */}
-              <div className="lg:col-span-8 space-y-6">
+              {/* Primary Workspace Column (8 Cols) */}
+              <div className="lg:col-span-8 space-y-6 self-start">
                 <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-4">
                   <div>
                     <div className="flex items-center space-x-2 mb-1">
@@ -285,7 +305,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       </span>
                       <span className="text-zinc-600">|</span>
                       <span className="text-xs text-zinc-400 font-mono">
-                        1-2 lines per step (~160 chars bound)
+                        1-2 lines per step (~160 chars recommended)
                       </span>
                     </div>
 
@@ -317,11 +337,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Stepper Buttons Bar */}
+                  {/* Stepper Navigation Buttons */}
                   <div className="mt-3 flex-1 space-y-4">
                     <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
                       {milestones.map((_, idx) => {
-                        const isAnswered = (engine.microAnswers[idx] || '').trim().length > 0;
+                        const isAnswered = (engine.stepAnswers[String(idx)] || '').trim().length > 0;
                         const isActive = !engine.viewAllMilestones && engine.activeStep === idx;
                         return (
                           <button
@@ -346,6 +366,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       })}
                     </div>
 
+                    {/* Step Focus View Mode */}
                     {!engine.viewAllMilestones && (
                       <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-3">
                         <div className="flex items-center justify-between">
@@ -368,21 +389,34 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
 
                         <div className="relative mt-2">
                           <textarea
+                            ref={textareaRef}
                             rows={3}
-                            value={engine.microAnswers[engine.activeStep] || ''}
-                            onChange={(e) => engine.handleMicroAnswerChange(engine.activeStep, e.target.value)}
+                            value={engine.stepAnswers[String(engine.activeStep)] || ''}
+                            onChange={(e) => handleStepInput(engine.activeStep, e.target.value)}
                             placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
-                            className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20"
+                            className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20 transition-colors"
                           />
                           <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
-                            <span className={
-                              (engine.microAnswers[engine.activeStep] || '').length > 160
-                                ? 'text-amber-400 font-medium'
-                                : 'text-zinc-500'
-                            }>
-                              {(engine.microAnswers[engine.activeStep] || '').length} / 160 characters
-                            </span>
-                            {(engine.microAnswers[engine.activeStep] || '').trim().length >= 4 && (
+                            {(() => {
+                              const currLength = (engine.stepAnswers[String(engine.activeStep)] || '').length;
+                              const maxBound = 2000;
+                              const isNearLimit = currLength >= 145;
+                              const isMaxed = currLength >= maxBound;
+                              return (
+                                <span
+                                  className={
+                                    isMaxed
+                                      ? 'text-rose-400 font-bold'
+                                      : isNearLimit
+                                      ? 'text-amber-500 font-semibold'
+                                      : 'text-zinc-500'
+                                  }
+                                >
+                                  {currLength} / 160 characters
+                                </span>
+                              );
+                            })()}
+                            {(engine.stepAnswers[String(engine.activeStep)] || '').trim().length >= 4 && (
                               <span className="text-emerald-400 flex items-center space-x-1">
                                 <Check className="h-3 w-3" />
                                 <span>Saved</span>
@@ -391,11 +425,15 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           </div>
                         </div>
 
+                        {/* Step Navigation Bar with Auto-Focus */}
                         <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
                           <button
                             type="button"
                             disabled={engine.activeStep === 0}
-                            onClick={() => engine.setActiveStep((prev) => Math.max(0, prev - 1))}
+                            onClick={() => {
+                              const prevIdx = Math.max(0, engine.activeStep - 1);
+                              engine.setActiveStep(prevIdx);
+                            }}
                             className="inline-flex items-center space-x-1 rounded border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-40"
                           >
                             <ChevronLeft className="h-3.5 w-3.5" />
@@ -405,7 +443,10 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           <button
                             type="button"
                             disabled={engine.activeStep === totalMilestones - 1}
-                            onClick={() => engine.setActiveStep((prev) => Math.min(totalMilestones - 1, prev + 1))}
+                            onClick={() => {
+                              const nextIdx = Math.min(totalMilestones - 1, engine.activeStep + 1);
+                              engine.setActiveStep(nextIdx);
+                            }}
                             className="inline-flex items-center space-x-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 px-3 py-1 text-xs text-amber-300 font-medium disabled:opacity-40"
                           >
                             <span>Next Step</span>
@@ -415,10 +456,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       </div>
                     )}
 
+                    {/* Show All Steps View Mode */}
                     {engine.viewAllMilestones && (
                       <div className="space-y-4">
                         {milestones.map((m, idx) => {
-                          const val = engine.microAnswers[idx] || '';
+                          const val = engine.stepAnswers[String(idx)] || '';
                           const charCount = val.length;
                           const isSubstantive = val.trim().length >= 4;
 
@@ -449,12 +491,18 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                                 <textarea
                                   rows={3}
                                   value={val}
-                                  onChange={(e) => engine.handleMicroAnswerChange(idx, e.target.value)}
+                                  onChange={(e) => handleStepInput(idx, e.target.value)}
                                   placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
-                                  className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20"
+                                  className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20 transition-colors"
                                 />
                                 <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
-                                  <span className={charCount > 160 ? 'text-amber-400 font-medium' : 'text-zinc-500'}>
+                                  <span
+                                    className={
+                                      charCount >= 145
+                                        ? 'text-amber-500 font-semibold'
+                                        : 'text-zinc-500'
+                                    }
+                                  >
                                     {charCount} / 160 characters
                                   </span>
                                   {isSubstantive && (
@@ -479,22 +527,23 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     </div>
                   )}
 
+                  {/* Immediate Loading Indicator / Submit Button */}
                   <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-800 pt-4">
                     <button
                       type="button"
                       id="submit-attempt-btn"
-                      disabled={engine.isSubmitting}
+                      disabled={engine.isSubmitting || engine.isEvaluating}
                       onClick={engine.handleSubmitAttempt}
                       className={`inline-flex items-center justify-center space-x-2 rounded-lg px-6 py-2.5 text-xs font-semibold transition-all shadow-md ${
-                        engine.isSubmitting
-                          ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed border border-zinc-700/50'
+                        (engine.isSubmitting || engine.isEvaluating)
+                          ? 'bg-zinc-800 text-amber-300 border border-amber-500/40 cursor-wait'
                           : 'bg-amber-400 text-zinc-950 hover:bg-amber-300 active:scale-[0.99]'
                       }`}
                     >
-                      {engine.isSubmitting ? (
+                      {(engine.isSubmitting || engine.isEvaluating) ? (
                         <>
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin" />
-                          <span>Processing Submission...</span>
+                          <RefreshCw className="h-3.5 w-3.5 animate-spin text-amber-400" />
+                          <span>Evaluating synthesis...</span>
                         </>
                       ) : (
                         <>
@@ -507,8 +556,8 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                 </div>
               </div>
 
-              {/* Right Column: Progressive Hint Rail */}
-              <div className="lg:col-span-4">
+              {/* Right Column: Progressive Hint Rail (Independent Column with Pinned Sticky Positioning) */}
+              <div className="lg:col-span-4 self-start">
                 <HintLadderRail
                   challenge={challenge}
                   hintState={engine.hintState}
@@ -527,9 +576,20 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
         {/* STAGE 3: EVALUATION OUTPUT & TERMINAL MASTERY */}
         {engine.stage === 'submitted' && engine.submittedAttempt && (
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-            <div className="lg:col-span-8 space-y-6">
+            <div className="lg:col-span-8 space-y-6 self-start">
+              {/* Immediate Loading State Reset Display during evaluation */}
+              {(engine.isEvaluating || engine.isSubmitting) && (
+                <div id="evaluating-loading-banner" className="rounded-xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-zinc-900/90 p-8 text-center space-y-4 shadow-xl">
+                  <RefreshCw className="h-8 w-8 text-amber-400 animate-spin mx-auto" />
+                  <h3 className="font-serif text-xl text-zinc-100">Evaluating Synthesis...</h3>
+                  <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed font-sans">
+                    Analyzing demonstrated capabilities, structural reasoning milestones, and quantitative trade-offs against the ground-truth benchmark...
+                  </p>
+                </div>
+              )}
+
               {/* TERMINAL MASTERY COMPLETION CARD (if CORRECT) */}
-              {isCorrect ? (
+              {!engine.isEvaluating && isCorrect && (
                 <div id="capability-verified-card" className="rounded-xl border border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 to-[#0c1210] p-6 sm:p-8 space-y-6 shadow-2xl">
                   <div className="flex items-center space-x-4">
                     <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-inner">
@@ -566,9 +626,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           <CheckCircle2 className="h-4 w-4" />
                           <span>Demonstrated ({(evalResult?.demonstrated_capabilities?.length || totalMilestones)}/{(totalMilestones || evalResult?.demonstrated_capabilities?.length || 5)})</span>
                         </div>
-                        {(evalResult?.demonstrated_capabilities?.length ? evalResult.demonstrated_capabilities : milestones).map((c, i) => (
-                          <div key={i} className="text-xs text-emerald-200/90 mt-1">• {c}</div>
-                        ))}
+                        {(evalResult?.demonstrated_capabilities?.length ? evalResult.demonstrated_capabilities : milestones).map((c, i) => {
+                          const stepNum = resolveMilestoneStepNumber(c, milestones);
+                          return (
+                            <div key={i} className="text-xs text-emerald-200/90 mt-1.5 flex items-start space-x-1.5">
+                              {stepNum ? (
+                                <span className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/40 shrink-0">
+                                  Step {stepNum}
+                                </span>
+                              ) : (
+                                <span className="text-emerald-400 font-bold">•</span>
+                              )}
+                              <span className="leading-relaxed">{c}</span>
+                            </div>
+                          );
+                        })}
                       </div>
 
                       <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4">
@@ -579,9 +651,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                         {(!evalResult?.missing_capabilities || evalResult.missing_capabilities.length === 0) ? (
                           <div className="text-xs text-emerald-300/80 italic mt-1">• 0 missing — 100% Mastery Verified</div>
                         ) : (
-                          evalResult.missing_capabilities.map((c, i) => (
-                            <div key={i} className="text-xs text-zinc-400 mt-1">• {c}</div>
-                          ))
+                          evalResult.missing_capabilities.map((c, i) => {
+                            const stepNum = resolveMilestoneStepNumber(c, milestones);
+                            return (
+                              <div key={i} className="text-xs text-zinc-400 mt-1.5 flex items-start space-x-1.5">
+                                {stepNum ? (
+                                  <span className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/40 shrink-0">
+                                    Step {stepNum}
+                                  </span>
+                                ) : (
+                                  <span className="text-amber-400 font-bold">•</span>
+                                )}
+                                <span className="leading-relaxed">{c}</span>
+                              </div>
+                            );
+                          })
                         )}
                       </div>
                     </div>
@@ -619,8 +703,10 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     </button>
                   </div>
                 </div>
-              ) : (
-                /* STANDARD EVALUATION RESULT DISPLAY (PARTIALLY_CORRECT / WRONG_APPROACH / NEEDS_CLARIFICATION) */
+              )}
+
+              {/* STANDARD EVALUATION RESULT DISPLAY (PARTIALLY_CORRECT / WRONG_APPROACH / NEEDS_CLARIFICATION) */}
+              {!engine.isEvaluating && !isCorrect && (
                 <div className="rounded-xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-[#0e1014] p-6 sm:p-8 space-y-6">
                   <div className="flex items-center space-x-3">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
@@ -636,15 +722,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     </div>
                   </div>
 
-                  {/* Evaluation Engine Result Display */}
-                  {engine.isEvaluating && (
-                    <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-6 text-center">
-                      <RefreshCw className="h-6 w-6 text-amber-400 animate-spin mx-auto" />
-                      <h3 className="mt-3 font-serif text-lg text-zinc-100">Evaluating Attempt...</h3>
-                    </div>
-                  )}
-
-                  {!engine.isEvaluating && evalResult && (
+                  {evalResult && (
                     <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/80 p-5 space-y-6">
                       <div className="flex items-center space-x-3 border-b border-zinc-800 pb-4">
                         <span
@@ -671,9 +749,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             <CheckCircle2 className="h-4 w-4" />
                             <span>Demonstrated ({evalResult.demonstrated_capabilities?.length || 0}/{totalMilestones})</span>
                           </div>
-                          {evalResult.demonstrated_capabilities?.map((c, i) => (
-                            <div key={i} className="text-xs text-zinc-300 mt-1">• {c}</div>
-                          ))}
+                          {evalResult.demonstrated_capabilities?.map((c, i) => {
+                            const stepNum = resolveMilestoneStepNumber(c, milestones);
+                            return (
+                              <div key={i} className="text-xs text-zinc-300 mt-1.5 flex items-start space-x-1.5">
+                                {stepNum ? (
+                                  <span className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/40 shrink-0">
+                                    Step {stepNum}
+                                  </span>
+                                ) : (
+                                  <span className="text-emerald-400 font-bold">•</span>
+                                )}
+                                <span className="leading-relaxed">{c}</span>
+                              </div>
+                            );
+                          })}
                         </div>
 
                         <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
@@ -681,9 +771,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                             <AlertCircle className="h-4 w-4" />
                             <span>Missing ({evalResult.missing_capabilities?.length || 0})</span>
                           </div>
-                          {evalResult.missing_capabilities?.map((c, i) => (
-                            <div key={i} className="text-xs text-zinc-400 mt-1">• {c}</div>
-                          ))}
+                          {evalResult.missing_capabilities?.map((c, i) => {
+                            const stepNum = resolveMilestoneStepNumber(c, milestones);
+                            return (
+                              <div key={i} className="text-xs text-zinc-400 mt-1.5 flex items-start space-x-1.5">
+                                {stepNum ? (
+                                  <span className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/40 shrink-0">
+                                    Step {stepNum}
+                                  </span>
+                                ) : (
+                                  <span className="text-amber-400 font-bold">•</span>
+                                )}
+                                <span className="leading-relaxed">{c}</span>
+                              </div>
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -703,12 +805,6 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     </div>
                   )}
 
-                  {!engine.isEvaluating && !evalResult && (
-                    <div className="mt-6 rounded-xl border border-amber-500/20 bg-amber-500/5 p-5 text-xs text-zinc-300 leading-relaxed">
-                      Evaluation response recorded. Click below to review your evidence or revise your attempt.
-                    </div>
-                  )}
-
                   <div className="mt-6 flex flex-wrap items-center gap-3">
                     <button
                       onClick={() => onNavigate('evidence')}
@@ -724,13 +820,27 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       <RotateCcw className="h-3.5 w-3.5" />
                       <span>Revise & Retry Attempt</span>
                     </button>
+
+                    <button
+                      onClick={() => {
+                        const reason = prompt('Please state the reason for disputing this evaluation verdict:');
+                        if (reason && reason.trim().length > 0) {
+                          engine.handleFlagReview(reason.trim());
+                          alert('Verdict flagged for review. Your feedback has been logged in session history.');
+                        }
+                      }}
+                      className="inline-flex items-center space-x-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs font-mono text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-colors"
+                    >
+                      <Flag className="h-3.5 w-3.5 text-zinc-400" />
+                      <span>{engine.submittedAttempt?.evaluation_flagged ? 'Flagged for Review' : 'Flag this Evaluation'}</span>
+                    </button>
                   </div>
                 </div>
               )}
             </div>
 
-            {/* Right Column: Progressive Hint Rail */}
-            <div className="lg:col-span-4">
+            {/* Right Column: Progressive Hint Rail (Independent Column with Pinned Sticky Positioning) */}
+            <div className="lg:col-span-4 self-start">
               <HintLadderRail
                 challenge={challenge}
                 hintState={engine.hintState}

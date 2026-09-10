@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import { serverHintStateStore } from '@/lib/serverStore';
-import { sanitizeText, stripHtml } from '@/utils/sanitizer';
+import { getHintStateFromDb, saveFlagToDb, toUuid } from '@/lib/supabase-store';
+import { stripHtml, sanitizeText } from '@/utils/sanitizer';
 
 export async function POST(
   request: Request,
@@ -12,9 +12,8 @@ export async function POST(
     const { attemptId, conceptId, reason, learner_id, learnerId: altLearnerId } = body;
 
     const learnerId = learner_id || altLearnerId || 'default_learner';
-    const stateKey = `${learnerId}:${challengeId}`;
 
-    let hintState = serverHintStateStore.get(stateKey);
+    let hintState = await getHintStateFromDb(learnerId, challengeId, conceptId);
     if (!hintState) {
       hintState = {
         challenge_id: challengeId,
@@ -30,36 +29,41 @@ export async function POST(
       };
     }
 
+    // Keep existing Tier-4 gating check exactly as it is
     if (hintState.current_tier < 4) {
       return NextResponse.json(
-        {
-          success: false,
-          error: 'Evaluation override is only available after reaching Tier 4.'
-        },
+        { success: false, error: 'Evaluation override is only available after reaching Tier 4.' },
         { status: 403 }
       );
     }
 
-    const rationale = stripHtml(
-      sanitizeText(reason || 'Learner flagged evaluation for instructor review (valid technical alternative).')
-    );
-    const nowIso = new Date().toISOString();
+    const rationale = stripHtml(sanitizeText(reason || 'Learner flagged evaluation for instructor review (valid technical alternative).'));
+    const targetAttemptId = attemptId || `att_${challengeId}_${Date.now()}`;
 
-    hintState.evaluation_flagged = true;
-    hintState.flagged_review_reason = rationale;
-    hintState.flagged_at = nowIso;
-    hintState.flagged_attempt_id = attemptId;
-    serverHintStateStore.set(stateKey, hintState);
+    // Insert row into flags table (attempt_id, reason, review_status = 'unreviewed', created_at)
+    const result = await saveFlagToDb({
+      attemptId: targetAttemptId,
+      reason: rationale
+    });
+
+    if (!result.success) {
+      return NextResponse.json(
+        { success: false, error: result.error || 'Failed to insert review flag.' },
+        { status: 500 }
+      );
+    }
 
     return NextResponse.json({
       success: true,
       flagged: true,
-      flagged_at: nowIso,
-      state: hintState
+      attempt_id: toUuid(targetAttemptId),
+      reason: rationale,
+      review_status: 'unreviewed',
+      created_at: new Date().toISOString()
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Failed to process flag-review request.' },
+      { error: error.message || 'Database error executing flag review.' },
       { status: 500 }
     );
   }

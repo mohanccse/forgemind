@@ -15,17 +15,37 @@ import { ConceptPreviewPage } from './components/ConceptPreviewPage';
 import { StudyMaterialPage } from './components/StudyMaterialPage';
 import { ChallengePage } from './components/ChallengePage';
 import { EvidencePage } from './components/EvidencePage';
+import { AccountPage } from './components/AccountPage';
 import { clearPersistedActiveChallenge, clearAttemptDraft } from './services/attemptService';
 import { resetHintStateForConcept } from './services/hintService';
+import { getSupabaseBrowserClient } from './lib/supabase-browser';
 
 export default function App() {
   const [currentTab, setCurrentTab] = useState<ViewTab>('home');
   const [activeConcept, setActiveConcept] = useState<Concept>(INITIAL_CONCEPTS[0]);
+  const [authUser, setAuthUser] = useState<any>(null);
+
+  useEffect(() => {
+    try {
+      const supabase = getSupabaseBrowserClient();
+      supabase.auth.getSession().then(({ data: { session } }) => {
+        setAuthUser(session?.user ?? null);
+      });
+
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+        setAuthUser(session?.user ?? null);
+      });
+
+      return () => subscription.unsubscribe();
+    } catch (e) {
+      console.warn('Supabase auth state listener init warning:', e);
+    }
+  }, []);
 
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem('forgemind_tab');
-      if (saved && ['home', 'prove', 'concept-preview', 'material', 'challenge', 'evidence'].includes(saved)) {
+      if (saved && ['home', 'prove', 'concept-preview', 'material', 'challenge', 'evidence', 'account'].includes(saved)) {
         setCurrentTab(saved as ViewTab);
       }
       const savedConceptId = sessionStorage.getItem('forgemind_concept_id');
@@ -108,7 +128,7 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[#0c0d12] text-[#e4e5eb] flex flex-col selection:bg-amber-500/20 selection:text-amber-200">
       {/* Navigation Header */}
-      <Header currentTab={currentTab} onNavigate={handleNavigate} />
+      <Header currentTab={currentTab} onNavigate={handleNavigate} user={authUser} />
 
       {/* Main Viewport */}
       <main className="flex-1">
@@ -150,6 +170,10 @@ export default function App() {
         {currentTab === 'evidence' && (
           <EvidencePage onNavigate={handleNavigate} />
         )}
+
+        {currentTab === 'account' && (
+          <AccountPage onNavigate={handleNavigate} user={authUser} />
+        )}
       </main>
 
       {/* Minimal, Credible Footer */}
@@ -180,10 +204,17 @@ export default function App() {
             >
               My Evidence
             </button>
+            {authUser && (
+              <button
+                onClick={() => handleNavigate('account')}
+                className="hover:text-zinc-300 transition-colors text-amber-400 font-medium"
+              >
+                Account
+              </button>
+            )}
           </div>
         </div>
       </footer>
     </div>
   );
 }
-

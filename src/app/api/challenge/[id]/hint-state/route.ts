@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { serverHintStateStore } from '@/lib/serverStore';
+import { getHintStateFromDb } from '@/lib/supabase-store';
 
 export async function GET(
   request: Request,
@@ -13,8 +13,7 @@ export async function GET(
       searchParams.get('learnerId') ||
       'default_learner';
 
-    const stateKey = `${learnerId}:${challengeId}`;
-    const state = serverHintStateStore.get(stateKey);
+    const state = await getHintStateFromDb(learnerId, challengeId);
 
     return NextResponse.json({
       success: true,
@@ -22,7 +21,7 @@ export async function GET(
     });
   } catch (error: any) {
     return NextResponse.json(
-      { error: error.message || 'Failed to fetch hint state.' },
+      { error: error.message || 'Database error fetching hint state.' },
       { status: 500 }
     );
   }

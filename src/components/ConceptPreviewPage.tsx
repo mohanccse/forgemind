@@ -17,7 +17,9 @@ export const ConceptPreviewPage: React.FC<ConceptPreviewPageProps> = ({
   onProveThis,
   onNavigate
 }) => {
-  const domainColors = {
+  const domainColors: Record<string, string> = {
+    'Product Management Fundamentals': 'border-amber-500/30 bg-amber-500/10 text-amber-400',
+    'AI for PMs': 'border-purple-500/30 bg-purple-500/10 text-purple-400',
     'AI Product Management': 'border-blue-500/30 bg-blue-500/10 text-blue-400'
   };
 

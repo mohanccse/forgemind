@@ -11,6 +11,17 @@ import { validateEvaluationResult, safeParseJson } from './src/utils/evaluationV
 import { stripHtml, sanitizeText, STUDY_MATERIAL_LIMITS, LEARNER_ATTEMPT_LIMITS } from './src/utils/sanitizer';
 import { CURATED_NOVEL_CHALLENGES } from './src/data/curatedNovelChallenges';
 
+import {
+  saveChallengeToDb,
+  getChallengeFromDb,
+  saveHintStateToDb,
+  getHintStateFromDb,
+  saveAttemptToDb,
+  saveFlagToDb,
+  toUuid
+} from './src/lib/supabase-store';
+
+dotenv.config({ path: '.env.local' });
 dotenv.config();
 
 const app = express();
@@ -18,10 +29,6 @@ const PORT = 3000;
 
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ limit: '50mb', extended: true }));
-
-// Server-side stores for challenge definition caching and hint gating enforcement
-const serverChallengeStore = new Map<string, any>();
-const serverHintStateStore = new Map<string, any>();
 
 // Helper for asynchronous timeout and exponential backoff retry
 async function executeWithTimeoutAndRetry<T>(
@@ -65,13 +72,7 @@ async function executeWithTimeoutAndRetry<T>(
   throw new Error('All retries exhausted');
 }
 
-// Preload curated challenges into serverChallengeStore
-Object.values(CURATED_NOVEL_CHALLENGES).forEach((c) => {
-  serverChallengeStore.set(c.id, c);
-  if (c.conceptId) {
-    serverChallengeStore.set(c.conceptId, c);
-  }
-});
+
 
 // Lazy-initialized Gemini AI Client
 let aiClient: GoogleGenAI | null = null;
@@ -108,8 +109,10 @@ app.post('/api/generate-challenge', async (req, res) => {
   // Door 1 (Content Library): Zero live LLM calls for challenge generation.
   // Pre-authored, pre-audited challenges return immediately from stored curated store.
   if (sourceType === 'LIBRARY' || CURATED_NOVEL_CHALLENGES[conceptId]) {
-    const curated = CURATED_NOVEL_CHALLENGES[conceptId] || serverChallengeStore.get(conceptId);
+    const dbCurated = await getChallengeFromDb(conceptId);
+    const curated = CURATED_NOVEL_CHALLENGES[conceptId] || dbCurated;
     if (curated && curated.sourceType !== 'USER_GENERATED') {
+      await saveChallengeToDb(curated);
       return res.json({
         success: true,
         challenge: curated,
@@ -284,8 +287,8 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
       });
     }
 
-    // Register challenge in server store for server-enforced hint gating
-    serverChallengeStore.set(challenge.id, challenge);
+    // Register challenge in Supabase challenges table for server-enforced hint gating
+    await saveChallengeToDb(challenge);
 
     return res.json({
       challenge,
@@ -293,27 +296,206 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     });
 
   } catch (error: any) {
-    console.error('Error in /api/generate-challenge:', error);
+    console.warn('AI challenge generation failed or rate limited, switching to resilient synthetic recovery:', error.message || error);
 
     // If curated backup exists for this concept, provide it so user experience never breaks
     if (CURATED_NOVEL_CHALLENGES[conceptId]) {
+      const curated = CURATED_NOVEL_CHALLENGES[conceptId];
+      await saveChallengeToDb(curated);
       return res.json({
-        challenge: CURATED_NOVEL_CHALLENGES[conceptId],
+        challenge: curated,
         source: 'curated-recovery',
         originalError: error.message
       });
     }
 
-    return res.status(500).json({
-      error: error.message || 'An unexpected error occurred during challenge generation.',
-      code: 'GENERATION_FAILED'
+    // Dynamic synthetic challenge generator for Door 2 (User-uploaded study materials)
+    const syntheticChallenge = createSyntheticChallengeFromConcept(concept, targetDifficulty, sourceType);
+    await saveChallengeToDb(syntheticChallenge);
+
+    return res.json({
+      challenge: syntheticChallenge,
+      source: 'synthetic-recovery',
+      notice: 'Gemini API quota exceeded or unavailable. Served a resilient synthetic challenge based on your study material capability model.'
     });
   }
 });
 
+function createSyntheticChallengeFromConcept(
+  concept: any,
+  targetDifficulty: string = 'Applied',
+  sourceType: string = 'USER_GENERATED'
+): any {
+  const conceptId = concept.id || `custom-${Date.now()}`;
+  const conceptName = concept.name || 'Study Material Benchmark';
+  const domain = concept.domain || 'Applied Engineering & PM';
+  const skill = concept.underlyingSkill || conceptName;
+
+  const caps = Array.isArray(concept.capabilities) && concept.capabilities.length >= 3
+    ? concept.capabilities
+    : [
+        `Defines operational boundary conditions and risks for ${conceptName}.`,
+        `Constructs a defensible trade-off matrix balancing speed, cost, and quality.`,
+        `Formulates a phased action plan addressing primary constraints.`,
+        `Establishes quantitative metrics for post-launch validation.`
+      ];
+
+  const milestones = caps.slice(0, 4);
+  const microQuestions = milestones.map((m: string, i: number) => {
+    return `Step ${i + 1}: ${m} — In 1-2 lines (~160 chars), state your specific reasoning and quantitative boundary.`;
+  });
+
+  return {
+    id: `syn-${conceptId}-${Date.now()}`,
+    conceptId,
+    conceptName,
+    domain,
+    difficulty: targetDifficulty,
+    sourceType,
+    title: `Executive Decision Benchmark: ${conceptName} Scenario`,
+    scenario: `You are acting as Principal Specialist evaluating an unfamiliar operational dilemma involving ${conceptName}. The team must determine how best to apply ${skill} under resource constraints and tight timelines.\n\nDescription: ${concept.description || 'Feed study material parameters into a structured decision framework.'}`,
+    contextData: `Operational Telemetry:\n- Target Concept: ${conceptName}\n- Primary Bottleneck: ${concept.commonFailureModes?.[0] || 'Operational alignment & trade-off complexity'}\n- Domain: ${domain}\n- Execution Mode: Zero-Reference Applied Synthesis (Resilient Recovery Baseline)`,
+    mandate: `Formulate a structured Executive Decision Memo that: 1. Evaluates the core dilemma using ${conceptName} principles, 2. Recommends a concrete sequence of action, 3. Outlines a risk mitigation strategy for cross-functional alignment.`,
+    constraints: [
+      `Must explicitly address trade-offs and operational boundary conditions for ${conceptName}.`,
+      'Must provide a clear step-by-step rationale for all recommendations.',
+      'Must state quantitative metrics or success indicators.'
+    ],
+    expectedOutputFormat: 'Structured Decision Memo',
+    capabilityTested: skill,
+    structuralMilestones: milestones,
+    microQuestions,
+    acceptableAlternativeReasoning: [
+      'Prioritizing immediate execution velocity over comprehensive validation provided risk mitigation is documented.',
+      'Phasing deployment into pilot segments to validate assumptions before full rollout.'
+    ],
+    referenceSolution: `Model Answer: The optimal approach establishes explicit operational boundaries for ${conceptName} first, quantifies trade-offs between speed and quality, and implements phased validation metrics.`,
+    hints: [
+      {
+        tier: 1,
+        type: 'Nudge',
+        title: 'Identify Core Bottleneck',
+        hint: `Inspect the scenario parameters to identify the primary bottleneck when applying ${conceptName}.`,
+        penaltyDescription: '-5% on Raw Independence'
+      },
+      {
+        tier: 2,
+        type: 'Direction',
+        title: 'Evaluate Trade-offs',
+        hint: 'Compare speed vs quality or cost vs accuracy before selecting your recommended sequence of action.',
+        penaltyDescription: '-12% on Raw Independence'
+      },
+      {
+        tier: 3,
+        type: 'Concept reminder',
+        title: 'Concept Principle',
+        hint: `Recall that ${conceptName} requires grounding decisions in measurable evidence rather than gut-feeling assumptions.`,
+        penaltyDescription: '-20% on Raw Independence'
+      },
+      {
+        tier: 4,
+        type: 'Structural guidance',
+        title: 'Structured Action Plan',
+        hint: 'Structure your response into 4 distinct phases: 1. Boundary identification, 2. Trade-off matrix, 3. Phased steps, 4. Quantitative validation metrics.',
+        penaltyDescription: '-35% on Raw Independence'
+      },
+      {
+        tier: 5,
+        type: 'Solution reveal',
+        title: 'Reference Architecture',
+        hint: `Reference Solution: Ground the trade-off defense in ${conceptName} principles by setting explicit thresholds for success and documenting risk boundaries.`,
+        penaltyDescription: '-60% on Raw Independence'
+      }
+    ]
+  };
+}
+
+/**
+ * Extracts ONLY actual learner submitted answers, stripping out system context,
+ * milestone titles, and question prompts.
+ */
+function extractLearnerAnswersOnly(attempt: any): string {
+  if (attempt.micro_responses && Array.isArray(attempt.micro_responses) && attempt.micro_responses.length > 0) {
+    return attempt.micro_responses
+      .map((mr: any, idx: number) => `Step ${idx + 1} Answer: ${mr.answer || ''}`)
+      .join('\n');
+  }
+
+  const rawText = attempt.response || '';
+  const responseMatches = rawText.match(/ANSWER:\s*(.+)/gi) || rawText.match(/RESPONSE:\s*(.+)/gi);
+  if (responseMatches && responseMatches.length > 0) {
+    return responseMatches.map((m: string) => m.replace(/(?:ANSWER|RESPONSE):\s*/i, '').trim()).join('\n');
+  }
+  return rawText;
+}
+
+const SERVER_FILLER_PHRASES = [
+  'this is it', 'this is what', 'this is a test', 'this is test', 'this is',
+  'this is the', 'this is my', 'this is step', 'this is answer', 'it is', 'that is',
+  'here is', 'here it is', "i don't know", 'idk', 'not sure', 'test test',
+  'hello world', 'sample text', 'placeholder', 'fill this in', 'nothing to say',
+  'some text', 'random text', 'default answer', 'asdf', 'qwerty', 'zxcv', '1234',
+  'abcd', 'fdsa', 'ytrewq', 'vcxz', 'aaaa', 'ssss', 'dddd', 'ffff', 'xxxx',
+  'zzzz', 'qqqq', 'n/a', 'na', 'none', 'nothing', 'no idea', 'skip', 'pass',
+  'whatever', 'foo', 'bar', 'baz', 'abc', 'xyz', 'testing', 'done', 'finished'
+];
+
+function isFillerPhrase(text: string): boolean {
+  const lower = (text || '').trim().toLowerCase();
+  if (!lower) return true;
+  if (lower.length > 35) return false;
+  return SERVER_FILLER_PHRASES.some((pattern) => {
+    if (lower === pattern) return true;
+    if (pattern.length >= 4) {
+      const escaped = pattern.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&');
+      return new RegExp(`\\b${escaped}\\b`, 'i').test(lower) && lower.length < pattern.length + 15;
+    }
+    return false;
+  });
+}
+
+function checkMilestoneDomainRelevance(
+  answerText: string,
+  concept: any,
+  milestoneText: string
+): { demonstrated: boolean; isOffTopic: boolean } {
+  const text = (answerText || '').trim();
+  const lower = text.toLowerCase();
+
+  // Filler check
+  if (text.length < 15 || isFillerPhrase(text)) {
+    return { demonstrated: false, isOffTopic: false };
+  }
+
+  // Detect explicit off-topic mismatch (e.g. SQL Join query entered for non-database concept)
+  const isSqlAnswer = /\b(select\s+.+\s+from|left\s+join|inner\s+join|group\s+by|where\s+\w+\s*=)\b/i.test(lower);
+  const conceptNameDomain = `${concept.name || ''} ${concept.domain || ''}`.toLowerCase();
+  const isSqlConcept = /\b(sql|database|query|postgres|relational|join|table)\b/i.test(conceptNameDomain);
+
+  if (isSqlAnswer && !isSqlConcept) {
+    return { demonstrated: false, isOffTopic: true };
+  }
+
+  // Extract domain vocabulary from concept & milestone
+  const targetWords = `${concept.name || ''} ${concept.domain || ''} ${concept.underlyingSkill || ''} ${milestoneText || ''}`
+    .toLowerCase()
+    .replace(/[^a-z0-9 ]/g, ' ')
+    .split(/\s+/)
+    .filter(w => w.length >= 4 && !['defines', 'clear', 'constructs', 'formulates', 'establishes', 'step', 'target', 'using', 'with', 'from', 'this', 'that', 'have', 'what', 'when', 'where', 'which', 'concept', 'topic'].includes(w));
+
+  const matchedKeywords = targetWords.filter(w => lower.includes(w));
+  const hasAnalyticalTerms = /\b(trade-?off|metric|risk|bottleneck|constraint|impact|user|customer|process|system|performance|scale|methodology)\b/i.test(lower);
+
+  if (matchedKeywords.length >= 1 || hasAnalyticalTerms) {
+    return { demonstrated: true, isOffTopic: false };
+  }
+
+  return { demonstrated: false, isOffTopic: true };
+}
+
 /**
  * Deterministic capability evaluator for fallback and resilient operation.
- * Grounded in the learner's actual text and capability milestones.
+ * Grounded strictly in the learner's actual typed text and capability milestones.
  */
 function evaluateHeuristic(
   challenge: any,
@@ -321,73 +503,100 @@ function evaluateHeuristic(
   attempt: any,
   sourceType: string
 ): any {
-  const text = (attempt.response || '').trim();
-  const lower = text.toLowerCase();
+  const learnerText = extractLearnerAnswersOnly(attempt).trim();
+  const lower = learnerText.toLowerCase();
+  const structuralMilestones: string[] = challenge.structuralMilestones || concept.reasoningMilestones || [];
 
-  // If response is extremely brief
-  if (text.length < 35) {
+  // Check if learner input is keyboard mash or generic filler
+  const isKeyboardMash =
+    /asdfghjkl|qwertyuiop|zxcvbnm|123456|abcdef/i.test(lower) ||
+    (lower.length > 10 && new Set(lower.replace(/[^a-z]/g, '')).size < 4);
+  const isGenericFiller = isFillerPhrase(learnerText);
+
+  // Count substantive step answers
+  const microResponses: any[] = attempt.micro_responses || [];
+  let substantiveStepCount = 0;
+  if (microResponses.length > 0) {
+    microResponses.forEach((mr: any) => {
+      const ans = (mr.answer || '').trim();
+      if (ans.length >= 12 && !isFillerPhrase(ans)) {
+        substantiveStepCount++;
+      }
+    });
+  }
+
+  // Reject brief (<60 chars total or <half steps substantive), filler, or keyboard mash
+  if (learnerText.length < 60 || isKeyboardMash || isGenericFiller || (microResponses.length > 0 && substantiveStepCount < Math.ceil(microResponses.length / 2))) {
     return {
       verdict: 'NEEDS_CLARIFICATION',
       demonstrated_capabilities: [],
-      missing_capabilities: concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis'],
-      evidence: [text ? `Submitted text too brief: "${text}"` : 'Empty response provided.'],
-      brief_feedback: 'The submission lacks sufficient substantive explanation to determine capability milestones. Provide a complete, structured response addressing the mandate.',
-      evaluator_confidence: 0.95
+      missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
+      evidence: [learnerText ? `Submitted text is non-substantive filler or incomplete: "${learnerText.substring(0, 120)}"` : 'Empty response provided.'],
+      brief_feedback: 'The submission consists of generic placeholder or non-substantive text ("This is it"). Please provide an explicit, substantive response addressing each step.',
+      evaluator_confidence: 1.0
     };
   }
 
-  // Extract real sentence quotes for evidence
-  const sentences = text.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
+  const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
   const evidenceQuotes = sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' '));
 
-  // Determine demonstrated milestones by checking semantic presence
-  const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
   const demonstrated: string[] = [];
   const missing: string[] = [];
+  let hasOffTopicContent = false;
 
-  // Keywords relevant to domain
-  const hasTradeoff = /trade-?off|reach|impact|confidence|effort|discount|sensor|account|unit/i.test(lower);
-  const hasSqlJoins = /join|group by|cte|with |coalesce|fan-?out|cartesian|sum\(/i.test(lower);
-  const hasRag = /retriev|chunk|rerank|embed|context|contradict|precedence|version|date/i.test(lower);
-  const hasGeneralStructure = text.length > 200 && (sentences.length >= 3 || lower.includes('1)') || lower.includes('1.'));
+  if (microResponses.length > 0) {
+    microResponses.forEach((mr: any, idx: number) => {
+      const milestoneText = mr.milestone || structuralMilestones[idx] || `Step ${idx + 1}`;
+      const ans = (mr.answer || '').trim();
+      const check = checkMilestoneDomainRelevance(ans, concept, milestoneText);
+      
+      if (check.demonstrated) {
+        demonstrated.push(milestoneText);
+      } else {
+        missing.push(milestoneText);
+        if (check.isOffTopic) hasOffTopicContent = true;
+      }
+    });
 
-  let demonstratedCount = 0;
-  structuralMilestones.forEach((m: string, idx: number) => {
-    const words = m.toLowerCase().replace(/[^a-z0-9 ]/g, '').split(' ').filter((w: string) => w.length > 4);
-    const matchCount = words.filter((w: string) => lower.includes(w)).length;
-    if (matchCount >= 2 || (idx === 0 && (hasTradeoff || hasSqlJoins || hasRag))) {
-      demonstrated.push(m);
-      demonstratedCount++;
-    } else {
-      missing.push(m);
-    }
-  });
-
-  if (demonstrated.length === 0 && hasGeneralStructure) {
-    demonstrated.push(structuralMilestones[0] || 'Formulated a coherent structured response addressing scenario parameters');
+    structuralMilestones.forEach((m: string, idx: number) => {
+      if (idx >= microResponses.length && !demonstrated.includes(m)) {
+        missing.push(m);
+      }
+    });
+  } else {
+    structuralMilestones.forEach((m: string) => {
+      const check = checkMilestoneDomainRelevance(learnerText, concept, m);
+      if (check.demonstrated) {
+        demonstrated.push(m);
+      } else {
+        missing.push(m);
+        if (check.isOffTopic) hasOffTopicContent = true;
+      }
+    });
   }
 
+  const demonstratedCount = demonstrated.length;
+  const totalCount = Math.max(structuralMilestones.length, 1);
+
   let verdict = 'PARTIALLY_CORRECT';
-  if (demonstratedCount >= Math.ceil(structuralMilestones.length * 0.75) && text.length > 300) {
+  if (demonstratedCount === totalCount && learnerText.length >= 150 && !hasOffTopicContent) {
     verdict = 'CORRECT';
-  } else if (demonstratedCount === 0 && text.length < 80) {
-    verdict = 'WRONG_APPROACH';
-  } else if (!hasTradeoff && !hasSqlJoins && !hasRag && text.length < 120) {
+  } else if (hasOffTopicContent) {
     verdict = 'NEEDS_CLARIFICATION';
+  } else if (demonstratedCount === 0) {
+    verdict = 'WRONG_APPROACH';
   }
 
   return {
     verdict,
-    demonstrated_capabilities: demonstrated.length > 0 ? demonstrated : ['Initial problem structuring'],
+    demonstrated_capabilities: demonstrated,
     missing_capabilities: missing.length > 0 ? missing : ['None identified'],
-    evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [`Formulation provided: "${text.substring(0, 100)}..."`],
+    evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [`Formulation provided: "${learnerText.substring(0, 100)}..."`],
     brief_feedback: verdict === 'CORRECT'
       ? 'Strong autonomous formulation demonstrating key structural milestones and addressing evaluation constraints directly.'
       : verdict === 'PARTIALLY_CORRECT'
       ? 'Good initial reasoning demonstrated on core parameters, but certain key constraints or quantitative trade-offs remain incomplete.'
-      : verdict === 'WRONG_APPROACH'
-      ? 'The approach does not address the required structural constraints or exhibits fundamental conceptual divergence.'
-      : 'Insufficient evidence to evaluate full capability milestones. Clarify your specific trade-off metrics and calculation methodology.',
+      : 'The submission diverges fundamentally from the required domain concept (e.g. off-topic content or missing milestone evidence). Review the concept parameters and try again.',
     evaluator_confidence: 0.88
   };
 }
@@ -498,6 +707,12 @@ demonstrated_capabilities: [],
 missing_capabilities: ["Unable to evaluate due to ambiguous or ungrounded input."],
 evidence: ["Ungrounded or adversarial input pattern."],
 evaluator_confidence: 0.1.
+6. STRICT FILLER & PLACEHOLDER REJECTION RULE:
+If the learner's response consists of generic filler phrases (e.g., "this is it", "this is the answer", "test", "n/a", "idk", "placeholder", "foo bar"), short repetitive phrases, or trivial non-answers that do not contain substantive domain concepts or scenario reasoning:
+- You MUST output verdict: "NEEDS_CLARIFICATION" (or "WRONG_APPROACH").
+- demonstrated_capabilities MUST be an empty array [].
+- missing_capabilities MUST contain ALL structural milestones.
+- NEVER mark generic placeholder text or trivial filler answers as "CORRECT" or "PARTIALLY_CORRECT".
 
 ${isUserGenerated
   ? 'NOTE: This is a USER_GENERATED challenge. The reference solution is loose context only; evaluate strictly against the structural milestones and capability model.'
@@ -629,25 +844,43 @@ Return exactly one verdict: CORRECT, PARTIALLY_CORRECT, WRONG_APPROACH, or NEEDS
 
       // Schema Validation before returning to UI
       const validation = validateEvaluationResult(parsedRes.data, canaryToken);
-      if (!validation.isValid || !validation.sanitized) {
-        console.warn('Evaluation failed schema validation, using heuristic fallback:', validation.errors);
-        const heuristic = evaluateHeuristic(challenge, concept, attempt, effectiveSourceType);
-        return res.json({
-          success: true,
-          evaluation: heuristic,
-          source: 'heuristic-evaluator'
-        });
-      }
+      const evalToReturn = (validation.isValid && validation.sanitized) ? validation.sanitized : evaluateHeuristic(challenge, concept, attempt, effectiveSourceType);
+
+      // Persist attempt row to Supabase attempts table
+      saveAttemptToDb({
+        attempt_id: attempt.attempt_id,
+        session_id: attempt.session_id,
+        learner_id: attempt.learner_id,
+        challenge_id: challenge.id,
+        attempt_number: attempt.attempt_number || 1,
+        answer: extractLearnerAnswersOnly(attempt),
+        verdict: evalToReturn.verdict,
+        evaluator_confidence: evalToReturn.evaluator_confidence || 0.9,
+        model_name: 'gemini-3.8-flash'
+      }).catch(e => console.warn('Non-blocking attempt DB save error:', e));
 
       return res.json({
         success: true,
-        evaluation: validation.sanitized,
-        source: 'gemini'
+        evaluation: evalToReturn,
+        source: validation.isValid ? 'gemini' : 'heuristic-evaluator'
       });
 
     } catch (llmError: any) {
       console.error('Error invoking Gemini for evaluation, falling back to heuristic:', llmError);
       const fallback = evaluateHeuristic(challenge, concept, attempt, effectiveSourceType);
+
+      saveAttemptToDb({
+        attempt_id: attempt.attempt_id,
+        session_id: attempt.session_id,
+        learner_id: attempt.learner_id,
+        challenge_id: challenge.id,
+        attempt_number: attempt.attempt_number || 1,
+        answer: extractLearnerAnswersOnly(attempt),
+        verdict: fallback.verdict,
+        evaluator_confidence: fallback.evaluator_confidence || 0.88,
+        model_name: 'heuristic-evaluator'
+      }).catch(e => console.warn('Non-blocking attempt DB save error:', e));
+
       return res.json({
         success: true,
         evaluation: fallback,
@@ -677,155 +910,161 @@ Return exactly one verdict: CORRECT, PARTIALLY_CORRECT, WRONG_APPROACH, or NEEDS
  * - Freeze progression on NEEDS_CLARIFICATION
  * - Tier 5 reveals reference solution and marks solution_revealed = true
  */
-app.post('/api/challenge/:id/request-hint', (req, res) => {
-  const challengeId = req.params.id;
-  const {
-    requestedTier,
-    lastVerdict,
-    attemptNumber = 1,
-    conceptId,
-    learner_id,
-    learnerId: altLearnerId,
-    challenge: clientChallenge
-  } = req.body;
+app.post('/api/challenge/:id/request-hint', async (req, res) => {
+  try {
+    const challengeId = req.params.id;
+    const {
+      requestedTier,
+      lastVerdict,
+      attemptNumber = 1,
+      conceptId,
+      learner_id,
+      learnerId: altLearnerId,
+      challenge: clientChallenge
+    } = req.body;
 
-  const learnerId = learner_id || altLearnerId || 'default_learner';
-  const stateKey = `${learnerId}:${challengeId}`;
+    const learnerId = learner_id || altLearnerId || 'default_learner';
 
-  // Resolve challenge from memory, curated baseline, or client payload
-  let challenge =
-    serverChallengeStore.get(challengeId) ||
-    CURATED_NOVEL_CHALLENGES[conceptId] ||
-    CURATED_NOVEL_CHALLENGES[challengeId] ||
-    clientChallenge;
+    // Resolve challenge from Supabase DB, curated baseline, or client payload
+    let challenge =
+      (await getChallengeFromDb(challengeId)) ||
+      CURATED_NOVEL_CHALLENGES[conceptId] ||
+      CURATED_NOVEL_CHALLENGES[challengeId] ||
+      clientChallenge;
 
-  if (!challenge) {
-    const found = Object.values(CURATED_NOVEL_CHALLENGES).find(
-      (c: any) => c.id === challengeId || c.conceptId === conceptId
-    );
-    if (found) challenge = found;
-  }
+    if (!challenge) {
+      const found = Object.values(CURATED_NOVEL_CHALLENGES).find(
+        (c: any) => c.id === challengeId || c.conceptId === conceptId
+      );
+      if (found) challenge = found;
+    }
 
-  if (!challenge) {
-    return res.status(404).json({
-      success: false,
-      error: 'Challenge definition not found in server registry.'
-    });
-  }
+    if (!challenge) {
+      return res.status(404).json({
+        success: false,
+        error: 'Challenge definition not found in server registry.'
+      });
+    }
 
-  // Cache in serverChallengeStore if not already present
-  serverChallengeStore.set(challenge.id, challenge);
+    // Persist challenge definition in Supabase challenges table
+    await saveChallengeToDb(challenge);
 
-  // Retrieve or initialize server-side hint state for this learner & challenge
-  let hintState = serverHintStateStore.get(stateKey);
-  if (!hintState) {
-    hintState = {
-      challenge_id: challengeId,
-      concept_id: conceptId || challenge.conceptId,
-      learner_id: learnerId,
-      current_tier: 0,
-      unlocked_tiers: [],
-      last_unlocked_at_attempt: 0,
-      attempts_since_last_hint: 0,
-      progression_frozen: false,
-      solution_revealed: false,
-      evaluation_flagged: false
-    };
-    serverHintStateStore.set(stateKey, hintState);
-  }
+    // Retrieve or initialize server-side hint state from Supabase sessions table
+    let hintState = await getHintStateFromDb(learnerId, challengeId, conceptId || challenge.conceptId);
+    if (!hintState) {
+      hintState = {
+        challenge_id: challengeId,
+        concept_id: conceptId || challenge.conceptId,
+        learner_id: learnerId,
+        current_tier: 0,
+        unlocked_tiers: [],
+        last_unlocked_at_attempt: 0,
+        attempts_since_last_hint: 0,
+        progression_frozen: false,
+        solution_revealed: false,
+        evaluation_flagged: false
+      };
+      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+    }
 
-  // GATING RULE 1: If evaluator returned NEEDS_CLARIFICATION, freeze hint progression
-  if (lastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
-    hintState.progression_frozen = true;
-    hintState.frozen_reason =
-      'Evaluation returned NEEDS_CLARIFICATION. Progression is frozen until a clarified attempt is submitted.';
-    serverHintStateStore.set(stateKey, hintState);
-    return res.status(400).json({
-      success: false,
-      error: 'Hint progression is frozen. The evaluator requested clarification. Clarify or retry your submission before advancing hints.',
-      frozen: true,
-      state: hintState
-    });
-  }
+    // GATING RULE 1: If evaluator returned NEEDS_CLARIFICATION, freeze hint progression
+    if (lastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
+      hintState.progression_frozen = true;
+      hintState.frozen_reason =
+        'Evaluation returned NEEDS_CLARIFICATION. Progression is frozen until a clarified attempt is submitted.';
+      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+      return res.status(400).json({
+        success: false,
+        error: 'Hint progression is frozen. The evaluator requested clarification. Clarify or retry your submission before advancing hints.',
+        frozen: true,
+        state: hintState
+      });
+    }
 
-  // GATING RULE 2: If last attempt was CORRECT, no hints needed
-  if (lastVerdict === 'CORRECT') {
-    return res.status(400).json({
-      success: false,
-      error: 'Capability already demonstrated (CORRECT). No hints are required.',
-      state: hintState
-    });
-  }
+    // GATING RULE 2: If last attempt was CORRECT, no hints needed
+    if (lastVerdict === 'CORRECT') {
+      return res.status(400).json({
+        success: false,
+        error: 'Capability already demonstrated (CORRECT). No hints are required.',
+        state: hintState
+      });
+    }
 
-  // GATING RULE 3: Validate tier bounds
-  const targetTier = parseInt(requestedTier, 10);
-  if (isNaN(targetTier) || targetTier < 1 || targetTier > 5) {
-    return res.status(400).json({
-      success: false,
-      error: 'Invalid hint tier. Must be an integer from 1 to 5.'
-    });
-  }
+    // GATING RULE 3: Validate tier bounds
+    const targetTier = parseInt(requestedTier, 10);
+    if (isNaN(targetTier) || targetTier < 1 || targetTier > 5) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid hint tier. Must be an integer from 1 to 5.'
+      });
+    }
 
-  // GATING RULE 4: Cannot skip tiers! Must be strictly current_tier + 1
-  if (targetTier !== hintState.current_tier + 1) {
-    return res.status(400).json({
-      success: false,
-      error: `Cannot skip tiers. You must unlock Tier ${hintState.current_tier + 1} next.`,
-      state: hintState
-    });
-  }
+    // GATING RULE 4: Cannot skip tiers! Must be strictly current_tier + 1
+    if (targetTier !== hintState.current_tier + 1) {
+      return res.status(400).json({
+        success: false,
+        error: `Cannot skip tiers. You must unlock Tier ${hintState.current_tier + 1} next.`,
+        state: hintState
+      });
+    }
 
-  // GATING RULE 5: Retry required after Tier 1-4
-  if (hintState.current_tier >= 1 && attemptNumber <= hintState.last_unlocked_at_attempt) {
-    return res.status(400).json({
-      success: false,
-      error: `Submit a retry attempt after viewing Tier ${hintState.current_tier} before requesting Tier ${targetTier}.`,
-      state: hintState
-    });
-  }
+    // GATING RULE 5: Retry required after Tier 1-4
+    if (hintState.current_tier >= 1 && attemptNumber <= hintState.last_unlocked_at_attempt) {
+      return res.status(400).json({
+        success: false,
+        error: `Submit a retry attempt after viewing Tier ${hintState.current_tier} before requesting Tier ${targetTier}.`,
+        state: hintState
+      });
+    }
 
-  // GATING RULE 6: Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry
-  if (targetTier === 5 && (hintState.current_tier < 4 || attemptNumber <= hintState.last_unlocked_at_attempt)) {
-    return res.status(400).json({
-      success: false,
-      error: 'Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry attempt.',
-      state: hintState
-    });
-  }
+    // GATING RULE 6: Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry
+    if (targetTier === 5 && (hintState.current_tier < 4 || attemptNumber <= hintState.last_unlocked_at_attempt)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry attempt.',
+        state: hintState
+      });
+    }
 
-  // Retrieve stored hint from challenge (NO LLM CALL!)
-  const storedHint = challenge.hints?.find((h: any) => h.tier === targetTier);
+    // Retrieve stored hint from challenge (NO LLM CALL!)
+    const storedHint = challenge.hints?.find((h: any) => h.tier === targetTier);
 
-  // Update server hint state
-  hintState.current_tier = targetTier;
-  if (!hintState.unlocked_tiers.includes(targetTier)) {
-    hintState.unlocked_tiers.push(targetTier);
-  }
-  hintState.last_unlocked_at_attempt = attemptNumber;
-  hintState.attempts_since_last_hint = 0;
+    // Update server hint state
+    hintState.current_tier = targetTier;
+    if (!hintState.unlocked_tiers.includes(targetTier)) {
+      hintState.unlocked_tiers.push(targetTier);
+    }
+    hintState.last_unlocked_at_attempt = attemptNumber;
+    hintState.attempts_since_last_hint = 0;
 
-  // Tier 5: Reveal reference solution and mark solution_revealed = true
-  if (targetTier === 5) {
-    hintState.solution_revealed = true;
-    hintState.solution_revealed_at = new Date().toISOString();
-  }
+    // Tier 5: Reveal reference solution and mark solution_revealed = true
+    if (targetTier === 5) {
+      hintState.solution_revealed = true;
+      hintState.solution_revealed_at = new Date().toISOString();
+    }
 
-  serverHintStateStore.set(stateKey, hintState);
+    await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
 
-  return res.json({
-    success: true,
-    tier: targetTier,
-    hint: storedHint || {
+    return res.json({
+      success: true,
       tier: targetTier,
-      type: targetTier === 1 ? 'Nudge' : targetTier === 2 ? 'Direction' : targetTier === 3 ? 'Concept reminder' : targetTier === 4 ? 'Structural guidance' : 'Solution reveal',
-      title: `Tier ${targetTier} Guidance`,
-      hint: targetTier === 5 ? challenge.referenceSolution : 'Guidance unlocked.',
-      penaltyDescription: targetTier === 1 ? '-5%' : targetTier === 2 ? '-12%' : targetTier === 3 ? '-20%' : targetTier === 4 ? '-35%' : '-60%'
-    },
-    solution: targetTier === 5 ? challenge.referenceSolution : undefined,
-    solution_revealed: targetTier === 5,
-    state: hintState
-  });
+      hint: storedHint || {
+        tier: targetTier,
+        type: targetTier === 1 ? 'Nudge' : targetTier === 2 ? 'Direction' : targetTier === 3 ? 'Concept reminder' : targetTier === 4 ? 'Structural guidance' : 'Solution reveal',
+        title: `Tier ${targetTier} Guidance`,
+        hint: targetTier === 5 ? challenge.referenceSolution : 'Guidance unlocked.',
+        penaltyDescription: targetTier === 1 ? '-5%' : targetTier === 2 ? '-12%' : targetTier === 3 ? '-20%' : targetTier === 4 ? '-35%' : '-60%'
+      },
+      solution: targetTier === 5 ? challenge.referenceSolution : undefined,
+      solution_revealed: targetTier === 5,
+      state: hintState
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Database error processing hint request.'
+    });
+  }
 });
 
 /**
@@ -833,65 +1072,87 @@ app.post('/api/challenge/:id/request-hint', (req, res) => {
  * Allows learner to flag the evaluation / request review.
  * Persists the flag without exposing hidden evaluation instructions or system prompts.
  */
-app.post('/api/challenge/:id/flag-review', (req, res) => {
-  const challengeId = req.params.id;
-  const { attemptId, conceptId, reason, learner_id, learnerId: altLearnerId } = req.body;
+app.post('/api/challenge/:id/flag-review', async (req, res) => {
+  try {
+    const challengeId = req.params.id;
+    const { attemptId, conceptId, reason, learner_id, learnerId: altLearnerId } = req.body;
 
-  const learnerId = learner_id || altLearnerId || 'default_learner';
-  const stateKey = `${learnerId}:${challengeId}`;
+    const learnerId = learner_id || altLearnerId || 'default_learner';
 
-  let hintState = serverHintStateStore.get(stateKey);
-  if (!hintState) {
-    hintState = {
-      challenge_id: challengeId,
-      concept_id: conceptId || 'unknown',
-      learner_id: learnerId,
-      current_tier: 4,
-      unlocked_tiers: [1, 2, 3, 4],
-      last_unlocked_at_attempt: 1,
-      attempts_since_last_hint: 1,
-      progression_frozen: false,
-      solution_revealed: false,
-      evaluation_flagged: false
-    };
-  }
+    let hintState = await getHintStateFromDb(learnerId, challengeId, conceptId);
+    if (!hintState) {
+      hintState = {
+        challenge_id: challengeId,
+        concept_id: conceptId || 'unknown',
+        learner_id: learnerId,
+        current_tier: 4,
+        unlocked_tiers: [1, 2, 3, 4],
+        last_unlocked_at_attempt: 1,
+        attempts_since_last_hint: 1,
+        progression_frozen: false,
+        solution_revealed: false,
+        evaluation_flagged: false
+      };
+    }
 
-  // Gating rule: Override flag only allowed after reaching Tier 4
-  if (hintState.current_tier < 4) {
-    return res.status(403).json({
+    // Gating rule: Override flag only allowed after reaching Tier 4
+    if (hintState.current_tier < 4) {
+      return res.status(403).json({
+        success: false,
+        error: 'Evaluation override is only available after reaching Tier 4.'
+      });
+    }
+
+    const rationale = stripHtml(sanitizeText(reason || 'Learner flagged evaluation for instructor review (valid technical alternative).'));
+    const targetAttemptId = attemptId || `att_${challengeId}_${Date.now()}`;
+
+    // Insert row into flags table (attempt_id, reason, review_status = 'unreviewed', created_at)
+    const result = await saveFlagToDb({
+      attemptId: targetAttemptId,
+      reason: rationale
+    });
+
+    if (!result.success) {
+      return res.status(500).json({
+        success: false,
+        error: result.error || 'Failed to insert review flag.'
+      });
+    }
+
+    return res.json({
+      success: true,
+      flagged: true,
+      attempt_id: toUuid(targetAttemptId),
+      reason: rationale,
+      review_status: 'unreviewed',
+      created_at: new Date().toISOString()
+    });
+  } catch (err: any) {
+    return res.status(500).json({
       success: false,
-      error: 'Evaluation override is only available after reaching Tier 4.'
+      error: err.message || 'Database error executing flag review.'
     });
   }
-
-  const rationale = stripHtml(sanitizeText(reason || 'Learner flagged evaluation for instructor review (valid technical alternative).'));
-  const nowIso = new Date().toISOString();
-
-  hintState.evaluation_flagged = true;
-  hintState.flagged_review_reason = rationale;
-  hintState.flagged_at = nowIso;
-  hintState.flagged_attempt_id = attemptId;
-  serverHintStateStore.set(stateKey, hintState);
-
-  return res.json({
-    success: true,
-    flagged: true,
-    flagged_at: nowIso,
-    state: hintState
-  });
 });
 
 /**
  * Fetch server-persisted hint state
  */
-app.get('/api/challenge/:id/hint-state', (req, res) => {
-  const learnerId = (req.query.learner_id as string) || (req.query.learnerId as string) || 'default_learner';
-  const stateKey = `${learnerId}:${req.params.id}`;
-  const state = serverHintStateStore.get(stateKey);
-  res.json({
-    success: true,
-    state: state || null
-  });
+app.get('/api/challenge/:id/hint-state', async (req, res) => {
+  try {
+    const learnerId = (req.query.learner_id as string) || (req.query.learnerId as string) || 'default_learner';
+    const challengeId = req.params.id;
+    const state = await getHintStateFromDb(learnerId, challengeId);
+    return res.json({
+      success: true,
+      state: state || null
+    });
+  } catch (err: any) {
+    return res.status(500).json({
+      success: false,
+      error: err.message || 'Database error fetching hint state.'
+    });
+  }
 });
 
 /**
@@ -1355,7 +1616,7 @@ async function fetchYouTubeTranscript(videoId: string): Promise<{ text: string; 
       console.log(`Utilizing Gemini API fallback to synthesize full transcript for YouTube video: "${title}" (${videoId})`);
       const response = await executeWithTimeoutAndRetry(() =>
         genAI.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.8-flash',
           contents: [
             {
               text: `You are an expert transcript generator. The user provided a YouTube video titled "${title}" (Video ID: ${videoId}, URL: https://www.youtube.com/watch?v=${videoId}).
@@ -1429,73 +1690,7 @@ app.post('/api/study-material/parse-youtube', async (req, res) => {
   }
 });
 
-/**
- * Step 12: Audio Speech-to-Text Endpoint (gemini-3.5-transcribe via @google/genai)
- * Budget Constraint: Uses Gemini API key with free-tier usage guidelines (~25 calls/day, 2 req/min cap).
- */
-app.post('/api/study-material/parse-audio', async (req, res) => {
-  try {
-    const { fileData, fileName, mimeType } = req.body;
-    if (!fileData) {
-      return res.status(400).json({
-        success: false,
-        error: 'Audio file data is required.'
-      });
-    }
 
-    const ai = getGenAI();
-    if (!ai) {
-      return res.status(500).json({
-        success: false,
-        error: 'Gemini API key is not configured.'
-      });
-    }
-
-    const base64Data = fileData.includes('base64,') ? fileData.split('base64,')[1] : fileData;
-    const audioMime = mimeType || 'audio/mp3';
-
-    const response = await executeWithTimeoutAndRetry(async () => {
-      return await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
-        contents: [
-          {
-            inlineData: {
-              mimeType: audioMime,
-              data: base64Data
-            }
-          },
-          {
-            text: 'Transcribe the spoken audio content accurately and verbatim into English text. Output strictly the full transcript without conversational filler.'
-          }
-        ]
-      });
-    }, 45000, 1);
-
-    const transcribedText = response.text?.trim() || '';
-    if (!transcribedText || transcribedText.length < 10) {
-      return res.status(400).json({
-        success: false,
-        error: 'Speech-to-text conversion yielded no clear transcript. Please check the audio file.'
-      });
-    }
-
-    return res.json({
-      success: true,
-      text: transcribedText,
-      sourceName: fileName || 'Uploaded Audio Recording',
-      metadata: {
-        original_filename: fileName,
-        word_count: transcribedText.split(/\s+/).filter(Boolean).length
-      }
-    });
-  } catch (err: any) {
-    console.warn('Audio transcription error:', err.message);
-    return res.status(400).json({
-      success: false,
-      error: err.message || 'Unable to transcribe audio file.'
-    });
-  }
-});
 
 /**
  * Step 7: BYO Study Material - Concept & Capability Extractor
@@ -1599,7 +1794,7 @@ Return strictly JSON with keys:
 
       const response = await executeWithTimeoutAndRetry(async () => {
         return await ai.models.generateContent({
-          model: 'gemini-2.5-flash',
+          model: 'gemini-3.8-flash',
           contents: prompt,
           config: {
             responseMimeType: 'application/json',

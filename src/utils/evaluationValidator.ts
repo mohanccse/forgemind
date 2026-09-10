@@ -135,7 +135,7 @@ export function validateEvaluationResult(
     .filter(Boolean);
 
   // DETERMINISTIC SAFEGUARD:
-  // If missing_capabilities is not empty, verdict must NEVER be CORRECT.
+  // Verdict must NEVER be CORRECT if demonstrated capabilities are empty or missing capabilities are substantive.
   const hasSubstantiveMissing = sanitizedMissing.some((item: string) => {
     const clean = item.trim().toLowerCase();
     return (
@@ -148,8 +148,10 @@ export function validateEvaluationResult(
     );
   });
 
-  if (verdict === 'CORRECT' && hasSubstantiveMissing) {
-    verdict = 'PARTIALLY_CORRECT';
+  if (verdict === 'CORRECT') {
+    if (sanitizedDemonstrated.length === 0 || hasSubstantiveMissing) {
+      verdict = 'PARTIALLY_CORRECT';
+    }
   }
 
   let confidence = typeof data.evaluator_confidence === 'number' ? data.evaluator_confidence : 1.0;

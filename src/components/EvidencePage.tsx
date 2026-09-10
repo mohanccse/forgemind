@@ -30,6 +30,7 @@ import {
   getConceptEvidenceProfileById
 } from '../services/evidenceService';
 import { INITIAL_CONCEPTS } from '../data/concepts';
+import { resolveMilestoneStepNumber } from '../utils/sanitizer';
 
 interface EvidencePageProps {
   onNavigate: (tab: ViewTab) => void;
@@ -501,12 +502,24 @@ export const EvidencePage: React.FC<EvidencePageProps> = ({ onNavigate }) => {
                                 </span>
                                 {(att.demonstrated_capabilities || att.evaluation?.demonstrated_capabilities || []).length > 0 ? (
                                   <ul className="space-y-1">
-                                    {(att.demonstrated_capabilities || att.evaluation?.demonstrated_capabilities || []).map((c, i) => (
-                                      <li key={i} className="flex items-start space-x-1 text-zinc-300">
-                                        <span className="text-emerald-400">✓</span>
-                                        <span>{c}</span>
-                                      </li>
-                                    ))}
+                                    {(att.demonstrated_capabilities || att.evaluation?.demonstrated_capabilities || []).map((c, i) => {
+                                      const conceptMilestones = att.micro_responses?.map(m => m.milestone) ||
+                                        INITIAL_CONCEPTS.find(con => con.id === profile.concept_id)?.reasoningMilestones ||
+                                        profile.demonstrated.map(d => d.capability);
+                                      const stepNum = resolveMilestoneStepNumber(c, conceptMilestones);
+                                      return (
+                                        <li key={i} className="flex items-start space-x-1.5 text-zinc-300">
+                                          {stepNum ? (
+                                            <span className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/30 shrink-0">
+                                              Step {stepNum}
+                                            </span>
+                                          ) : (
+                                            <span className="text-emerald-400">✓</span>
+                                          )}
+                                          <span>{c}</span>
+                                        </li>
+                                      );
+                                    })}
                                   </ul>
                                 ) : (
                                   <span className="text-zinc-500 italic text-[11px]">None verified.</span>
@@ -519,12 +532,24 @@ export const EvidencePage: React.FC<EvidencePageProps> = ({ onNavigate }) => {
                                 </span>
                                 {(att.missing_capabilities || att.evaluation?.missing_capabilities || []).length > 0 ? (
                                   <ul className="space-y-1">
-                                    {(att.missing_capabilities || att.evaluation?.missing_capabilities || []).map((c, i) => (
-                                      <li key={i} className="flex items-start space-x-1 text-zinc-400">
-                                        <span className="text-amber-400">△</span>
-                                        <span>{c}</span>
-                                      </li>
-                                    ))}
+                                    {(att.missing_capabilities || att.evaluation?.missing_capabilities || []).map((c, i) => {
+                                      const conceptMilestones = att.micro_responses?.map(m => m.milestone) ||
+                                        INITIAL_CONCEPTS.find(con => con.id === profile.concept_id)?.reasoningMilestones ||
+                                        profile.demonstrated.map(d => d.capability);
+                                      const stepNum = resolveMilestoneStepNumber(c, conceptMilestones);
+                                      return (
+                                        <li key={i} className="flex items-start space-x-1.5 text-zinc-400">
+                                          {stepNum ? (
+                                            <span className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/30 shrink-0">
+                                              Step {stepNum}
+                                            </span>
+                                          ) : (
+                                            <span className="text-amber-400">△</span>
+                                          )}
+                                          <span>{c}</span>
+                                        </li>
+                                      );
+                                    })}
                                   </ul>
                                 ) : (
                                   <span className="text-zinc-500 italic text-[11px]">None flagged.</span>

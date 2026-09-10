@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Type } from '@google/genai';
 import { getGenAI } from '@/lib/gemini';
-import { serverChallengeStore } from '@/lib/serverStore';
+import { saveChallengeToDb, getChallengeFromDb } from '@/lib/supabase-store';
 import { CURATED_NOVEL_CHALLENGES } from '@/data/curatedNovelChallenges';
 import { validateGeneratedChallenge } from '@/utils/challengeValidator';
 
@@ -24,8 +24,10 @@ export async function POST(request: Request) {
 
     // Door 1 (Content Library): Zero live LLM calls for challenge generation.
     if (sourceType === 'LIBRARY' || CURATED_NOVEL_CHALLENGES[conceptId]) {
-      const curated = CURATED_NOVEL_CHALLENGES[conceptId] || serverChallengeStore.get(conceptId);
+      const dbCurated = await getChallengeFromDb(conceptId);
+      const curated = CURATED_NOVEL_CHALLENGES[conceptId] || dbCurated;
       if (curated && curated.sourceType !== 'USER_GENERATED') {
+        await saveChallengeToDb(curated);
         return NextResponse.json({
           success: true,
           challenge: curated,
@@ -92,7 +94,7 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
           conceptName: concept.name,
           domain: concept.domain || curatedFallback.domain
         };
-        serverChallengeStore.set(adapted.id, adapted);
+        await saveChallengeToDb(adapted);
         return NextResponse.json({
           success: true,
           challenge: adapted,
@@ -193,19 +195,18 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
       id: `gen-${conceptId}-${Date.now()}`,
       conceptId,
       conceptName: concept.name,
-      domain: 'AI Product Management',
+      domain: concept.domain || 'AI Product Management',
       difficulty: targetDifficulty,
-      sourceType // STRICT GUARDRAIL: ALWAYS overrides parsedData.sourceType
+      sourceType
     };
 
     const validation = validateGeneratedChallenge(challenge);
     if (!validation.isValid) {
       if (CURATED_NOVEL_CHALLENGES[conceptId]) {
+        const fallback = { ...CURATED_NOVEL_CHALLENGES[conceptId], sourceType };
+        await saveChallengeToDb(fallback);
         return NextResponse.json({
-          challenge: {
-            ...CURATED_NOVEL_CHALLENGES[conceptId],
-            sourceType
-          },
+          challenge: fallback,
           source: 'curated-fallback',
           validationWarning: validation.errors
         });
@@ -216,30 +217,126 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
       );
     }
 
-    serverChallengeStore.set(challenge.id, challenge);
+    await saveChallengeToDb(challenge);
 
     return NextResponse.json({
       challenge,
       source: 'gemini'
     });
   } catch (error: any) {
-    console.error('Error in /api/generate-challenge:', error);
+    console.warn('AI challenge generation failed or rate limited in Next.js route, switching to synthetic recovery:', error.message || error);
 
-    const curatedFallback = CURATED_NOVEL_CHALLENGES['rice-prioritization'];
-    if (curatedFallback) {
+    // Dynamic synthetic challenge generator for Door 2 (User-uploaded study materials)
+    const bodyData = await request.clone().json().catch(() => ({}));
+    const concept = bodyData.concept || { id: 'custom', name: 'Study Material Benchmark' };
+    const difficulty = bodyData.difficulty || 'Applied';
+
+    if (CURATED_NOVEL_CHALLENGES[concept.id]) {
+      const curated = CURATED_NOVEL_CHALLENGES[concept.id];
+      await saveChallengeToDb(curated);
       return NextResponse.json({
-        challenge: {
-          ...curatedFallback,
-          sourceType // STRICT GUARDRAIL: ALWAYS preserves caller's sourceType
-        },
+        challenge: curated,
         source: 'curated-recovery',
         originalError: error.message
       });
     }
 
-    return NextResponse.json(
-      { error: error.message || 'Failed to generate novel challenge.' },
-      { status: 500 }
-    );
+    const syntheticChallenge = createSyntheticChallengeFromConcept(concept, difficulty, sourceType);
+    await saveChallengeToDb(syntheticChallenge);
+
+    return NextResponse.json({
+      challenge: syntheticChallenge,
+      source: 'synthetic-recovery',
+      notice: 'Gemini API quota exceeded or unavailable. Served a resilient synthetic challenge based on your study material capability model.'
+    });
   }
+}
+
+function createSyntheticChallengeFromConcept(
+  concept: any,
+  targetDifficulty: string = 'Applied',
+  sourceType: 'LIBRARY' | 'USER_GENERATED' = 'USER_GENERATED'
+): any {
+  const conceptId = concept.id || `custom-${Date.now()}`;
+  const conceptName = concept.name || 'Study Material Benchmark';
+  const domain = concept.domain || 'Applied Engineering & PM';
+  const skill = concept.underlyingSkill || conceptName;
+
+  const caps = Array.isArray(concept.capabilities) && concept.capabilities.length >= 3
+    ? concept.capabilities
+    : [
+        `Defines operational boundary conditions and risks for ${conceptName}.`,
+        `Constructs a defensible trade-off matrix balancing speed, cost, and quality.`,
+        `Formulates a phased action plan addressing primary constraints.`,
+        `Establishes quantitative metrics for post-launch validation.`
+      ];
+
+  const milestones = caps.slice(0, 4);
+  const microQuestions = milestones.map((m: string, i: number) => {
+    return `Step ${i + 1}: ${m} — In 1-2 lines (~160 chars), state your specific reasoning and quantitative boundary.`;
+  });
+
+  return {
+    id: `syn-${conceptId}-${Date.now()}`,
+    conceptId,
+    conceptName,
+    domain,
+    difficulty: targetDifficulty,
+    sourceType,
+    title: `Executive Decision Benchmark: ${conceptName} Scenario`,
+    scenario: `You are acting as Principal Specialist evaluating an unfamiliar operational dilemma involving ${conceptName}. The team must determine how best to apply ${skill} under resource constraints and tight timelines.\n\nDescription: ${concept.description || 'Feed study material parameters into a structured decision framework.'}`,
+    contextData: `Operational Telemetry:\n- Target Concept: ${conceptName}\n- Primary Bottleneck: ${concept.commonFailureModes?.[0] || 'Operational alignment & trade-off complexity'}\n- Domain: ${domain}\n- Execution Mode: Zero-Reference Applied Synthesis (Resilient Recovery Baseline)`,
+    mandate: `Formulate a structured Executive Decision Memo that: 1. Evaluates the core dilemma using ${conceptName} principles, 2. Recommends a concrete sequence of action, 3. Outlines a risk mitigation strategy for cross-functional alignment.`,
+    constraints: [
+      `Must explicitly address trade-offs and operational boundary conditions for ${conceptName}.`,
+      'Must provide a clear step-by-step rationale for all recommendations.',
+      'Must state quantitative metrics or success indicators.'
+    ],
+    expectedOutputFormat: 'Structured Decision Memo',
+    capabilityTested: skill,
+    structuralMilestones: milestones,
+    microQuestions,
+    acceptableAlternativeReasoning: [
+      'Prioritizing immediate execution velocity over comprehensive validation provided risk mitigation is documented.',
+      'Phasing deployment into pilot segments to validate assumptions before full rollout.'
+    ],
+    referenceSolution: `Model Answer: The optimal approach establishes explicit operational boundaries for ${conceptName} first, quantifies trade-offs between speed and quality, and implements phased validation metrics.`,
+    hints: [
+      {
+        tier: 1,
+        type: 'Nudge',
+        title: 'Identify Core Bottleneck',
+        hint: `Inspect the scenario parameters to identify the primary bottleneck when applying ${conceptName}.`,
+        penaltyDescription: '-5% on Raw Independence'
+      },
+      {
+        tier: 2,
+        type: 'Direction',
+        title: 'Evaluate Trade-offs',
+        hint: 'Compare speed vs quality or cost vs accuracy before selecting your recommended sequence of action.',
+        penaltyDescription: '-12% on Raw Independence'
+      },
+      {
+        tier: 3,
+        type: 'Concept reminder',
+        title: 'Concept Principle',
+        hint: `Recall that ${conceptName} requires grounding decisions in measurable evidence rather than gut-feeling assumptions.`,
+        penaltyDescription: '-20% on Raw Independence'
+      },
+      {
+        tier: 4,
+        type: 'Structural guidance',
+        title: 'Structured Action Plan',
+        hint: 'Structure your response into 4 distinct phases: 1. Boundary identification, 2. Trade-off matrix, 3. Phased steps, 4. Quantitative validation metrics.',
+        penaltyDescription: '-35% on Raw Independence'
+      },
+      {
+        tier: 5,
+        type: 'Solution reveal',
+        title: 'Reference Architecture',
+        hint: `Reference Solution: Ground the trade-off defense in ${conceptName} principles by setting explicit thresholds for success and documenting risk boundaries.`,
+        penaltyDescription: '-60% on Raw Independence'
+      }
+    ]
+  };
 }
