@@ -103,10 +103,14 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
         });
       }
 
-      return NextResponse.json(
-        { error: 'GEMINI_API_KEY is not configured on the server. Please add GEMINI_API_KEY to .env.local to enable custom AI challenge generation.', code: 'MISSING_API_KEY' },
-        { status: 503 }
-      );
+      const syntheticFallback = createSyntheticChallengeFromConcept(concept, targetDifficulty, sourceType);
+      await saveChallengeToDb(syntheticFallback);
+      return NextResponse.json({
+        success: true,
+        challenge: syntheticFallback,
+        source: 'synthetic-recovery',
+        notice: 'Served resilient synthetic challenge baseline matching extracted concept capability model.'
+      });
     }
 
     const response = await ai.models.generateContent({

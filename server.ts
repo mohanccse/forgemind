@@ -167,9 +167,12 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     const ai = getGenAI();
 
     if (!ai) {
-      return res.status(503).json({
-        error: 'GEMINI_API_KEY is not configured on the server.',
-        code: 'MISSING_API_KEY'
+      const synthetic = createSyntheticChallengeFromConcept(concept, targetDifficulty, sourceType);
+      await saveChallengeToDb(synthetic);
+      return res.json({
+        success: true,
+        challenge: synthetic,
+        source: 'synthetic-recovery'
       });
     }
 
