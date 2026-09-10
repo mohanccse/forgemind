@@ -134,8 +134,8 @@ export function validateEvaluationResult(
     .map((s: any) => stripHtml(sanitizeText(String(s))))
     .filter(Boolean);
 
-  // DETERMINISTIC SAFEGUARD:
-  // Verdict must NEVER be CORRECT if demonstrated capabilities are empty or missing capabilities are substantive.
+  // DETERMINISTIC SAFEGUARDS:
+  // 1. Verdict must NEVER be CORRECT if demonstrated capabilities are empty or missing capabilities are substantive.
   const hasSubstantiveMissing = sanitizedMissing.some((item: string) => {
     const clean = item.trim().toLowerCase();
     return (
@@ -152,6 +152,19 @@ export function validateEvaluationResult(
     if (sanitizedDemonstrated.length === 0 || hasSubstantiveMissing) {
       verdict = 'PARTIALLY_CORRECT';
     }
+  }
+
+  // 2. Verdict must NEVER be NEEDS_CLARIFICATION if learner demonstrated substantive capability milestones.
+  // According to PRD Section 6.3.3:
+  // - PARTIALLY_CORRECT: The learner demonstrates a meaningful subset of milestones (e.g. 2/3 or 3/4) but leaves essential bounds or milestones unaddressed.
+  // - NEEDS_CLARIFICATION: Strictly reserved for unclassifiable, off-topic, or degenerate submissions where demonstrated_capabilities is [].
+  if (verdict === 'NEEDS_CLARIFICATION' && sanitizedDemonstrated.length > 0) {
+    verdict = hasSubstantiveMissing ? 'PARTIALLY_CORRECT' : 'CORRECT';
+  }
+
+  // 3. If verdict is NEEDS_CLARIFICATION, demonstrated_capabilities must strictly be empty []
+  if (verdict === 'NEEDS_CLARIFICATION') {
+    sanitizedDemonstrated.length = 0;
   }
 
   let confidence = typeof data.evaluator_confidence === 'number' ? data.evaluator_confidence : 1.0;

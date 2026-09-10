@@ -57,7 +57,7 @@ function checkMilestoneDomainRelevance(
     return { demonstrated: true, isOffTopic: false };
   }
 
-  return { demonstrated: false, isOffTopic: true };
+  return { demonstrated: false, isOffTopic: false };
 }
 
 /**
@@ -146,7 +146,9 @@ function evaluateHeuristic(
   let verdict = 'PARTIALLY_CORRECT';
   if (demonstratedCount === totalCount && learnerText.length >= 150 && !hasOffTopicContent) {
     verdict = 'CORRECT';
-  } else if (hasOffTopicContent) {
+  } else if (demonstratedCount > 0) {
+    verdict = 'PARTIALLY_CORRECT';
+  } else if (hasOffTopicContent || isGenericFiller || isKeyboardMash) {
     verdict = 'NEEDS_CLARIFICATION';
   } else if (demonstratedCount === 0) {
     verdict = 'WRONG_APPROACH';
