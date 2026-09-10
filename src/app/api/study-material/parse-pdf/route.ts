@@ -14,10 +14,63 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
 
   // 2. Encrypted / password-protected check
   if (buffer.includes(Buffer.from('/Encrypt'))) {
-    throw new Error('This PDF is password-protected and cannot be extracted.');
+    // Note: Some unencrypted PDFs contain "/Encrypt" in cross-reference or stream metadata,
+    // so we verify whether parser throws PasswordException before hard failing.
   }
 
-  // 3. Primary PDF Parser using Mozilla PDF.js (pdfjs-dist)
+  // 3. Primary PDF Parser using PDFParse (pdf-parse v2 / v1)
+  try {
+    const pdfParseModule: any = await import('pdf-parse');
+    const PDFParseClass = pdfParseModule.PDFParse || pdfParseModule.default?.PDFParse || pdfParseModule.default;
+
+    if (typeof PDFParseClass === 'function') {
+      let text = '';
+      let pageCount = 1;
+
+      // Check if it's a class constructor (v2+)
+      if (PDFParseClass.prototype && typeof PDFParseClass.prototype.getText === 'function') {
+        const parser = new PDFParseClass(new Uint8Array(buffer));
+        if (typeof parser.load === 'function') {
+          await parser.load();
+        }
+        const parsedData = await parser.getText();
+        text = (typeof parsedData === 'string' ? parsedData : parsedData?.text) || '';
+        pageCount = (parsedData && Array.isArray(parsedData.pages))
+          ? parsedData.pages.length
+          : (parsedData?.total || 1);
+      } else {
+        // Legacy function signature: pdfParse(buffer)
+        const data = await PDFParseClass(buffer);
+        text = (data?.text || '').trim();
+        pageCount = data?.numpages || 1;
+      }
+
+      const cleaned = text.replace(/\s+/g, ' ').trim();
+      const alphaCount = (cleaned.match(/[a-zA-Z0-9]/g) || []).length;
+      if (alphaCount >= 10) {
+        return {
+          text: cleaned,
+          pageCount,
+          isScanned: false,
+          metadata: {
+            original_filename: fileName,
+            page_count: pageCount,
+            file_size_bytes: buffer.length
+          }
+        };
+      }
+    }
+  } catch (parseErr: any) {
+    if (
+      parseErr?.name === 'PasswordException' ||
+      parseErr?.message?.toLowerCase().includes('password') ||
+      parseErr?.message?.toLowerCase().includes('encrypted')
+    ) {
+      throw new Error('This PDF is password-protected and cannot be extracted.');
+    }
+  }
+
+  // 4. Secondary Fallback using Mozilla PDF.js (pdfjs-dist)
   try {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const loadingTask = pdfjsLib.getDocument({
@@ -59,42 +112,11 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
   } catch (pdfjsErr: any) {
     if (
       pdfjsErr.name === 'PasswordException' ||
-      pdfjsErr.message?.includes('Password')
+      pdfjsErr.message?.toLowerCase().includes('password') ||
+      pdfjsErr.message?.toLowerCase().includes('encrypted')
     ) {
       throw new Error('This PDF is password-protected and cannot be extracted.');
     }
-  }
-
-  // 4. Secondary Fallback using pdf-parse if pdfjs-dist didn't extract text
-  try {
-    const pdfParseModule = require('pdf-parse');
-    let text = '';
-    let pageCount = 1;
-
-    if (typeof pdfParseModule === 'function') {
-      const data = await pdfParseModule(buffer);
-      text = (data.text || '').trim();
-      pageCount = data.numpages || 1;
-    }
-
-    if (text) {
-      const cleaned = text.replace(/\s+/g, ' ').trim();
-      const alphaCount = (cleaned.match(/[a-zA-Z0-9]/g) || []).length;
-      if (alphaCount >= 10) {
-        return {
-          text: cleaned,
-          pageCount,
-          isScanned: false,
-          metadata: {
-            original_filename: fileName,
-            page_count: pageCount,
-            file_size_bytes: buffer.length
-          }
-        };
-      }
-    }
-  } catch {
-    // Ignore fallback errors
   }
 
   // If text is missing or < 10 characters:
