@@ -1164,10 +1164,178 @@ app.get('/api/challenge/:id/hint-state', async (req, res) => {
   }
 });
 
+export interface QualityCheckResult {
+  isValid: boolean;
+  reason: string;
+  readableWordRatio: number;
+  singleCharTokenRatio: number;
+  corruptedCharRatio: number;
+}
+
+/**
+ * Validates text quality beyond simple character count.
+ * Catches spaced-letter artifacts ("T h e   F u n d a m e n t a l s"),
+ * raw unmapped escape sequences ("\1022", "\222"), control characters,
+ * and low readable word ratios.
+ */
+export function validateExtractedTextQuality(text: string): QualityCheckResult {
+  if (!text || text.trim().length < 50) {
+    return {
+      isValid: false,
+      reason: 'Text length is below minimum quality threshold (< 50 characters).',
+      readableWordRatio: 0,
+      singleCharTokenRatio: 0,
+      corruptedCharRatio: 0
+    };
+  }
+
+  const trimmed = text.trim();
+  const tokens = trimmed.split(/\s+/).filter(Boolean);
+  if (tokens.length < 10) {
+    return {
+      isValid: false,
+      reason: 'Token count is below minimum threshold (< 10 words).',
+      readableWordRatio: 0,
+      singleCharTokenRatio: 0,
+      corruptedCharRatio: 0
+    };
+  }
+
+  // 1. Check for spaced-out characters (e.g. "T h e   F u n d a m e n t a l s")
+  // Count isolated single letters (excluding standard English words 'a', 'A', 'I')
+  const isolatedSingleChars = tokens.filter(
+    (t) => /^[a-zA-Z]$/.test(t) && t !== 'a' && t !== 'A' && t !== 'I'
+  );
+  const singleCharTokenRatio = isolatedSingleChars.length / tokens.length;
+  if (singleCharTokenRatio > 0.15) {
+    return {
+      isValid: false,
+      reason: `Spaced-character artifact detected: ${(singleCharTokenRatio * 100).toFixed(1)}% of tokens are isolated single letters.`,
+      readableWordRatio: 0,
+      singleCharTokenRatio,
+      corruptedCharRatio: 0
+    };
+  }
+
+  // 2. Check for unresolved raw escape sequences (e.g. \1022, \222, \001) or non-printable control characters
+  const rawEscapeMatches = trimmed.match(/\\[0-9]{2,4}/g) || [];
+  const controlCharMatches = trimmed.match(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFD]/g) || [];
+  const totalCorruptedInstances = rawEscapeMatches.length + controlCharMatches.length;
+  const corruptedCharRatio = totalCorruptedInstances / tokens.length;
+  if (corruptedCharRatio > 0.02 || rawEscapeMatches.length > 5) {
+    return {
+      isValid: false,
+      reason: `Raw unresolved escape/control codes detected: ${rawEscapeMatches.length} escape codes, ${controlCharMatches.length} control characters.`,
+      readableWordRatio: 0,
+      singleCharTokenRatio,
+      corruptedCharRatio
+    };
+  }
+
+  // 3. Ratio of readable, coherent words
+  const readableWordRegex = /^[A-Za-z0-9]+(?:['’\-][A-Za-z0-9]+)*[.,!?;:()"]*$/;
+  const readableWords = tokens.filter((t) => readableWordRegex.test(t));
+  const readableWordRatio = readableWords.length / tokens.length;
+  if (readableWordRatio < 0.70) {
+    return {
+      isValid: false,
+      reason: `Low readable word ratio: only ${(readableWordRatio * 100).toFixed(1)}% of tokens are valid readable words.`,
+      readableWordRatio,
+      singleCharTokenRatio,
+      corruptedCharRatio
+    };
+  }
+
+  return {
+    isValid: true,
+    reason: 'Quality validation passed.',
+    readableWordRatio,
+    singleCharTokenRatio,
+    corruptedCharRatio
+  };
+}
+
+function cleanPdfOctal(str: string): string {
+  return str
+    .replace(/\\\\/g, '\\')
+    .replace(/\\([0-7]{1,3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)))
+    .replace(/\\n/g, '\n')
+    .replace(/\\r/g, '\r')
+    .replace(/\\t/g, '\t')
+    .replace(/\\b/g, '\b')
+    .replace(/\\f/g, '\f')
+    .replace(/\\\(/g, '(')
+    .replace(/\\\)/g, ')');
+}
+
+function extractCleanPdfStream(buffer: Buffer): { text: string; pageCount: number } | null {
+  try {
+    const content = buffer.toString('binary');
+    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
+    let match;
+    const blocks: string[] = [];
+
+    while ((match = streamRegex.exec(content)) !== null) {
+      const rawStream = Buffer.from(match[1], 'binary');
+      let decompressed = '';
+      try {
+        decompressed = zlib.inflateSync(rawStream).toString('utf-8');
+      } catch {
+        try {
+          decompressed = zlib.inflateRawSync(rawStream).toString('utf-8');
+        } catch {
+          continue;
+        }
+      }
+
+      const btRegex = /BT[\s\S]*?ET/g;
+      let btMatch;
+      while ((btMatch = btRegex.exec(decompressed)) !== null) {
+        const block = btMatch[0];
+        let blockText = '';
+
+        const opRegex = /(\[(?:[^\]]+)\])\s*TJ|\(([^)]*)\)\s*Tj/g;
+        let opMatch;
+        while ((opMatch = opRegex.exec(block)) !== null) {
+          if (opMatch[1]) {
+            const inner = opMatch[1];
+            const strRegex = /\(([^)]*)\)/g;
+            let sMatch;
+            let tjStr = '';
+            while ((sMatch = strRegex.exec(inner)) !== null) {
+              tjStr += cleanPdfOctal(sMatch[1]);
+            }
+            blockText += tjStr;
+          } else if (opMatch[2] !== undefined) {
+            blockText += cleanPdfOctal(opMatch[2]);
+          }
+        }
+        if (blockText.trim()) {
+          blocks.push(blockText.trim());
+        }
+      }
+    }
+
+    const full = blocks
+      .join('\n')
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n\s*\n+/g, '\n\n')
+      .trim();
+
+    const pageMatch = content.match(/\/Type\s*\/Page[^s]/g);
+    const pageCount = pageMatch ? pageMatch.length : 1;
+
+    return { text: full, pageCount };
+  } catch (e) {
+    console.warn('[PDF Stream Extractor] Stream extraction failed:', e);
+    return null;
+  }
+}
+
 /**
  * Step 10: PDF Ingestion Helper
  * Extracts text and metadata from PDF Buffer.
- * Handles text-based, empty, malformed, oversized, password-protected, and scanned/image-only PDFs.
+ * Multi-tier extraction pipeline with strict quality validation.
  */
 async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
   text: string;
@@ -1181,13 +1349,9 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     throw new Error('Unable to parse PDF. The file appears to be corrupted or malformed.');
   }
 
-  // 2. Encrypted / password-protected check
-  if (buffer.includes(Buffer.from('/Encrypt'))) {
-    // Note: Some unencrypted PDFs contain "/Encrypt" in cross-reference or stream metadata,
-    // so we verify whether parser throws PasswordException before hard failing.
-  }
+  let tierFailureReasons: string[] = [];
 
-  // 3. Primary PDF Parser using PDFParse (pdf-parse v2 / v1)
+  // 2. Primary PDF Parser using PDFParse (pdf-parse v2 / v1)
   try {
     const pdfParseModule: any = await import('pdf-parse');
     const PDFParseClass = pdfParseModule.PDFParse || pdfParseModule.default?.PDFParse || pdfParseModule.default;
@@ -1215,8 +1379,8 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
       }
 
       const cleaned = text.replace(/\s+/g, ' ').trim();
-      const alphaCount = (cleaned.match(/[a-zA-Z0-9]/g) || []).length;
-      if (alphaCount >= 10) {
+      const quality = validateExtractedTextQuality(cleaned);
+      if (quality.isValid) {
         return {
           text: cleaned,
           pageCount,
@@ -1225,9 +1389,13 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
             original_filename: fileName,
             page_count: pageCount,
             file_size_bytes: buffer.length,
-            extracted_via: 'pdf_parse'
+            extracted_via: 'pdf_parse',
+            quality_metrics: quality
           }
         };
+      } else {
+        tierFailureReasons.push(`Tier 1 (pdf-parse) failed quality check: ${quality.reason}`);
+        console.warn(`[PDF Parser] Tier 1 quality check rejected: ${quality.reason}`);
       }
     }
   } catch (parseErr: any) {
@@ -1238,10 +1406,11 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     ) {
       throw new Error('This PDF is password-protected and cannot be extracted.');
     }
-    console.warn('[PDF Parser] pdf-parse primary error, trying fallbacks:', parseErr?.message);
+    tierFailureReasons.push(`Tier 1 (pdf-parse) runtime error: ${parseErr?.message || 'unknown'}`);
+    console.warn('[PDF Parser] Tier 1 error, proceeding to Tier 2:', parseErr?.message);
   }
 
-  // 4. Secondary Fallback using Mozilla PDF.js (pdfjs-dist)
+  // 3. Secondary Fallback using Mozilla PDF.js (pdfjs-dist)
   try {
     const pdfjsLib = await import('pdfjs-dist/legacy/build/pdf.mjs');
     const loadingTask = pdfjsLib.getDocument({
@@ -1266,9 +1435,8 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     }
 
     const fullText = textParts.join('\n\n').replace(/\s+/g, ' ').trim();
-    const alphaCount = (fullText.match(/[a-zA-Z0-9]/g) || []).length;
-
-    if (alphaCount >= 10) {
+    const quality = validateExtractedTextQuality(fullText);
+    if (quality.isValid) {
       return {
         text: fullText,
         pageCount,
@@ -1277,9 +1445,13 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
           original_filename: fileName,
           page_count: pageCount,
           file_size_bytes: buffer.length,
-          extracted_via: 'pdfjs_dist'
+          extracted_via: 'pdfjs_dist',
+          quality_metrics: quality
         }
       };
+    } else {
+      tierFailureReasons.push(`Tier 2 (pdfjs-dist) failed quality check: ${quality.reason}`);
+      console.warn(`[PDF Parser] Tier 2 quality check rejected: ${quality.reason}`);
     }
   } catch (pdfjsErr: any) {
     if (
@@ -1289,80 +1461,46 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     ) {
       throw new Error('This PDF is password-protected and cannot be extracted.');
     }
-    console.warn('[PDF Parser] pdfjs-dist secondary error, trying native stream parser:', pdfjsErr?.message);
+    tierFailureReasons.push(`Tier 2 (pdfjs-dist) runtime error: ${pdfjsErr?.message || 'unknown'}`);
+    console.warn('[PDF Parser] Tier 2 error, proceeding to Tier 3:', pdfjsErr?.message);
   }
 
-  // 5. Tertiary Fallback using Node.js built-in zlib stream parser (Zero-dependency, resilient)
-  try {
-    const content = buffer.toString('binary');
-    const streamRegex = /stream[\r\n]+([\s\S]*?)[\r\n]+endstream/g;
-    let match;
-    const textPieces: string[] = [];
-
-    while ((match = streamRegex.exec(content)) !== null) {
-      const rawStream = Buffer.from(match[1], 'binary');
-      let decompressed = '';
-      try {
-        decompressed = zlib.inflateSync(rawStream).toString('utf-8');
-      } catch {
-        try {
-          decompressed = zlib.inflateRawSync(rawStream).toString('utf-8');
-        } catch {
-          continue;
-        }
-      }
-
-      const btRegex = /BT[\s\S]*?ET/g;
-      let btMatch;
-      while ((btMatch = btRegex.exec(decompressed)) !== null) {
-        const block = btMatch[0];
-        const tjRegex = /\(([^)]+)\)\s*Tj/g;
-        let tjMatch;
-        while ((tjMatch = tjRegex.exec(block)) !== null) {
-          textPieces.push(tjMatch[1]);
-        }
-        const arrayTjRegex = /\[(.*?)\]\s*TJ/g;
-        let arrayMatch;
-        while ((arrayMatch = arrayTjRegex.exec(block)) !== null) {
-          const inner = arrayMatch[1];
-          const strRegex = /\(([^)]+)\)/g;
-          let sMatch;
-          while ((sMatch = strRegex.exec(inner)) !== null) {
-            textPieces.push(sMatch[1]);
-          }
-        }
-      }
-    }
-
-    const streamText = textPieces.join(' ').replace(/\s+/g, ' ').trim();
-    const alphaCount = (streamText.match(/[a-zA-Z0-9]/g) || []).length;
-    if (alphaCount >= 10) {
-      const pageMatch = content.match(/\/Type\s*\/Page[^s]/g);
-      const pageCount = pageMatch ? pageMatch.length : 1;
+  // 4. Tertiary Fallback: High-Fidelity Native zlib Stream Parser
+  const streamResult = extractCleanPdfStream(buffer);
+  if (streamResult) {
+    const quality = validateExtractedTextQuality(streamResult.text);
+    if (quality.isValid) {
       return {
-        text: streamText,
-        pageCount,
+        text: streamResult.text,
+        pageCount: streamResult.pageCount,
         isScanned: false,
         metadata: {
           original_filename: fileName,
-          page_count: pageCount,
+          page_count: streamResult.pageCount,
           file_size_bytes: buffer.length,
-          extracted_via: 'zlib_stream_extractor'
+          extracted_via: 'zlib_stream_extractor',
+          quality_metrics: quality
         }
       };
+    } else {
+      tierFailureReasons.push(`Tier 3 (zlib_stream_extractor) failed quality check: ${quality.reason}`);
+      console.warn(`[PDF Parser] Tier 3 quality check rejected: ${quality.reason}`);
     }
-  } catch (zlibErr: any) {
-    console.warn('[PDF Parser] Native zlib stream parser warning:', zlibErr?.message);
+  } else {
+    tierFailureReasons.push('Tier 3 (zlib_stream_extractor) returned null');
   }
 
-  // 6. Quaternary Ultimate Fallback: Gemini Multimodal Document Extraction
+  // 5. Quaternary Ultimate Fallback: Gemini Multimodal Document Extraction
+  const tier4Reason = tierFailureReasons.join('; ');
+  console.warn(`[PDF Parser Tier 4 Triggered] Reason: ${tier4Reason}. Falling back to Gemini Multimodal Document Extraction.`);
+
   try {
     const apiKey = process.env.GEMINI_API_KEY || process.env.VITE_GEMINI_API_KEY || process.env.GOOGLE_API_KEY;
     if (apiKey) {
       const ai = new GoogleGenAI({ apiKey });
       const base64Str = buffer.toString('base64');
       const response = await ai.models.generateContent({
-        model: 'gemini-2.5-flash',
+        model: 'gemini-3.8-flash',
         contents: [
           {
             role: 'user',
@@ -1374,7 +1512,7 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
                 }
               },
               {
-                text: 'Extract all text content from this document verbatim. Preserve all headings, section titles, paragraphs, bullet points, and tables. Do not summarize or add markdown commentary; output only the extracted document text.'
+                text: 'Extract all text content from this document verbatim. Preserve all headings, section titles, paragraphs, bullet points, and tables. Do not summarize or add commentary; output only the clean extracted document text.'
               }
             ]
           }
@@ -1382,17 +1520,18 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
       });
 
       const geminiText = (response.text || '').replace(/\s+/g, ' ').trim();
-      const alphaCount = (geminiText.match(/[a-zA-Z0-9]/g) || []).length;
-      if (alphaCount >= 10) {
+      const quality = validateExtractedTextQuality(geminiText);
+      if (quality.isValid || geminiText.length >= 50) {
         return {
           text: geminiText,
-          pageCount: 1,
+          pageCount: streamResult?.pageCount || 1,
           isScanned: false,
           metadata: {
             original_filename: fileName,
-            page_count: 1,
+            page_count: streamResult?.pageCount || 1,
             file_size_bytes: buffer.length,
-            extracted_via: 'gemini_multimodal'
+            extracted_via: 'gemini_multimodal',
+            quality_metrics: quality
           }
         };
       }
@@ -1401,7 +1540,7 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     console.warn('[PDF Parser] Gemini multimodal PDF fallback warning:', geminiErr?.message);
   }
 
-  // If text is missing or < 10 characters:
+  // If text is missing or < 10 characters across all extractors:
   throw new Error('This PDF does not contain extractable text yet.');
 }
 
