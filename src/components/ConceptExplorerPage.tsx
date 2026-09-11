@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
-import { Search, ArrowRight, Layers, HelpCircle, Sparkles, Filter, X, Gauge } from 'lucide-react';
-import { Concept, Domain } from '../types';
+import { Search, ArrowRight, ArrowLeft, Layers, HelpCircle, Sparkles, Filter, X, Gauge } from 'lucide-react';
+import { Concept, Domain, ViewTab } from '../types';
 import { getConcepts, DOMAINS } from '../data/concepts';
 
 interface ConceptExplorerPageProps {
   onSelectConcept: (concept: Concept) => void;
+  onNavigate?: (tab: ViewTab) => void;
 }
 
-export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSelectConcept }) => {
+export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSelectConcept, onNavigate }) => {
   const [selectedDomain, setSelectedDomain] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
 
@@ -43,6 +44,16 @@ export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSele
       <div className="border-b border-zinc-800/80 pb-8">
         <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
           <div>
+            <div className="mb-4">
+              <button
+                id="explorer-back-home-btn"
+                onClick={() => (onNavigate ? onNavigate('home') : window.history.back())}
+                className="inline-flex items-center space-x-1.5 text-xs font-mono text-zinc-400 hover:text-amber-300 transition-colors"
+              >
+                <ArrowLeft className="h-3.5 w-3.5" />
+                <span>&larr; Back to Home</span>
+              </button>
+            </div>
             <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-0.5 text-xs font-medium text-amber-300">
               <span>Path A • Verified Concept Library</span>
             </div>

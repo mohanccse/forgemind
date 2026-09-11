@@ -140,7 +140,10 @@ export default function App() {
         )}
 
         {currentTab === 'prove' && (
-          <ConceptExplorerPage onSelectConcept={handleSelectConcept} />
+          <ConceptExplorerPage
+            onSelectConcept={handleSelectConcept}
+            onNavigate={handleNavigate}
+          />
         )}
 
         {currentTab === 'concept-preview' && (

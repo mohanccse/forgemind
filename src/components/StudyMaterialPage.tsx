@@ -8,6 +8,7 @@ import {
   Youtube,
   Sparkles,
   ArrowRight,
+  ArrowLeft,
   Info,
   CheckCircle2,
   AlertCircle,
@@ -380,6 +381,16 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
     <div id="study-material-page" className="mx-auto max-w-5xl px-4 py-10 sm:px-6 lg:px-8">
       {/* Header */}
       <div className="border-b border-zinc-800/80 pb-6">
+        <div className="mb-4">
+          <button
+            id="study-material-back-home-btn"
+            onClick={() => onNavigate('home')}
+            className="inline-flex items-center space-x-1.5 text-xs font-mono text-zinc-400 hover:text-amber-300 transition-colors"
+          >
+            <ArrowLeft className="h-3.5 w-3.5" />
+            <span>&larr; Back to Home</span>
+          </button>
+        </div>
         <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-0.5 text-xs font-medium text-amber-300">
           <Layers className="h-3.5 w-3.5" />
           <span>Door 2: Bring My Own Study Material</span>
