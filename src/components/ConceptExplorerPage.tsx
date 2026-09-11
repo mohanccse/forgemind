@@ -51,7 +51,7 @@ export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSele
                 className="inline-flex items-center space-x-1.5 text-xs font-mono text-zinc-400 hover:text-amber-300 transition-colors"
               >
                 <ArrowLeft className="h-3.5 w-3.5" />
-                <span>&larr; Back to Home</span>
+                <span>Back to Home</span>
               </button>
             </div>
             <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-0.5 text-xs font-medium text-amber-300">
