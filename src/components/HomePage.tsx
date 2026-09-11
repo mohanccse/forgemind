@@ -42,8 +42,8 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectFeatured
 
       {/* Hero Section */}
       <div className="mx-auto max-w-3xl text-center">
-        <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3.5 py-1 text-xs font-medium text-amber-300">
-          <span className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+        <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-1 text-xs font-medium text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.08)]">
+          <img src="/forgemind-icon.png" alt="ForgeMind Icon" className="h-4 w-4 rounded-full object-cover shadow-sm" />
           <span>ForgeMind — The De-Tutorializer</span>
         </div>
 

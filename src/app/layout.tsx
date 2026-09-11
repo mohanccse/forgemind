@@ -4,6 +4,11 @@ import './globals.css';
 export const metadata: Metadata = {
   title: 'ForgeMind — The De-Tutorializer',
   description: 'Turn what you study into unfamiliar challenges that reveal what you can actually apply.',
+  icons: {
+    icon: '/forgemind-icon.png',
+    shortcut: '/forgemind-icon.png',
+    apple: '/forgemind-icon.png',
+  },
 };
 
 export default function RootLayout({
@@ -14,6 +19,8 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
+        <link rel="icon" href="/forgemind-icon.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/forgemind-icon.png" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link

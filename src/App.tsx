@@ -180,6 +180,7 @@ export default function App() {
       <footer className="border-t border-zinc-900 bg-[#090a0e] py-8 text-xs text-zinc-500">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
           <div className="flex items-center space-x-3">
+            <img src="/forgemind-icon.png" alt="ForgeMind" className="h-5 w-5 rounded object-cover shadow-sm" />
             <span className="font-serif font-medium text-zinc-300">ForgeMind</span>
             <span className="text-zinc-700">|</span>
             <span className="italic text-zinc-400">"You learned it. Now prove you can use it."</span>

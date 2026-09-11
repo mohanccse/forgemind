@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Plus, Sparkles, User, LogIn } from 'lucide-react';
+import { ShieldCheck, Plus, User, LogIn } from 'lucide-react';
 import { ViewTab } from '../types';
 import { getSupabaseBrowserClient } from '../lib/supabase-browser';
 
@@ -34,8 +34,12 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
             onClick={() => onNavigate('home')}
             className="group flex items-center space-x-2.5 sm:space-x-3 text-left transition-opacity hover:opacity-90"
           >
-            <div className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.15)] transition-all group-hover:border-amber-500/50">
-              <Sparkles className="h-4 w-4" />
+            <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all group-hover:border-amber-500/60">
+              <img
+                src="/forgemind-icon.png"
+                alt="ForgeMind Logo"
+                className="h-full w-full object-cover"
+              />
             </div>
             <div>
               <div className="flex items-center space-x-2">
