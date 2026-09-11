@@ -1,7 +1,7 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Plus, Sparkles, User, LogOut, LogIn } from 'lucide-react';
+import { ShieldCheck, Plus, Sparkles, User, LogIn } from 'lucide-react';
 import { ViewTab } from '../types';
 import { getSupabaseBrowserClient } from '../lib/supabase-browser';
 
@@ -21,17 +21,6 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
       });
     } catch (err) {
       console.error('Google login error:', err);
-    }
-  };
-
-  const handleLogout = async () => {
-    try {
-      const supabase = getSupabaseBrowserClient();
-      await supabase.auth.signOut();
-      onNavigate('home');
-    } catch (err) {
-      console.error('Logout error:', err);
-      onNavigate('home');
     }
   };
 
@@ -108,28 +97,18 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
           </button>
 
           {user ? (
-            <div className="flex items-center space-x-1.5 sm:space-x-2">
-              <button
-                id="nav-account-btn"
-                onClick={() => onNavigate('account')}
-                className={`flex items-center space-x-1.5 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-all ${
-                  currentTab === 'account'
-                    ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-                    : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
-                }`}
-              >
-                <User className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-                <span className="max-w-[80px] sm:max-w-[120px] truncate">{user.email?.split('@')[0] || 'Account'}</span>
-              </button>
-              <button
-                id="nav-logout-btn"
-                onClick={handleLogout}
-                className="rounded-lg border border-zinc-800 bg-zinc-900 p-1.5 text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
-                title="Sign Out"
-              >
-                <LogOut className="h-3.5 w-3.5" />
-              </button>
-            </div>
+            <button
+              id="nav-account-btn"
+              onClick={() => onNavigate('account')}
+              className={`flex items-center space-x-1.5 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-all ${
+                currentTab === 'account'
+                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
+                  : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
+              }`}
+            >
+              <User className="h-3.5 w-3.5 text-amber-400 shrink-0" />
+              <span className="max-w-[80px] sm:max-w-[120px] truncate">{user.email?.split('@')[0] || 'Account'}</span>
+            </button>
           ) : (
             <button
               id="google-login-btn"
