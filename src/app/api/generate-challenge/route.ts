@@ -7,9 +7,10 @@ import { validateGeneratedChallenge } from '@/utils/challengeValidator';
 
 export async function POST(request: Request) {
   let sourceType: 'LIBRARY' | 'USER_GENERATED' = 'LIBRARY';
+  let requestBody: any = null;
   try {
-    const body = await request.json();
-    const { concept, difficulty } = body;
+    requestBody = await request.json();
+    const { concept, difficulty } = requestBody;
 
     if (!concept || !concept.name || !concept.underlyingSkill) {
       return NextResponse.json(
@@ -20,7 +21,7 @@ export async function POST(request: Request) {
 
     const conceptId = concept.id || 'custom-concept';
     const targetDifficulty = difficulty || concept.approximateDifficulty || 'Applied';
-    sourceType = (body.sourceType || concept.sourceType) === 'USER_GENERATED' ? 'USER_GENERATED' : 'LIBRARY';
+    sourceType = (requestBody.sourceType || concept.sourceType) === 'USER_GENERATED' ? 'USER_GENERATED' : 'LIBRARY';
 
     // Door 1 (Content Library): Zero live LLM calls for challenge generation.
     if (sourceType === 'LIBRARY' || CURATED_NOVEL_CHALLENGES[conceptId]) {
@@ -221,7 +222,11 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
       );
     }
 
-    await saveChallengeToDb(challenge);
+    try {
+      await saveChallengeToDb(challenge);
+    } catch (dbErr: any) {
+      console.warn('[Supabase Store] Non-blocking challenge persistence warning:', dbErr?.message);
+    }
 
     return NextResponse.json({
       challenge,
@@ -231,13 +236,16 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     console.warn('AI challenge generation failed or rate limited in Next.js route, switching to synthetic recovery:', error.message || error);
 
     // Dynamic synthetic challenge generator for Door 2 (User-uploaded study materials)
-    const bodyData = await request.clone().json().catch(() => ({}));
-    const concept = bodyData.concept || { id: 'custom', name: 'Study Material Benchmark' };
-    const difficulty = bodyData.difficulty || 'Applied';
+    const concept = requestBody?.concept || { id: 'custom', name: 'Study Material Benchmark' };
+    const difficulty = requestBody?.difficulty || 'Applied';
 
     if (CURATED_NOVEL_CHALLENGES[concept.id]) {
       const curated = CURATED_NOVEL_CHALLENGES[concept.id];
-      await saveChallengeToDb(curated);
+      try {
+        await saveChallengeToDb(curated);
+      } catch (dbErr: any) {
+        console.warn('[Supabase Store] Non-blocking challenge persistence warning:', dbErr?.message);
+      }
       return NextResponse.json({
         challenge: curated,
         source: 'curated-recovery',
@@ -246,7 +254,11 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     }
 
     const syntheticChallenge = createSyntheticChallengeFromConcept(concept, difficulty, sourceType);
-    await saveChallengeToDb(syntheticChallenge);
+    try {
+      await saveChallengeToDb(syntheticChallenge);
+    } catch (dbErr: any) {
+      console.warn('[Supabase Store] Non-blocking challenge persistence warning:', dbErr?.message);
+    }
 
     return NextResponse.json({
       challenge: syntheticChallenge,

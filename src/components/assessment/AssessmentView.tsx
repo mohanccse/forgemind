@@ -97,7 +97,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
             className="inline-flex items-center space-x-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            <span>Back to Concept Preview</span>
+            <span>
+              {(challenge.sourceType === 'USER_GENERATED' || concept.sourceType === 'USER_GENERATED' || concept.isUserOwned || concept.id === 'custom-concept' || concept.id?.startsWith('custom-'))
+                ? 'Back to Study Material'
+                : 'Back to Concept Preview'}
+            </span>
           </button>
           <span className="text-zinc-700 hidden sm:inline">|</span>
           <span className="inline-flex items-center space-x-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-mono font-bold text-amber-300">

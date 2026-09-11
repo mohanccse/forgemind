@@ -165,7 +165,14 @@ export default function App() {
         {currentTab === 'challenge' && (
           <ChallengePage
             concept={activeConcept}
-            onBackToProve={() => handleNavigate('concept-preview')}
+            onBackToProve={() => {
+              const isDoor2 =
+                activeConcept?.sourceType === 'USER_GENERATED' ||
+                activeConcept?.isUserOwned ||
+                activeConcept?.id === 'custom-concept' ||
+                activeConcept?.id?.startsWith('custom-');
+              handleNavigate(isDoor2 ? 'material' : 'concept-preview');
+            }}
             onNavigate={handleNavigate}
           />
         )}

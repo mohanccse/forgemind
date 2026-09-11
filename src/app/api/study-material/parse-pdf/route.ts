@@ -93,7 +93,7 @@ export function validateExtractedTextQuality(text: string): QualityCheckResult {
   };
 }
 
-function cleanPdfOctal(str: string): string {
+function normalizePdfTypography(str: string): string {
   return str
     .replace(/\\\\/g, '\\')
     .replace(/\\([0-7]{1,3})/g, (_, oct) => String.fromCharCode(parseInt(oct, 8)))
@@ -103,7 +103,20 @@ function cleanPdfOctal(str: string): string {
     .replace(/\\b/g, '\b')
     .replace(/\\f/g, '\f')
     .replace(/\\\(/g, '(')
-    .replace(/\\\)/g, ')');
+    .replace(/\\\)/g, ')')
+    // Map common typographic font ligatures:
+    .replace(/\u0007/g, 'fi')
+    .replace(/\u001c/g, 'ff')
+    .replace(/\u001e/g, 'fi')
+    .replace(/\u001f/g, 'fl')
+    .replace(/\u001d/g, ' - ')
+    .replace(/\uFB00/g, 'ff')
+    .replace(/\uFB01/g, 'fi')
+    .replace(/\uFB02/g, 'fl')
+    .replace(/\uFB03/g, 'ffi')
+    .replace(/\uFB04/g, 'ffl')
+    // Clean unmapped non-printable control characters (exclude whitespace \n, \r, \t)
+    .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F\uFFFD]/g, '');
 }
 
 function extractCleanPdfStream(buffer: Buffer): { text: string; pageCount: number } | null {
@@ -141,11 +154,11 @@ function extractCleanPdfStream(buffer: Buffer): { text: string; pageCount: numbe
             let sMatch;
             let tjStr = '';
             while ((sMatch = strRegex.exec(inner)) !== null) {
-              tjStr += cleanPdfOctal(sMatch[1]);
+              tjStr += normalizePdfTypography(sMatch[1]);
             }
             blockText += tjStr;
           } else if (opMatch[2] !== undefined) {
-            blockText += cleanPdfOctal(opMatch[2]);
+            blockText += normalizePdfTypography(opMatch[2]);
           }
         }
         if (blockText.trim()) {
