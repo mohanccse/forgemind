@@ -1,9 +1,10 @@
 'use client';
 
 import React from 'react';
-import { ShieldCheck, Plus, User, LogIn } from 'lucide-react';
+import { ShieldCheck, Plus } from 'lucide-react';
+// [RESTORE_AUTH_IMPORTS]: import { User, LogIn } from 'lucide-react';
 import { ViewTab } from '../types';
-import { getSupabaseBrowserClient } from '../lib/supabase-browser';
+// [RESTORE_AUTH_CLIENT]: import { getSupabaseBrowserClient } from '../lib/supabase-browser';
 
 interface HeaderProps {
   currentTab: ViewTab;
@@ -11,7 +12,11 @@ interface HeaderProps {
   user?: any;
 }
 
-export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) => {
+export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user: _user }) => {
+  /* =========================================================================
+     [TEMPORARILY COMMENTED OUT FOR USER RESEARCH & FRICTIONLESS REVIEW SESSIONS]
+     To restore Google sign-in at any time, uncomment the function below:
+     =========================================================================
   const handleGoogleLogin = async () => {
     try {
       const supabase = getSupabaseBrowserClient();
@@ -23,6 +28,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
       console.error('Google login error:', err);
     }
   };
+  ========================================================================= */
 
   return (
     <header id="main-header" className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-[#0c0d12]/90 backdrop-blur-md">
@@ -85,22 +91,28 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
           </nav>
         </div>
 
-        {/* Actions: Add Material & Auth */}
+        {/* Actions: Add Study Material (Door 2 Primary Action - Reallocated to Anchor Right Side) */}
         <div className="flex items-center space-x-2 sm:space-x-3">
           <button
             id="header-add-material-btn"
             onClick={() => onNavigate('material')}
-            className={`hidden md:flex items-center space-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-medium transition-all ${
+            className={`flex items-center space-x-1.5 rounded-lg border px-2.5 sm:px-3.5 py-1.5 text-xs font-medium transition-all ${
               currentTab === 'material'
-                ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-                : 'border-zinc-700/80 bg-zinc-900/80 text-zinc-300 hover:border-zinc-600 hover:bg-zinc-800'
+                ? 'border-amber-500/50 bg-amber-500/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
+                : 'border-zinc-700/80 bg-zinc-900/90 text-zinc-200 hover:border-amber-500/40 hover:bg-zinc-800 hover:text-amber-200'
             }`}
           >
-            <Plus className="h-3.5 w-3.5" />
-            <span>Add Study Material</span>
+            <Plus className="h-3.5 w-3.5 text-amber-400" />
+            <span className="hidden sm:inline">Add Study Material</span>
+            <span className="sm:hidden">Add Material</span>
           </button>
 
-          {user ? (
+          {/* =========================================================================
+              [TEMPORARILY COMMENTED OUT FOR USER RESEARCH & FRICTIONLESS REVIEW SESSIONS]
+              To restore Google sign-in and Account button at any time, uncomment below:
+              ========================================================================= */}
+          {/*
+          {_user ? (
             <button
               id="nav-account-btn"
               onClick={() => onNavigate('account')}
@@ -111,7 +123,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
               }`}
             >
               <User className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <span className="max-w-[80px] sm:max-w-[120px] truncate">{user.email?.split('@')[0] || 'Account'}</span>
+              <span className="max-w-[80px] sm:max-w-[120px] truncate">{_user.email?.split('@')[0] || 'Account'}</span>
             </button>
           ) : (
             <button
@@ -123,6 +135,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user }) 
               <span>Sign in with Google</span>
             </button>
           )}
+          */}
         </div>
       </div>
     </header>
