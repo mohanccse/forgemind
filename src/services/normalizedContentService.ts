@@ -327,37 +327,32 @@ export async function extractConceptFromStudyMaterial(
  */
 export const SAMPLE_STUDY_MATERIALS = [
   {
-    id: 'postgres-window',
-    title: 'PostgreSQL Window Functions & Frame Specifications',
+    id: 'ai-evals-guardrails',
+    title: 'AI Model Evaluation: Latency, Guardrails & Quality Evals for PMs',
     sourceType: 'paste_text' as StudyMaterialSourceType,
-    text: `A window function performs a calculation across a set of table rows that are somehow related to the current row. This is comparable to the type of calculation that can be done with an aggregate function. However, window functions do not cause rows to become grouped into a single output row like non-window aggregate calls would. Instead, the rows retain their separate identities. Behind the scenes, the window function is able to access more than just the current row of the query result.
+    text: `When deploying generative AI features into customer-facing software products, product managers must navigate the tripartite trade-off between output quality (evals), system latency (P95 response time), and economic cost per query.
 
-A window function call always contains an OVER clause directly following the window function's name and arguments. This is what syntactically distinguishes it from a regular function or non-window aggregate. The OVER clause determines exactly how the rows of the query are split up for processing by the window function.
+A core operational responsibility of an AI Product Manager is establishing quantitative benchmark suites rather than relying on qualitative spot-checks or vibe checks. Offline evaluations assess model performance against golden evaluation datasets measuring task adherence, factual groundedness (hallucination rate), and brand alignment. Online evaluations track live telemetry including user feedback thumbs-up/down, completion acceptance rate, and downstream user retention.
 
-The PARTITION BY clause within OVER divides the rows into partitions, that share the same values of the PARTITION BY expression(s). For each row, the window function is computed across the rows that fall into the same partition as the current row.
-
-The ORDER BY clause within OVER controls the order in which rows are processed. When an ORDER BY is specified, the default frame specification is RANGE BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW. This can cause unexpected running totals rather than partition-wide aggregations if the user intended to aggregate across the full partition. To compute across the full partition while still ordering, ROWS BETWEEN UNBOUNDED PRECEDING AND UNBOUNDED FOLLOWING or omitting the ORDER BY in plain aggregates must be explicitly chosen.
-
-Common window functions include ROW_NUMBER(), RANK(), DENSE_RANK(), LAG(), LEAD(), and analytical aggregations like SUM() OVER (). Understanding the distinction between physical row framing (ROWS) and logical value framing (RANGE) with duplicate order values is essential for building defensible financial ledgers and analytical rollups.`
+Furthermore, AI PMs must navigate deterministic vs probabilistic product trade-offs. Implementing safety guardrails (such as input sanitization classifiers, toxicity filters, and schema-constrained decoding) introduces latency overhead. When P95 latency exceeds 2.5 seconds, user engagement drops precipitously. The AI PM must establish tiered model routing: dispatching simple classification queries to smaller fine-tuned SLMs (Small Language Models) while reserving frontier models for complex multi-step reasoning tasks.`
   },
   {
-    id: 'rag-embeddings',
-    title: 'Vector Embeddings & Retrieval Augmented Generation (RAG)',
+    id: 'rice-prioritization',
+    title: 'RICE Scoring & Quantitative Prioritization under Runway Constraints',
     sourceType: 'paste_text' as StudyMaterialSourceType,
-    text: `Vector embeddings transform unstructured textual passages into dense high-dimensional numeric arrays where semantic similarity corresponds to geometric proximity in vector space. In Retrieval-Augmented Generation (RAG), embeddings allow an application to retrieve relevant context passages to ground an LLM generation against external private knowledge bases.
+    text: `The RICE prioritization framework enables product managers to quantify competing roadmap opportunities using four dimensions: Reach, Impact, Confidence, and Effort. The composite score is calculated as: (Reach × Impact × Confidence) / Effort.
 
-A fundamental engineering trade-off in RAG systems is chunking strategy. Chunk size dictates retrieval granularity:
-- Small chunks (e.g., 128 tokens) preserve fine-grained semantic density and minimize vector dilution, but risk losing contextual narrative and co-reference antecedents.
-- Large chunks (e.g., 1024 tokens) provide rich context to the LLM generation prompt, but often suffer from embedding dilution where distinct concepts blur into a generalized vector average.
+Reach is measured in users or customer accounts over a defined time window (e.g., customers per quarter) to ensure uniform units.
+Impact estimates quantitative lift on the core North Star metric using a standard scale (3 for massive impact, 2 for high, 1 for medium, 0.5 for low, 0.25 for minimal).
+Confidence acts as a Bayesian discount factor for estimation bias (100% for high confidence backed by quantitative user research, 80% for medium backed by survey telemetry, 50% for low speculative bets).
+Effort is estimated in person-months of cross-functional engineering, design, and product time.
 
-Furthermore, retrieval similarity metrics such as Cosine Similarity, Dot Product (for normalized vectors), and Euclidean Distance (L2) behave differently when vectors vary in magnitude. 
-
-A critical failure mode in naive RAG implementations is semantic overlap without reciprocal rank reranking. When a query matches keyword synonyms or topical themes, top-k vector search may return redundant near-duplicate chunks rather than orthogonal facets of evidence needed to answer multi-hop questions. Implementing two-stage retrieval—dense semantic retrieval followed by cross-encoder re-ranking or maximal marginal relevance (MMR)—is required for high-precision enterprise question-answering.`
+A critical vulnerability in RICE execution is unit mismatch and denominator manipulation. Teams often artificially deflate effort estimates or inflate confidence percentages to bias pet projects. Senior PMs must pressure-test confidence scores against empirical user research and establish hard cutoffs when operating under strict runway constraints.`
   },
   {
     id: 'low-confidence-sample',
     title: 'Ambiguous Informal Notes (Low Confidence Test)',
     sourceType: 'paste_text' as StudyMaterialSourceType,
-    text: `Hey guys, just taking some quick meeting notes here. We had a sync at 2pm and discussed a lot of stuff. Bob mentioned we should try to make things faster. Sarah said the team is doing great. We had coffee. Let's make sure we do good work next week and review things later. Thanks!`
+    text: `Hey team, quick notes from our sync. We discussed making the onboarding flow faster. Sarah said the churn looks high. Bob mentioned we should maybe add some AI features soon. Let's touch base again next Tuesday to see what we want to build. Thanks!`
   }
 ];

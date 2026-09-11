@@ -70,7 +70,7 @@ export const ConceptExplorerPage: React.FC<ConceptExplorerPageProps> = ({ onSele
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search concepts or underlying skills..."
+              placeholder="Search AI PM concepts, frameworks, or underlying skills..."
               className="w-full rounded-lg border border-zinc-800 bg-zinc-900/90 py-2 pl-10 pr-9 text-sm text-zinc-200 placeholder-zinc-500 transition-colors focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
             />
             {searchQuery && (

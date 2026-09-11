@@ -76,7 +76,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectFeatured
               </h3>
 
               <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                Test yourself against verified operational concepts across Product Management, AI Engineering, and SQL Analytical Systems.
+                Test yourself against verified operational dilemmas across AI Product Management, product sense, quantitative prioritization, model evaluation, and product strategy.
               </p>
             </div>
 
@@ -110,7 +110,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectFeatured
               </h3>
 
               <p className="mt-2 text-xs leading-relaxed text-zinc-400">
-                Paste raw study notes, book excerpts, or technical documentation. ForgeMind normalizes your content, extracts the latent capability model, and tests you in an unreferenced workplace dilemma.
+                Bring your own PM books, strategy memos, PRDs, or AI product whitepapers (PDF, DOCX, or text). ForgeMind extracts the latent capability model and tests your decision-making in an unreferenced executive dilemma.
               </p>
             </div>
 
@@ -281,7 +281,7 @@ export const HomePage: React.FC<HomePageProps> = ({ onNavigate, onSelectFeatured
             onClick={() => onNavigate('prove')}
             className="inline-flex items-center space-x-2 text-sm font-medium text-amber-400 hover:text-amber-300"
           >
-            <span>Explore all available proof domains</span>
+            <span>Explore all AI & Product Management challenges</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         </div>

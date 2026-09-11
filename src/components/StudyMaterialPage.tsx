@@ -671,7 +671,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                 <UploadCloud className={`h-4 w-4 ${activeSourceType === 'pdf' ? 'text-amber-400' : 'text-zinc-500'}`} />
                 <div>
                   <div className="font-medium text-xs sm:text-sm">Upload PDF</div>
-                  <div className="text-[10px] text-zinc-500">Research papers, slides</div>
+                  <div className="text-[10px] text-zinc-500">Whitepapers, strategy decks</div>
                 </div>
               </div>
               <span className="rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono px-1.5 py-0.5">
@@ -694,7 +694,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                 <FileCode className={`h-4 w-4 ${activeSourceType === 'docx' ? 'text-amber-400' : 'text-zinc-500'}`} />
                 <div>
                   <div className="font-medium text-xs sm:text-sm">Upload DOCX</div>
-                  <div className="text-[10px] text-zinc-500">Word documents, outlines</div>
+                  <div className="text-[10px] text-zinc-500">PRDs, spec docs, strategy memos</div>
                 </div>
               </div>
               <span className="rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono px-1.5 py-0.5">
@@ -719,7 +719,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                 <Youtube className={`h-4 w-4 ${activeSourceType === 'youtube' ? 'text-amber-400' : 'text-zinc-500'}`} />
                 <div>
                   <div className="font-medium text-xs sm:text-sm">YouTube URL</div>
-                  <div className="text-[10px] text-zinc-500">Video transcript extraction</div>
+                  <div className="text-[10px] text-zinc-500">PM teardowns, keynote talks</div>
                 </div>
               </div>
               <span className="rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono px-1.5 py-0.5">
@@ -735,17 +735,17 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
               <div className="space-y-1.5">
                 <button
                   type="button"
-                  onClick={() => handleLoadSample('postgres-window')}
+                  onClick={() => handleLoadSample('ai-evals-guardrails')}
                   className="w-full text-left text-xs text-zinc-400 hover:text-amber-300 truncate font-mono block rounded p-1 hover:bg-zinc-800/50"
                 >
-                  • PostgreSQL Window Framing
+                  • AI Model Evaluation & Guardrails
                 </button>
                 <button
                   type="button"
-                  onClick={() => handleLoadSample('rag-embeddings')}
+                  onClick={() => handleLoadSample('rice-prioritization')}
                   className="w-full text-left text-xs text-zinc-400 hover:text-amber-300 truncate font-mono block rounded p-1 hover:bg-zinc-800/50"
                 >
-                  • Vector Embeddings & RAG
+                  • RICE Quantitative Prioritization
                 </button>
                 <button
                   type="button"
@@ -775,7 +775,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                   type="text"
                   value={materialTitle}
                   onChange={(e) => setMaterialTitle(e.target.value)}
-                  placeholder="e.g. PostgreSQL Window Functions, Vector Embeddings in RAG..."
+                  placeholder="e.g. AI Model Evaluation & Guardrails, RICE Prioritization under Constraints..."
                   className="w-full rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2.5 text-sm text-zinc-200 placeholder-zinc-500 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
                 />
 
@@ -793,7 +793,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
                   rows={10}
                   value={pastedText}
                   onChange={(e) => setPastedText(e.target.value)}
-                  placeholder="Paste the notes, explanations, code patterns, or article excerpts you just studied. ForgeMind will extract the latent capability model..."
+                  placeholder="Paste the product notes, strategy memos, PRD excerpts, case studies, or AI framework articles you just studied. ForgeMind will extract the latent capability model..."
                   className="w-full rounded-lg border border-zinc-800 bg-zinc-950 p-3.5 text-xs font-mono leading-relaxed text-zinc-200 placeholder-zinc-500 focus:border-amber-500/50 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
                 />
 
