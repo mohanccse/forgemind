@@ -48,13 +48,14 @@ export function getAllAttempts(specificLearnerId?: string): LearnerAttempt[] {
     const raw = localStorage.getItem(STORAGE_KEYS.ATTEMPTS);
     if (!raw) return [];
     const all: LearnerAttempt[] = JSON.parse(raw);
-    const activeLearnerId = specificLearnerId || getOrCreateLearnerId();
-    // Database Isolation: Only return attempts that belong to the active learner
-    // or seed demonstrations
+    const localLearnerId = getOrCreateLearnerId();
+    // Database Isolation: Return attempts that belong to the active learner,
+    // the authenticated account, or seed demonstrations
     return all.filter(
       (a) =>
         !a.learner_id ||
-        a.learner_id === activeLearnerId ||
+        (specificLearnerId && a.learner_id === specificLearnerId) ||
+        a.learner_id === localLearnerId ||
         a.learner_id === 'seed_learner' ||
         a.learner_id === 'learner_ephemeral'
     );
