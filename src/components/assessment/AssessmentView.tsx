@@ -21,7 +21,9 @@ import {
   Sparkles,
   FileText,
   Bookmark,
-  AlertTriangle
+  AlertTriangle,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 import { Concept, ViewTab, GeneratedChallenge } from '../../types';
 import { HintLadderRail } from './HintLadderRail';
@@ -51,6 +53,8 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
 
   const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
   const [showStepDetails, setShowStepDetails] = useState<boolean>(false);
+  const [isScenarioExpanded, setIsScenarioExpanded] = useState<boolean>(false);
+  const [isPreScenarioExpanded, setIsPreScenarioExpanded] = useState<boolean>(false);
 
   const confidenceOptions = [
     { value: 1, label: '1', desc: 'Little certainty on independent derivation' },
@@ -173,28 +177,67 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                 </span>
               </div>
 
-              <div className="mt-6">
-                <h3 className="text-xs font-mono uppercase tracking-wider text-text-muted font-bold">
-                  Scenario & Problem Context
-                </h3>
-                <p className="mt-2 text-sm leading-relaxed text-text-secondary whitespace-pre-line">
-                  {challenge.scenario}
-                </p>
-              </div>
+              {(() => {
+                const isPreLongScenario = (challenge.scenario?.length || 0) > 400 || !!challenge.contextData;
+                return (
+                  <div className="mt-6">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-xs font-mono uppercase tracking-wider text-text-muted font-bold">
+                        Scenario & Problem Context
+                      </h3>
+                      {isPreLongScenario && (
+                        <button
+                          type="button"
+                          onClick={() => setIsPreScenarioExpanded(!isPreScenarioExpanded)}
+                          className="inline-flex items-center gap-1 text-[11px] font-mono text-primary-container font-semibold hover:underline cursor-pointer"
+                        >
+                          {isPreScenarioExpanded ? (
+                            <>Collapse <ChevronUp className="w-3 h-3" /></>
+                          ) : (
+                            <>Show Full Context <ChevronDown className="w-3 h-3" /></>
+                          )}
+                        </button>
+                      )}
+                    </div>
+                    <div className={!isPreScenarioExpanded && isPreLongScenario ? "relative max-h-48 overflow-hidden mt-2" : "max-h-[500px] overflow-y-auto pr-1 mt-2"}>
+                      <p className="text-sm leading-relaxed text-text-secondary whitespace-pre-line">
+                        {challenge.scenario}
+                      </p>
 
-              {challenge.contextData && (
-                <div className="mt-6 rounded-xl border border-border-hairline bg-canvas-subtle p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-primary-container font-semibold">
-                      Operational Telemetry & Parameters
-                    </span>
-                    <span className="text-[10px] font-mono text-text-muted">Immutable Sandbox</span>
+                      {challenge.contextData && (
+                        <div className="mt-4 rounded-xl border border-border-hairline bg-canvas-subtle p-4">
+                          <div className="flex items-center justify-between mb-2">
+                            <span className="text-[11px] font-mono uppercase tracking-wider text-primary-container font-semibold">
+                              Operational Telemetry & Parameters
+                            </span>
+                            <span className="text-[10px] font-mono text-text-muted">Immutable Sandbox</span>
+                          </div>
+                          <pre className="overflow-x-auto text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed">
+                            {challenge.contextData}
+                          </pre>
+                        </div>
+                      )}
+
+                      {!isPreScenarioExpanded && isPreLongScenario && (
+                        <div className="absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-canvas-elevated to-transparent pointer-events-none" />
+                      )}
+                    </div>
+                    {isPreLongScenario && (
+                      <button
+                        type="button"
+                        onClick={() => setIsPreScenarioExpanded(!isPreScenarioExpanded)}
+                        className="inline-flex items-center gap-1.5 text-xs font-mono text-primary-container hover:underline mt-2 font-medium cursor-pointer"
+                      >
+                        {isPreScenarioExpanded ? (
+                          <><span>Collapse Context</span><ChevronUp className="w-3.5 h-3.5" /></>
+                        ) : (
+                          <><span>Show Full Scenario Context</span><ChevronDown className="w-3.5 h-3.5" /></>
+                        )}
+                      </button>
+                    )}
                   </div>
-                  <pre className="overflow-x-auto text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed">
-                    {challenge.contextData}
-                  </pre>
-                </div>
-              )}
+                );
+              })()}
 
               {/* Mandate Card */}
               <div className="mt-6 rounded-xl border border-accent-rose-soft bg-accent-rose-tint p-4">
@@ -354,25 +397,66 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                 </div>
 
                 {/* Unfamiliar Scenario Context Box */}
-                <div className="bg-canvas-elevated rounded-2xl p-5 shadow-sm border border-border-hairline flex flex-col gap-3">
-                  <div className="flex items-center justify-between">
-                    <span className="font-title-md text-sm font-bold text-text-primary">
-                      Scenario Context
-                    </span>
-                    <span className="px-2 py-0.5 rounded-full bg-surface-container text-text-muted font-label-sm text-[10px] tracking-wider uppercase font-semibold">
-                      Live Case
-                    </span>
-                  </div>
-                  <p className="font-body-sm text-xs sm:text-sm text-text-secondary leading-relaxed whitespace-pre-line">
-                    {challenge.scenario}
-                  </p>
+                {(() => {
+                  const isLongScenario = (challenge.scenario?.length || 0) > 350 || !!challenge.contextData;
+                  return (
+                    <div className="bg-canvas-elevated rounded-2xl p-5 shadow-sm border border-border-hairline flex flex-col gap-3">
+                      <div className="flex items-center justify-between">
+                        <span className="font-title-md text-sm font-bold text-text-primary">
+                          Scenario Context
+                        </span>
+                        <div className="flex items-center gap-2">
+                          {isLongScenario && (
+                            <button
+                              type="button"
+                              onClick={() => setIsScenarioExpanded(!isScenarioExpanded)}
+                              className="inline-flex items-center gap-1 text-[11px] font-mono text-primary-container font-semibold hover:underline cursor-pointer"
+                            >
+                              {isScenarioExpanded ? (
+                                <>Collapse <ChevronUp className="w-3 h-3" /></>
+                              ) : (
+                                <>Show Full Context <ChevronDown className="w-3 h-3" /></>
+                              )}
+                            </button>
+                          )}
+                          <span className="px-2 py-0.5 rounded-full bg-surface-container text-text-muted font-label-sm text-[10px] tracking-wider uppercase font-semibold">
+                            Live Case
+                          </span>
+                        </div>
+                      </div>
 
-                  {challenge.contextData && (
-                    <div className="p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed mt-1">
-                      {challenge.contextData}
+                      <div className={!isScenarioExpanded && isLongScenario ? "relative max-h-40 overflow-hidden" : "max-h-[500px] overflow-y-auto pr-1"}>
+                        <p className="font-body-sm text-xs sm:text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                          {challenge.scenario}
+                        </p>
+
+                        {challenge.contextData && (
+                          <div className="p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed mt-3">
+                            {challenge.contextData}
+                          </div>
+                        )}
+
+                        {!isScenarioExpanded && isLongScenario && (
+                          <div className="absolute inset-x-0 bottom-0 h-14 bg-gradient-to-t from-canvas-elevated to-transparent pointer-events-none" />
+                        )}
+                      </div>
+
+                      {isLongScenario && (
+                        <button
+                          type="button"
+                          onClick={() => setIsScenarioExpanded(!isScenarioExpanded)}
+                          className="inline-flex items-center gap-1.5 text-xs font-mono text-primary-container hover:underline mt-1 font-medium cursor-pointer self-start"
+                        >
+                          {isScenarioExpanded ? (
+                            <><span>Collapse Context</span><ChevronUp className="w-3.5 h-3.5" /></>
+                          ) : (
+                            <><span>Show Full Scenario Context</span><ChevronDown className="w-3.5 h-3.5" /></>
+                          )}
+                        </button>
+                      )}
                     </div>
-                  )}
-                </div>
+                  );
+                })()}
 
                 {/* If previous attempt evaluated with gaps */}
                 {engine.submittedAttempt && !isCorrect && (

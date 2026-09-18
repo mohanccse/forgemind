@@ -83,7 +83,8 @@ export async function POST(request: Request) {
       }
     }
 
-    const { count: serverAttemptCount, latestVerdict: serverLastVerdict } = await getAttemptsFromDb(learnerId, challengeId);
+    const { count: serverAttemptCountFromDb, latestVerdict: serverLastVerdict } = await getAttemptsFromDb(learnerId, challengeId);
+    const serverAttemptCount = Math.max(serverAttemptCountFromDb, Number(attemptNumber) || 0);
     const effectiveLastVerdict = serverLastVerdict !== null ? serverLastVerdict : lastVerdict;
 
     if (effectiveLastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {

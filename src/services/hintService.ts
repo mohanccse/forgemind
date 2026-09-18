@@ -5,7 +5,7 @@ import {
   EvaluationVerdict,
   LearnerAttempt
 } from '../types';
-import { flagAttemptEvaluation } from './attemptService';
+import { flagAttemptEvaluation, getOrCreateLearnerId } from './attemptService';
 
 const HINT_STATE_PREFIX = 'forgemind_hint_state_';
 
@@ -350,6 +350,7 @@ export async function requestHintTier(
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
+        learnerId: getOrCreateLearnerId(),
         conceptId: challenge.conceptId,
         requestedTier: targetTier,
         lastVerdict,
