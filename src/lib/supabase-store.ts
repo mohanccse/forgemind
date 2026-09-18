@@ -211,7 +211,7 @@ export async function saveAttemptToDb(attemptData: {
     evaluation_confidence: typeof attemptData.evaluator_confidence === 'number' ? attemptData.evaluator_confidence : 0.9,
     injection_detected: Boolean(attemptData.injection_detected),
     latency_ms: attemptData.latency_ms || 0,
-    model_name: attemptData.model_name || 'gemini-3.8-flash',
+    model_name: attemptData.model_name || 'gemini-3.5-flash',
     created_at: new Date().toISOString()
   };
 
@@ -255,7 +255,7 @@ export async function saveFlagToDb(flagData: {
       evaluation_confidence: 1.0,
       injection_detected: false,
       latency_ms: 0,
-      model_name: 'gemini-3.8-flash',
+      model_name: 'gemini-3.5-flash',
       created_at: new Date().toISOString()
     }], { onConflict: 'id' });
   }

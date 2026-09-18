@@ -74,7 +74,8 @@ export function validateEvaluationResult(
           missing_capabilities: [],
           evidence: ['Evaluation quarantined due to prompt security anomaly.'],
           brief_feedback: 'Input flagged for evaluation reset.',
-          evaluator_confidence: 1.0
+          evaluator_confidence: 1.0,
+          defensibility_score: 0
         }
       };
     }

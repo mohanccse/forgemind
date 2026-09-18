@@ -694,28 +694,28 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
 
       {/* Loading State */}
       {isLoading && (
-        <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-zinc-800 bg-[#0e0f14]/80 p-12 text-center shadow-xl">
-          <div className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
-            <RefreshCw className="h-7 w-7 animate-spin text-amber-400" />
-            <Sparkles className="absolute -top-1.5 -right-1.5 h-4 w-4 text-amber-300 animate-pulse" />
+        <div className="mt-12 flex flex-col items-center justify-center rounded-2xl border border-border-hairline bg-canvas-elevated p-12 text-center shadow-sm">
+          <div className="relative mb-6 flex h-16 w-16 items-center justify-center rounded-2xl border border-accent-rose-soft bg-accent-rose-tint text-primary-container">
+            <RefreshCw className="w-7 h-7 animate-spin text-primary-container" />
+            <Sparkles className="absolute -top-1.5 -right-1.5 w-4 h-4 text-primary-container animate-pulse" />
           </div>
 
-          <h2 className="text-xl font-serif font-medium text-zinc-100">
+          <h2 className="text-xl font-display font-bold text-text-primary">
             Synthesizing Novel Challenge
           </h2>
 
-          <p className="mt-2 max-w-md text-sm text-zinc-400 leading-relaxed">
-            Generating an unfamiliar workplace scenario for <strong className="text-amber-300 font-medium">{concept.name}</strong> to measure independent application.
+          <p className="mt-2 max-w-md text-sm text-text-secondary leading-relaxed">
+            Generating an unfamiliar workplace scenario for <strong className="text-text-primary font-semibold">{concept.name}</strong> to measure independent application.
           </p>
 
-          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-mono text-zinc-500">
+          <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4 text-xs font-mono text-text-muted">
             <span className="flex items-center space-x-1.5">
-              <span className="h-1.5 w-1.5 rounded-full bg-amber-400 animate-ping" />
+              <span className="w-1.5 h-1.5 rounded-full bg-primary-container animate-ping" />
               <span>Applying trade-off constraints</span>
             </span>
-            <span className="hidden sm:inline text-zinc-700">•</span>
+            <span className="hidden sm:inline text-border-focus">•</span>
             <span>Tagging source type</span>
-            <span className="hidden sm:inline text-zinc-700">•</span>
+            <span className="hidden sm:inline text-border-focus">•</span>
             <span>Configuring zero-reference sandbox</span>
           </div>
         </div>
@@ -723,32 +723,32 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
 
       {/* Error / Recoverable State */}
       {!isLoading && generationError && !challenge && (
-        <div className="mt-12 rounded-2xl border border-rose-900/40 bg-[#160b0d]/70 p-8 text-center sm:p-12">
-          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-rose-500/30 bg-rose-500/10 text-rose-400">
-            <AlertCircle className="h-6 w-6" />
+        <div className="mt-12 rounded-2xl border border-rose-200 bg-rose-50/50 p-8 text-center sm:p-12 shadow-sm">
+          <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl border border-rose-300 bg-white text-rose-600 shadow-xs">
+            <AlertCircle className="w-6 h-6" />
           </div>
 
-          <h2 className="text-xl font-serif font-medium text-zinc-100">
+          <h2 className="text-xl font-display font-bold text-text-primary">
             Challenge Generation Interrupted
           </h2>
 
-          <p className="mt-2 text-sm text-zinc-400 max-w-md mx-auto">
+          <p className="mt-2 text-sm text-text-secondary max-w-md mx-auto">
             {generationError}
           </p>
 
           <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
             <button
               onClick={handleRegenerateChallenge}
-              className="inline-flex items-center space-x-2 rounded-lg bg-amber-500 px-4 py-2 text-xs font-medium text-zinc-950 hover:bg-amber-400 transition-colors"
+              className="inline-flex items-center space-x-2 rounded-full bg-primary-container px-5 py-2 text-xs font-semibold text-white hover:bg-primary-container/90 transition-colors shadow-xs cursor-pointer"
             >
-              <RefreshCw className="h-3.5 w-3.5" />
+              <RefreshCw className="w-3.5 h-3.5" />
               <span>Retry Generation</span>
             </button>
 
             {getCuratedNovelChallenge(concept.id) && (
               <button
                 onClick={handleLoadCuratedBaseline}
-                className="inline-flex items-center space-x-2 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
+                className="inline-flex items-center space-x-2 rounded-full border border-border-hairline bg-canvas-base px-4 py-2 text-xs font-medium text-text-primary hover:bg-surface-container transition-colors shadow-xs cursor-pointer"
               >
                 <span>Load Verified Baseline Scenario</span>
               </button>
@@ -756,7 +756,7 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
 
             <button
               onClick={handleBackToProve}
-              className="rounded-lg border border-zinc-800 px-4 py-2 text-xs font-medium text-zinc-400 hover:bg-zinc-800 transition-colors"
+              className="rounded-full border border-border-hairline bg-canvas-subtle px-4 py-2 text-xs font-medium text-text-secondary hover:text-text-primary hover:bg-surface-container transition-colors cursor-pointer"
             >
               {(concept.sourceType === 'USER_GENERATED' || concept.isUserOwned || concept.id === 'custom-concept' || concept.id?.startsWith('custom-'))
                 ? 'Back to Study Material'

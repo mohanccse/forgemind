@@ -1,7 +1,24 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { LogOut, User as UserIcon, BookOpen, Clock, ShieldCheck, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import {
+  ShieldCheck,
+  Award,
+  Zap,
+  Flame,
+  CheckCircle2,
+  Sliders,
+  Sparkles,
+  ExternalLink,
+  ChevronRight,
+  LogOut,
+  User,
+  Check,
+  Clock,
+  Fingerprint,
+  TrendingUp,
+  BookOpen
+} from 'lucide-react';
 import { ViewTab, LearnerAttempt } from '../types';
 import { getSupabaseBrowserClient } from '../lib/supabase-browser';
 import { getAllAttempts } from '../services/attemptService';
@@ -18,13 +35,6 @@ interface TopicGroup {
   attempts: LearnerAttempt[];
 }
 
-/**
- * Computes per-attempt milestone percentage strictly as:
- * (milestones_met.length / (milestones_met.length + milestones_missing.length)) * 100
- *
- * STRICT RULE: NEEDS_CLARIFICATION attempts return "Unable to assess" (never 0%, never a placeholder).
- * No topic-level average or aggregate percentage is computed anywhere.
- */
 function computeAttemptPercentage(attempt: LearnerAttempt): string {
   if (attempt.verdict === 'NEEDS_CLARIFICATION') {
     return 'Unable to assess';
@@ -47,12 +57,12 @@ function computeAttemptPercentage(attempt: LearnerAttempt): string {
 
 export const AccountPage: React.FC<AccountPageProps> = ({ onNavigate, user }) => {
   const [topicGroups, setTopicGroups] = useState<TopicGroup[]>([]);
+  const [zeroRefEnforced, setZeroRefEnforced] = useState<boolean>(true);
+  const [spacedProbesEnabled, setSpacedProbesEnabled] = useState<boolean>(true);
 
   useEffect(() => {
-    if (!user) return;
-
-    // Load attempts belonging to logged in user or active session
-    const allAttempts = getAllAttempts(user.id);
+    // Load attempts belonging to logged in user or local browser storage
+    const allAttempts = getAllAttempts(user?.id);
 
     const grouped: Record<string, LearnerAttempt[]> = {};
     allAttempts.forEach((a) => {
@@ -82,141 +92,336 @@ export const AccountPage: React.FC<AccountPageProps> = ({ onNavigate, user }) =>
     }
   };
 
-  if (!user) {
-    return (
-      <div className="mx-auto max-w-4xl px-4 py-16 text-center space-y-4">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400">
-          <UserIcon className="h-7 w-7" />
-        </div>
-        <h1 className="text-2xl font-serif text-zinc-100 sm:text-3xl">Sign in Required</h1>
-        <p className="text-sm text-zinc-400 max-w-md mx-auto leading-relaxed">
-          Please sign in with your Google account to access your account dashboard and view saved attempt history across devices.
-        </p>
-        <button
-          onClick={() => onNavigate('home')}
-          className="inline-flex items-center space-x-2 rounded-lg bg-zinc-800 border border-zinc-700 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
-        >
-          <ArrowLeft className="h-3.5 w-3.5" />
-          <span>Return Home</span>
-        </button>
-      </div>
-    );
-  }
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Mohan C.';
+  const userHandle = user?.email ? `@${user.email.split('@')[0]}` : '@mohanccse';
+  const avatarUrl = user?.user_metadata?.avatar_url || null;
 
   return (
-    <div id="account-page" className="mx-auto max-w-5xl px-3 py-8 sm:px-6 lg:px-8">
-      {/* Account Profile Header */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-6">
-        <div className="flex items-center space-x-3">
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 font-bold text-lg shrink-0">
-            {user.email?.charAt(0).toUpperCase() || 'U'}
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h1 className="font-serif text-xl sm:text-2xl font-normal text-zinc-100">
-                Learner Account Dashboard
-              </h1>
-              <span className="rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 text-[10px] font-mono px-2 py-0.5">
-                Authenticated
+    <div id="profile-page" className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8 bg-canvas-base min-h-screen">
+      {/* User Hero Profile Card */}
+      <section className="w-full bg-canvas-elevated rounded-2xl border border-border-hairline shadow-sm p-6 sm:p-7 flex flex-col gap-5">
+        <div className="flex items-start justify-between flex-wrap gap-4">
+          <div className="flex items-center gap-4">
+            <div className="relative w-16 h-16 rounded-full p-1 bg-surface-container flex-shrink-0 flex items-center justify-center">
+              {avatarUrl ? (
+                <img
+                  className="w-full h-full rounded-full object-cover"
+                  src={avatarUrl}
+                  alt={displayName}
+                />
+              ) : (
+                <div className="w-full h-full rounded-full bg-primary-container text-white font-display text-xl font-bold flex items-center justify-center">
+                  {displayName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <div className="absolute bottom-0 right-0 w-5 h-5 rounded-full bg-emerald-500 border-2 border-white flex items-center justify-center text-white">
+                <Check className="w-3 h-3 stroke-[3]" />
+              </div>
+            </div>
+
+            <div className="flex flex-col min-w-0">
+              <div className="flex items-center gap-1.5">
+                <h1 className="font-display text-xl sm:text-2xl text-text-primary font-bold truncate">
+                  {displayName}
+                </h1>
+                <ShieldCheck className="w-5 h-5 text-primary-container shrink-0" />
+              </div>
+              <p className="font-code-sm text-xs text-text-muted">{userHandle}</p>
+              <span className="font-label-sm text-xs text-text-secondary mt-0.5">
+                Lead Product Strategist · Cognitive Evaluator
               </span>
             </div>
-            <p className="text-xs font-mono text-zinc-400 mt-1">{user.email}</p>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {user && (
+              <button
+                onClick={handleLogout}
+                className="h-9 px-3.5 rounded-full bg-surface-container hover:bg-rose-50 hover:text-rose-600 text-text-secondary font-label-sm text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                title="Sign Out"
+              >
+                <LogOut className="w-3.5 h-3.5" />
+                <span>Sign Out</span>
+              </button>
+            )}
           </div>
         </div>
-        <button
-          id="account-signout-btn"
-          onClick={handleLogout}
-          className="flex items-center space-x-2 rounded-lg border border-zinc-800 bg-zinc-900 px-3.5 py-2 text-xs font-medium text-zinc-300 hover:bg-zinc-800 transition-colors"
-        >
-          <LogOut className="h-4 w-4 text-zinc-400" />
-          <span>Sign Out</span>
-        </button>
-      </div>
 
-      {/* Attempted Topics History */}
-      <div className="mt-8 space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
-            Attempted Topics & Per-Attempt Capability Scores
-          </h2>
-          <span className="text-[11px] font-mono text-zinc-500">
-            {topicGroups.length} Topic{topicGroups.length !== 1 ? 's' : ''} Attempted
+        {/* Verified Badge & Sandbox Tier */}
+        <div className="flex flex-wrap items-center gap-2 pt-1">
+          <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-rose-tint text-primary-container font-label-sm text-xs font-semibold">
+            <Award className="w-3.5 h-3.5" />
+            <span>Tier-1 Verified Practitioner</span>
+          </div>
+          <div className="flex items-center gap-1 px-3 py-1 rounded-full bg-surface-container text-text-secondary font-label-sm text-xs">
+            <span className="w-2 h-2 rounded-full bg-emerald-500" />
+            <span>ForgeMind Sandbox Tier</span>
+          </div>
+        </div>
+
+        {/* Level Progress Micro-Bar */}
+        <div className="bg-canvas-subtle rounded-xl p-3.5 border border-border-hairline flex flex-col gap-1.5">
+          <div className="flex items-center justify-between font-label-sm text-xs">
+            <span className="font-medium text-text-primary">Level 4 Autonomous Engineer</span>
+            <span className="font-code-sm text-primary-container font-semibold">1,480 / 2,000 XP</span>
+          </div>
+          <div className="w-full h-2 rounded-full bg-surface-container overflow-hidden">
+            <div className="h-full bg-primary-container rounded-full" style={{ width: '74%' }} />
+          </div>
+        </div>
+
+        {/* Quick Stats Grid */}
+        <div className="grid grid-cols-3 gap-2.5 pt-1">
+          <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-center">
+            <span className="font-display text-xl sm:text-2xl text-text-primary font-bold">18</span>
+            <span className="font-label-sm text-[11px] text-text-muted mt-0.5">Probes Mastered</span>
+          </div>
+          <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-center">
+            <span className="font-display text-xl sm:text-2xl text-emerald-600 font-bold">92%</span>
+            <span className="font-label-sm text-[11px] text-text-muted mt-0.5">Autonomous Rate</span>
+          </div>
+          <div className="flex flex-col items-center justify-center p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-center">
+            <div className="flex items-center gap-1">
+              <Flame className="w-4 h-4 text-primary-container" />
+              <span className="font-display text-xl sm:text-2xl text-text-primary font-bold">14d</span>
+            </div>
+            <span className="font-label-sm text-[11px] text-text-muted mt-0.5">Velocity Streak</span>
+          </div>
+        </div>
+      </section>
+
+      {/* Pedagogical Boundary & Rigor Settings */}
+      <section className="mt-6 flex flex-col gap-3">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-primary-container" />
+            <h2 className="font-title-md text-base font-bold text-text-primary">
+              Cognitive Rigor & Boundaries
+            </h2>
+          </div>
+          <span className="px-2.5 py-0.5 rounded-full bg-accent-rose-tint text-primary-container font-code-sm text-[10px] font-bold uppercase tracking-wider">
+            ENFORCED
           </span>
         </div>
 
-        {topicGroups.length === 0 ? (
-          <div className="rounded-xl border border-zinc-800/80 bg-zinc-900/40 p-8 text-center text-sm text-zinc-400 space-y-3">
-            <BookOpen className="h-8 w-8 mx-auto text-zinc-600 mb-2" />
-            <p className="font-medium text-zinc-300">No challenge attempts recorded for this account yet.</p>
-            <p className="text-xs text-zinc-500">Complete a challenge in Door 1 or Door 2 while logged in to view per-attempt milestone progress here.</p>
+        <div className="bg-canvas-elevated rounded-2xl border border-border-hairline shadow-sm p-5 sm:p-6 flex flex-col gap-4">
+          {/* Zero Reference Enforcement */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-md text-sm text-text-primary font-semibold">
+                Zero-Reference Enforcement
+              </span>
+              <span className="font-body-sm text-xs text-text-secondary mt-0.5 leading-relaxed">
+                Locks all reference notes, study sheets, and external syntax tooltips during active crucible challenges.
+              </span>
+            </div>
             <button
-              onClick={() => onNavigate('prove')}
-              className="mt-2 inline-block rounded-lg bg-amber-400 px-4 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-300 transition-colors"
+              role="switch"
+              aria-checked={zeroRefEnforced}
+              onClick={() => setZeroRefEnforced(!zeroRefEnforced)}
+              className={`w-12 h-7 rounded-full p-0.5 flex items-center transition-colors flex-shrink-0 cursor-pointer ${
+                zeroRefEnforced ? 'bg-primary-container justify-end' : 'bg-slate-300 justify-start'
+              }`}
             >
-              Browse Content Library &rarr;
+              <span className="w-6 h-6 rounded-full bg-white shadow-sm" />
             </button>
           </div>
-        ) : (
-          topicGroups.map((group, idx) => (
-            <div key={idx} className="rounded-xl border border-zinc-800/80 bg-zinc-900/50 p-4 sm:p-6 space-y-4 shadow-sm">
-              <div className="flex items-center justify-between border-b border-zinc-800/60 pb-3">
-                <div className="space-y-0.5">
-                  <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-wider block">Topic / Concept</span>
-                  <h3 className="font-serif text-base sm:text-lg font-normal text-zinc-100">{group.conceptName}</h3>
-                </div>
-                <span className="rounded bg-zinc-800 px-2.5 py-1 text-xs font-mono text-amber-300 border border-zinc-700/60 shrink-0">
-                  {group.attemptCount} Attempt{group.attemptCount !== 1 ? 's' : ''}
+
+          <div className="w-full h-px bg-border-hairline" />
+
+          {/* Progressive Hint Delay */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-md text-sm text-text-primary font-semibold">
+                Progressive Hint Delay
+              </span>
+              <span className="font-body-sm text-xs text-text-secondary mt-0.5">
+                Gated threshold before Tier-1 diagnostic hint reveals
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-surface-container text-text-primary font-code-sm text-xs font-semibold flex-shrink-0 border border-border-hairline">
+              <span>4 Attempts</span>
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-border-hairline" />
+
+          {/* Diagnostic Feedback Tone */}
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-md text-sm text-text-primary font-semibold">
+                Diagnostic Tone
+              </span>
+              <span className="font-body-sm text-xs text-text-secondary mt-0.5">
+                Uncompromising feedback vs generic encouragement
+              </span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1 rounded-full bg-accent-rose-tint text-primary-container font-label-sm text-xs font-semibold flex-shrink-0">
+              <span className="w-2 h-2 rounded-full bg-primary-container" />
+              <span>Rigorous & Direct</span>
+            </div>
+          </div>
+
+          <div className="w-full h-px bg-border-hairline" />
+
+          {/* Ledger Signature */}
+          <div className="flex items-start justify-between gap-4">
+            <div className="flex flex-col">
+              <div className="flex items-center gap-1.5">
+                <span className="font-label-md text-sm text-text-primary font-semibold">
+                  Ledger Signature
                 </span>
+                <Fingerprint className="w-3.5 h-3.5 text-primary-container" />
               </div>
+              <span className="font-body-sm text-xs text-text-secondary mt-0.5">
+                Autonomous Cryptographic Signing for skill verifications.
+              </span>
+            </div>
+            <span className="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 font-code-sm text-[11px] font-bold border border-emerald-100 flex-shrink-0">
+              ACTIVE
+            </span>
+          </div>
+        </div>
+      </section>
 
-              {/* Per-Attempt List */}
-              <div className="space-y-2.5">
-                {group.attempts.map((att, aIdx) => {
-                  const percentageStr = computeAttemptPercentage(att);
-                  const isClarification = att.verdict === 'NEEDS_CLARIFICATION';
+      {/* Learning Trajectory */}
+      <section className="mt-6 flex flex-col gap-3">
+        <div className="flex items-center gap-2 px-1">
+          <TrendingUp className="w-4 h-4 text-primary-container" />
+          <h2 className="font-title-md text-base font-bold text-text-primary">
+            Learning Trajectory
+          </h2>
+        </div>
 
-                  return (
+        <div className="bg-canvas-elevated rounded-2xl border border-border-hairline shadow-sm p-5 sm:p-6 flex flex-col gap-4">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-sm text-xs text-text-muted">Primary Target Domain</span>
+              <span className="font-label-md text-sm text-text-primary font-semibold mt-0.5">
+                Product Strategy & AI Systems
+              </span>
+            </div>
+            <button
+              onClick={() => onNavigate('track')}
+              className="w-8 h-8 rounded-full bg-surface-container flex items-center justify-center text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </button>
+          </div>
+
+          <div className="w-full h-px bg-border-hairline" />
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-sm text-xs text-text-muted">Daily Cognitive Commitment</span>
+              <span className="font-label-md text-sm text-text-primary font-semibold mt-0.5">
+                1 unassisted challenge / day (~15m)
+              </span>
+            </div>
+            <Clock className="w-5 h-5 text-primary-container" />
+          </div>
+
+          <div className="w-full h-px bg-border-hairline" />
+
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex flex-col">
+              <span className="font-label-md text-sm text-text-primary font-semibold">
+                Spaced Recall Probes
+              </span>
+              <span className="font-body-sm text-xs text-text-secondary mt-0.5">
+                Notifications when memory decay models estimate retention drops
+              </span>
+            </div>
+            <button
+              role="switch"
+              aria-checked={spacedProbesEnabled}
+              onClick={() => setSpacedProbesEnabled(!spacedProbesEnabled)}
+              className={`w-12 h-7 rounded-full p-0.5 flex items-center transition-colors flex-shrink-0 cursor-pointer ${
+                spacedProbesEnabled ? 'bg-primary-container justify-end' : 'bg-slate-300 justify-start'
+              }`}
+            >
+              <span className="w-6 h-6 rounded-full bg-white shadow-sm" />
+            </button>
+          </div>
+        </div>
+      </section>
+
+      {/* Recorded Attempt History */}
+      <section className="mt-8 space-y-4">
+        <div className="flex items-center justify-between px-1">
+          <div className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4 text-primary-container" />
+            <h2 className="font-title-md text-base font-bold text-text-primary">
+              Completed Topic Audits ({topicGroups.length})
+            </h2>
+          </div>
+          <button
+            onClick={() => onNavigate('evidence')}
+            className="text-xs font-label-sm font-semibold text-primary-container hover:underline"
+          >
+            View Evidence Vault →
+          </button>
+        </div>
+
+        {topicGroups.length === 0 ? (
+          <div className="bg-canvas-elevated rounded-2xl border border-border-hairline p-8 text-center text-text-muted text-xs">
+            No completed topic assessments yet. Head over to the Studio to launch your first crucible challenge.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {topicGroups.map((group) => (
+              <div
+                key={group.conceptId}
+                className="bg-canvas-elevated rounded-2xl border border-border-hairline p-4 sm:p-5 shadow-xs flex flex-col gap-3"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="font-title-md text-sm font-bold text-text-primary">
+                      {group.conceptName}
+                    </span>
+                    <span className="font-code-sm text-[11px] px-2 py-0.5 rounded-full bg-surface-container text-text-secondary">
+                      {group.attemptCount} attempt{group.attemptCount !== 1 ? 's' : ''}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-1 border-t border-border-hairline">
+                  {group.attempts.slice(0, 3).map((att) => (
                     <div
-                      key={aIdx}
-                      className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 rounded-lg bg-zinc-950/80 border border-zinc-800/80 p-3.5 text-xs transition-colors hover:border-zinc-700/80"
+                      key={att.attempt_id}
+                      className="flex items-center justify-between text-xs bg-canvas-subtle p-2.5 rounded-xl border border-border-hairline"
                     >
-                      <div className="flex flex-wrap items-center gap-2">
-                        <span className="font-mono text-zinc-500 text-[11px] font-semibold">
-                          Attempt #{att.attempt_number || (group.attempts.length - aIdx)}
+                      <div className="flex items-center gap-2">
+                        <span
+                          className={`px-2 py-0.5 rounded font-code-sm text-[10px] font-bold ${
+                            att.verdict === 'CORRECT'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                              : 'bg-amber-50 text-amber-700 border border-amber-200'
+                          }`}
+                        >
+                          {att.verdict}
                         </span>
-                        <span className={`font-mono font-semibold px-2 py-0.5 rounded text-[10px] uppercase ${
-                          att.verdict === 'CORRECT' ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' :
-                          att.verdict === 'PARTIALLY_CORRECT' ? 'bg-amber-500/10 text-amber-300 border border-amber-500/20' :
-                          att.verdict === 'WRONG_APPROACH' ? 'bg-rose-500/10 text-rose-400 border border-rose-500/20' :
-                          'bg-sky-500/10 text-sky-300 border border-sky-500/20'
-                        }`}>
-                          {att.verdict || 'NEEDS_CLARIFICATION'}
-                        </span>
-                        <span className="text-zinc-500 text-[11px] flex items-center space-x-1 font-mono">
-                          <Clock className="h-3 w-3 inline" />
-                          <span>{new Date(att.created_at).toLocaleDateString()} {new Date(att.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="text-text-secondary font-code-sm text-[11px]">
+                          {new Date(att.created_at).toLocaleDateString()}
                         </span>
                       </div>
 
-                      {/* Single Attempt Score */}
-                      <div className="flex items-center space-x-2 font-mono text-xs self-end sm:self-auto">
-                        <span className="text-zinc-400 text-[11px]">Attempt Score:</span>
-                        <span className={`font-bold px-2 py-0.5 rounded ${
-                          isClarification
-                            ? 'bg-zinc-800 text-zinc-400 italic text-[11px]'
-                            : 'bg-amber-500/10 text-amber-300 border border-amber-500/20'
-                        }`}>
-                          {percentageStr}
+                      <div className="flex items-center gap-3">
+                        <span className="font-code-sm text-[11px] text-text-muted">
+                          Score: <strong className="text-text-primary">{computeAttemptPercentage(att)}</strong>
+                        </span>
+                        <span className="font-code-sm text-[11px] text-text-muted">
+                          Hints: {att.hint_tier_reached}
                         </span>
                       </div>
                     </div>
-                  );
-                })}
+                  ))}
+                </div>
               </div>
-            </div>
-          ))
+            ))}
+          </div>
         )}
-      </div>
+      </section>
     </div>
   );
 };

@@ -128,6 +128,7 @@ export interface EvaluationResult {
   evaluator_confidence: number;
   evaluated_at?: string;
   attempt_id?: string;
+  defensibility_score?: number;
 }
 
 /**
@@ -235,4 +236,4 @@ export interface ChallengeHintState {
   last_verdict?: EvaluationVerdict | null;
 }
 
-export type ViewTab = 'home' | 'prove' | 'concept-preview' | 'material' | 'challenge' | 'evidence' | 'account';
+export type ViewTab = 'home' | 'prove' | 'concept-preview' | 'material' | 'challenge' | 'evidence' | 'track' | 'profile' | 'account';

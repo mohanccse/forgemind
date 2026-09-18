@@ -47,16 +47,16 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
         (effectiveVerdict === 'PARTIALLY_CORRECT' || effectiveVerdict === 'WRONG_APPROACH'));
 
   return (
-    <aside className="w-full flex flex-col space-y-4 shrink-0 sticky top-6 items-start self-start">
+    <aside id="hint-ladder-rail" className="w-full flex flex-col space-y-4 shrink-0 sticky top-20 items-start self-start">
       {/* Tier-4 Gated Override Gate Card */}
-      <div className="w-full p-4 rounded-xl border border-zinc-800 bg-zinc-900/80 shadow-md">
+      <div className="w-full p-4 rounded-xl border border-border-hairline bg-canvas-base shadow-sm">
         <div className="flex items-center justify-between gap-2">
           <div className="space-y-0.5">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-amber-400 font-semibold flex items-center space-x-1">
-              <ShieldAlert className="w-3 h-3 text-amber-400" />
+            <span className="text-[10px] font-mono uppercase tracking-wider text-[#b45309] font-bold flex items-center space-x-1">
+              <ShieldAlert className="w-3.5 h-3.5 text-[#b45309]" />
               <span>Reference Model</span>
             </span>
-            <p className="text-xs font-medium text-zinc-200">Tier-4 Override Gate</p>
+            <p className="text-xs font-semibold text-text-primary">Tier-4 Override Gate</p>
           </div>
 
           {currentTier >= 4 ? (
@@ -64,31 +64,31 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
               type="button"
               id="reveal-override-btn"
               onClick={onRevealOverride}
-              className="px-2.5 py-1 text-xs font-mono rounded-lg border border-amber-500/50 bg-amber-500/10 text-amber-300 hover:bg-amber-500/20 transition-colors font-medium flex-shrink-0"
+              className="px-2.5 py-1 text-xs font-mono rounded-lg border border-amber-300 bg-amber-50 text-[#b45309] hover:bg-amber-100 transition-colors font-medium flex-shrink-0 cursor-pointer"
             >
               {isOverrideRevealed ? 'Hide Model' : 'Reveal Model'}
             </button>
           ) : (
-            <span className="flex items-center space-x-1 text-[11px] font-mono text-zinc-500 bg-zinc-950 px-2.5 py-1 rounded-md border border-zinc-800 flex-shrink-0">
-              <Lock className="w-3 h-3 text-zinc-500" />
-              <span>Unlocks after 4 failed attempts</span>
+            <span className="flex items-center space-x-1 text-[11px] font-mono text-text-muted bg-canvas-subtle px-2.5 py-1 rounded-md border border-border-hairline flex-shrink-0">
+              <Lock className="w-3 h-3 text-text-muted" />
+              <span>Gated</span>
             </span>
           )}
         </div>
 
         {/* Dynamic Tier-4 Override Helper Copy */}
         {currentTier < 4 && (
-          <div className="mt-2 text.xs font-mono text-zinc-400 bg-zinc-950/60 rounded p-2 border border-zinc-800/80">
-            <span className="text-amber-400 font-semibold">Status:</span> Unlocks after 4 failed attempts (Current: Tier {currentTier}) — <span className="text-amber-300 font-bold">{attemptsRemaining}</span> failed attempt(s) remaining before unlock.
+          <div className="mt-2.5 text-[11px] font-mono text-text-secondary bg-canvas-subtle rounded-lg p-2.5 border border-border-hairline">
+            <span className="text-[#b45309] font-semibold">Status:</span> Unlocks after 4 failed attempts (Current: Tier {currentTier}) — <span className="text-text-primary font-bold">{attemptsRemaining}</span> failed attempt(s) remaining.
           </div>
         )}
 
         {isOverrideRevealed && currentTier >= 4 && challenge.referenceSolution && (
-          <div className="mt-3 border-t border-zinc-800 pt-3">
-            <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-400 block mb-1 font-semibold">
+          <div className="mt-3 border-t border-border-hairline pt-3">
+            <span className="text-[10px] font-mono uppercase tracking-wider text-emerald-700 block mb-1 font-semibold">
               Canonical Reference Model Answer:
             </span>
-            <div className="p-3 rounded-lg border border-emerald-500/30 bg-emerald-950/20 text-xs text-zinc-200 leading-relaxed font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
+            <div className="p-3 rounded-lg border border-emerald-200 bg-emerald-50/50 text-xs text-text-primary leading-relaxed font-mono whitespace-pre-wrap max-h-60 overflow-y-auto">
               {challenge.referenceSolution}
             </div>
           </div>
@@ -97,58 +97,58 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
 
       {/* TERMINAL MASTERY STATE OR PROGRESSIVE HINTS LADDER */}
       {isCorrect ? (
-        <div id="terminal-mastery-rail-card" className="w-full rounded-xl border border-emerald-500/40 bg-gradient-to-b from-emerald-950/40 to-zinc-900/90 p-5 space-y-4 shadow-xl">
+        <div id="terminal-mastery-rail-card" className="w-full rounded-xl border border-emerald-200 bg-emerald-50/70 p-5 space-y-4 shadow-sm">
           <div className="flex items-center space-x-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shrink-0">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl border border-emerald-300 bg-white text-emerald-600 shrink-0 shadow-xs">
               <Award className="h-5 w-5" />
             </div>
             <div>
-              <span className="text-[10px] font-mono uppercase tracking-wider font-semibold text-emerald-400 block">
+              <span className="text-[10px] font-mono uppercase tracking-wider font-bold text-emerald-800 block">
                 Verification Status
               </span>
-              <h3 className="text-sm font-serif font-medium text-zinc-100">
+              <h3 className="text-sm font-bold text-text-primary">
                 Autonomous Mastery Achieved
               </h3>
             </div>
           </div>
 
-          <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-3 text-xs text-emerald-200 leading-relaxed font-mono">
+          <div className="rounded-lg border border-emerald-200 bg-white p-3 text-xs text-emerald-900 leading-relaxed font-mono">
             {currentTier === 0
               ? 'Autonomous Mastery Achieved (0 hints required)'
               : `Solved on Attempt ${attemptNumber} with ${currentTier} hint(s) used.`}
           </div>
 
-          <div className="text-[11px] text-zinc-400 space-y-1 font-sans">
+          <div className="text-[11px] text-text-secondary space-y-1 font-sans">
             <p>✓ All underlying capability criteria satisfied.</p>
             <p>✓ Zero-reference execution verified.</p>
           </div>
         </div>
       ) : (
         /* Progressive Hints Stepper Header */
-        <div className="w-full rounded-xl border border-zinc-800 bg-zinc-900/60 p-4 space-y-3 shadow-md">
-          <div className="flex items-center justify-between border-b border-zinc-800 pb-3">
+        <div className="w-full rounded-xl border border-border-hairline bg-canvas-base p-4 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between border-b border-border-hairline pb-3">
             <div className="flex items-center space-x-2">
-              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-500/30 bg-amber-500/10 text-amber-400">
+              <div className="flex h-7 w-7 items-center justify-center rounded-lg border border-amber-200 bg-amber-50 text-[#b45309]">
                 <Lightbulb className="h-4 w-4" />
               </div>
               <div>
-                <h3 className="text-xs font-mono uppercase tracking-wider font-semibold text-zinc-100">
+                <h3 className="text-xs font-mono uppercase tracking-wider font-bold text-text-primary">
                   Progressive Hints
                 </h3>
-                <p className="text-[10px] text-zinc-400">
-                  Gated 1 tier per failed attempt
+                <p className="text-[10px] text-text-muted">
+                  Gated 1 tier per attempt
                 </p>
               </div>
             </div>
-            <span className="text-xs font-mono font-semibold text-amber-300 rounded-full border border-amber-500/30 bg-amber-500/10 px-2.5 py-0.5">
+            <span className="text-xs font-mono font-semibold text-[#b45309] rounded-full border border-amber-200 bg-amber-50 px-2.5 py-0.5">
               {currentTier}/5 Unlocked
             </span>
           </div>
 
           {/* Frozen Clarification Banner */}
           {isNeedsClarification && (
-            <div className="rounded-lg border border-violet-500/30 bg-violet-950/30 p-3 text-xs text-violet-200">
-              <span className="font-mono text-[10px] uppercase tracking-wider text-violet-400 font-semibold block mb-0.5">
+            <div className="rounded-lg border border-purple-200 bg-purple-50 p-3 text-xs text-purple-900">
+              <span className="font-mono text-[10px] uppercase tracking-wider text-purple-700 font-bold block mb-0.5">
                 Progression Frozen
               </span>
               Clarification requested by evaluator. Clarify or retry your attempt before unlocking further hints.
@@ -156,7 +156,7 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
           )}
 
           {/* 5 Progressive Cards */}
-          <div className="space-y-2.5 pt-1">
+          <div className="space-y-2 pt-1">
             {tiers.map((tierNum) => {
               const isUnlocked = currentTier >= tierNum;
               const isActive = currentTier === tierNum;
@@ -173,44 +173,44 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
               return (
                 <div
                   key={tierNum}
-                  className={`rounded-lg p-3.5 border transition-all text-xs ${
+                  className={`rounded-xl p-3 border transition-all text-xs ${
                     isUnlocked
                       ? isActive
-                        ? 'bg-amber-500/10 border-amber-500/50 text-zinc-100 shadow-sm ring-1 ring-amber-500/20'
-                        : 'bg-zinc-950/80 border-zinc-800 text-zinc-300'
-                      : 'bg-zinc-950/40 border-zinc-800/60 text-zinc-600 opacity-70'
+                        ? 'bg-accent-rose-tint border-primary-container/30 text-text-primary shadow-xs ring-1 ring-primary-container/20'
+                        : 'bg-canvas-subtle border-border-hairline text-text-secondary'
+                      : 'bg-canvas-subtle/50 border-border-hairline/60 text-text-muted opacity-80'
                   }`}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className="font-mono text-[11px] font-semibold tracking-wide uppercase flex items-center space-x-1.5">
                       {isUnlocked ? (
-                        <Unlock className="w-3.5 h-3.5 text-amber-400" />
+                        <Unlock className="w-3.5 h-3.5 text-primary-container" />
                       ) : (
-                        <Lock className="w-3.5 h-3.5 text-zinc-600" />
+                        <Lock className="w-3.5 h-3.5 text-text-muted" />
                       )}
-                      <span className={isUnlocked ? 'text-amber-300' : 'text-zinc-500'}>
+                      <span className={isUnlocked ? 'text-primary-container font-bold' : 'text-text-muted'}>
                         {tierDef.fullTitle}
                       </span>
                     </span>
                     <span className="text-[10px] font-mono">
                       {isUnlocked ? (
-                        <span className="text-emerald-400 font-medium">
+                        <span className="text-emerald-700 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">
                           {isActive ? 'Active' : 'Unlocked'}
                         </span>
                       ) : (
-                        <span className="text-zinc-600">Locked</span>
+                        <span className="text-text-muted">Locked</span>
                       )}
                     </span>
                   </div>
 
                   {/* SECURITY GUARD: Never render raw hint string if locked */}
                   {isUnlocked ? (
-                    <p className="leading-relaxed text-zinc-200 font-sans mt-1.5 text-xs">
+                    <p className="leading-relaxed text-text-primary font-sans mt-1.5 text-xs bg-canvas-base p-2.5 rounded border border-border-hairline">
                       {contentText || 'No hint available for this tier.'}
                     </p>
                   ) : (
-                    <p className="font-mono text-[11px] text-zinc-500 italic mt-1.5">
-                      Locked — Available after attempt #{tierNum}
+                    <p className="font-mono text-[11px] text-text-muted italic mt-1.5">
+                      Locked · Available after attempt #{tierNum}
                     </p>
                   )}
 
@@ -220,9 +220,9 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
                       type="button"
                       disabled={isRequestingHint}
                       onClick={() => onRequestHint(tierNum)}
-                      className="mt-2.5 w-full flex items-center justify-center space-x-1.5 rounded-md border border-amber-500/40 bg-amber-500/20 px-3 py-1.5 text-xs font-mono font-medium text-amber-200 hover:bg-amber-500/30 transition-colors disabled:opacity-50"
+                      className="mt-2 w-full flex items-center justify-center space-x-1.5 rounded-full border border-primary-container/40 bg-accent-rose-tint px-3 py-1.5 text-xs font-mono font-semibold text-primary-container hover:bg-accent-rose-soft transition-colors disabled:opacity-50 cursor-pointer"
                     >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+                      <Sparkles className="w-3.5 h-3.5 text-primary-container" />
                       <span>
                         {isRequestingHint ? 'Unlocking...' : `Request Tier ${tierNum} Hint`}
                       </span>
@@ -237,3 +237,4 @@ export const HintLadderRail: React.FC<HintLadderRailProps> = ({
     </aside>
   );
 };
+

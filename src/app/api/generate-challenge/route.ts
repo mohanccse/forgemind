@@ -115,7 +115,7 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
     }
 
     const response = await ai.models.generateContent({
-      model: 'gemini-3.8-flash',
+      model: 'gemini-3.5-flash',
       contents: promptContent,
       config: {
         systemInstruction,

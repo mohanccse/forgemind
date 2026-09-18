@@ -39,7 +39,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product lifecycle Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product lifecycle under strict time and resource constraints.",
+      "scenario": "Evaluate whether to sunset an aging enterprise cash-cow product line or reallocate engineering capacity to fund a nascent growth tier despite sales team pushback.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product lifecycle.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -125,7 +125,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product thinking vs feature thinking Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product thinking vs feature thinking under strict time and resource constraints.",
+      "scenario": "Engineering has delivered 12 requested customer features on schedule, yet active retention has dropped 18%. Reorient sprint priorities around outcome-based problem solving.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product thinking vs feature thinking.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -211,7 +211,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product mindset Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product mindset under strict time and resource constraints.",
+      "scenario": "Navigate cross-functional pressure to ship superficial cosmetic fixes by establishing rigorous customer outcome metrics and empirical root-cause validation.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product mindset.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -297,7 +297,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Problem space vs solution space Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Problem space vs solution space under strict time and resource constraints.",
+      "scenario": "Leadership is demanding an immediate AI chatbot integration. Defend separating the solution from the problem to uncover whether conversational AI actually resolves customer friction.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Problem space vs solution space.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -383,7 +383,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product-market fit Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product-market fit under strict time and resource constraints.",
+      "scenario": "A B2B SaaS tool has strong initial signups but a severe 60-day cliff in cohort retention. Author a strategy memo diagnosing whether true PMF exists or if the value proposition must pivot.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product-market fit.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -469,7 +469,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Vision Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Vision under strict time and resource constraints.",
+      "scenario": "Resolve leadership divergence over the 3-year product north star while balancing quarterly board demands for immediate enterprise revenue.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Vision.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -555,7 +555,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Mission Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Mission under strict time and resource constraints.",
+      "scenario": "Align fragmented squad initiatives across three business units into a cohesive operational mission that filters out distracting partnership opportunities.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Mission.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -641,7 +641,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product strategy Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product strategy under strict time and resource constraints.",
+      "scenario": "Formulate a defensible competitive moat for a horizontal SaaS workflow tool facing aggressive pricing attacks from bundled enterprise incumbents.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product strategy.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -727,7 +727,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Pricing strategy Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Pricing strategy under strict time and resource constraints.",
+      "scenario": "Triage margin erosion by structuring a usage-based tiered pricing model without triggering customer churn among legacy flat-rate enterprise accounts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Pricing strategy.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -813,7 +813,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Growth strategy Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Growth strategy under strict time and resource constraints.",
+      "scenario": "Decide between expanding into mid-market enterprise sales versus doubling down on self-serve product-led expansion amidst tightening customer acquisition budgets.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Growth strategy.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -899,7 +899,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product-market fit Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product-market fit under strict time and resource constraints.",
+      "scenario": "Analyze leading and lagging retention signals across customer cohorts to determine whether expansion into European markets is justified by current PMF.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product-market fit.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -985,7 +985,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: North Star Metric Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving North Star Metric under strict time and resource constraints.",
+      "scenario": "Reconcile executive division between optimizing for short-term ARR expansion vs daily active engagement into a single defensible primary metric.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using North Star Metric.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1071,7 +1071,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: OKRs Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving OKRs under strict time and resource constraints.",
+      "scenario": "Transform vague quarterly team aspirations into measurable, uncheatable key results that tie direct product delivery to enterprise gross margin improvements.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using OKRs.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1157,7 +1157,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Customer research Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Customer research under strict time and resource constraints.",
+      "scenario": "Design an empirical research plan to investigate sudden drop-offs in enterprise trial conversions without biasing participants through leading questions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Customer research.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1243,7 +1243,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User research Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User research under strict time and resource constraints.",
+      "scenario": "Prioritize qualitative discovery interviews across power users versus churned accounts to uncover the root cause of checkout abandonment.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User research.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1329,7 +1329,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User interviews Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User interviews under strict time and resource constraints.",
+      "scenario": "Conduct unassisted customer inquiries that isolate concrete past behaviors and operational workflows rather than hypothetical purchase intentions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User interviews.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1415,7 +1415,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Mom Test Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Mom Test under strict time and resource constraints.",
+      "scenario": "Audit interview transcripts where customers gave 100% positive feedback yet zero pilot signups occurred, exposing and removing polite validation bias.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Mom Test.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1501,7 +1501,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Surveys Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Surveys under strict time and resource constraints.",
+      "scenario": "Redesign an ambiguous NPS survey into targeted behavioral screening questions that quantify high-impact workflow friction.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Surveys.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1587,7 +1587,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Jobs To Be Done Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Jobs To Be Done under strict time and resource constraints.",
+      "scenario": "Map the emotional, social, and functional jobs motivating SMB buyers to abandon manual spreadsheets for automated cloud reconciliation.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Jobs To Be Done.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1673,7 +1673,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Personas Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Personas under strict time and resource constraints.",
+      "scenario": "Differentiate buyer personas from end-user personas in a healthcare SaaS platform to resolve conflicting UI/UX requirements.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Personas.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1759,7 +1759,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Customer journey mapping Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Customer journey mapping under strict time and resource constraints.",
+      "scenario": "Chart end-to-end user touchpoints to pinpoint the exact friction stage causing 40% of signups to stall before completing workspace setup.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Customer journey mapping.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1845,7 +1845,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User journey Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User journey under strict time and resource constraints.",
+      "scenario": "Streamline a complex multi-step onboarding sequence into a zero-friction path to first value, balancing compliance checks against drop-off rates.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User journey.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -1931,7 +1931,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Problem identification Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Problem identification under strict time and resource constraints.",
+      "scenario": "Distinguish surface-level customer complaint tickets from the underlying operational breakdown driving repeat support escalations.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Problem identification.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2017,7 +2017,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Problem statements Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Problem statements under strict time and resource constraints.",
+      "scenario": "Draft crisp, measurable problem statements that decouple user pain points from preconceived technical solutions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Problem statements.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2103,7 +2103,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Root-cause analysis Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Root-cause analysis under strict time and resource constraints.",
+      "scenario": "Apply 5-Whys and Ishikawa frameworks to trace recurring inventory synchronization errors back to broken asynchronous batch jobs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Root-cause analysis.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2189,7 +2189,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Pain-point prioritization Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Pain-point prioritization under strict time and resource constraints.",
+      "scenario": "Evaluate 30 conflicting user complaints using frequency-severity matrices to establish which bug fixes will most effectively stem churn.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Pain-point prioritization.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2275,7 +2275,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Problem validation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Problem validation under strict time and resource constraints.",
+      "scenario": "Design low-fidelity concierge tests to prove customers will pay for automated invoice reconciliation before writing production code.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Problem validation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2361,7 +2361,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Assumption mapping Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Assumption mapping under strict time and resource constraints.",
+      "scenario": "Plot key business, feasibility, and usability assumptions on a risk-versus-certainty 2x2 grid to determine what must be tested immediately.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Assumption mapping.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2447,7 +2447,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Riskiest assumptions Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Riskiest assumptions under strict time and resource constraints.",
+      "scenario": "Isolate the single fatal assumption underlying a new enterprise security add-on and design an empirical falsification test.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Riskiest assumptions.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2533,7 +2533,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Market research Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Market research under strict time and resource constraints.",
+      "scenario": "Synthesize competitive analyst reports and buyer survey data to calculate realistic serviceable obtainable market (SOM) for a new vertical.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Market research.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2619,7 +2619,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Competitor analysis Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Competitor analysis under strict time and resource constraints.",
+      "scenario": "Deconstruct an aggressive competitor's feature release to identify whether it represents a durable moat or superficial marketing hype.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Competitor analysis.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2705,7 +2705,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Competitive benchmarking Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Competitive benchmarking under strict time and resource constraints.",
+      "scenario": "Benchmark core application latency, API uptime, and workflow completion times against top three industry rivals to defend pricing parity.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Competitive benchmarking.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2791,7 +2791,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: SWOT Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving SWOT under strict time and resource constraints.",
+      "scenario": "Execute an objective SWOT audit evaluating vulnerability to platform risk when major API providers launch competing first-party features.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using SWOT.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2877,7 +2877,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product sense Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product sense under strict time and resource constraints.",
+      "scenario": "Diagnose why an intuitive redesign caused customer confusion and synthesize user feedback into a defensible interface compromise.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product sense.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -2963,7 +2963,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product intuition Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product intuition under strict time and resource constraints.",
+      "scenario": "Evaluate when to trust behavioral usage data over loud minority feedback from high-touch enterprise accounts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product intuition.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3049,7 +3049,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product teardown Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product teardown under strict time and resource constraints.",
+      "scenario": "Dissect a best-in-class onboarding flow to identify key cognitive friction-reducing mechanisms applicable to an internal developer portal.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product teardown.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3135,7 +3135,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product critique Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product critique under strict time and resource constraints.",
+      "scenario": "Deliver a structured product critique analyzing information architecture, accessibility, and feedback loops in a mission-critical mobile app.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product critique.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3221,7 +3221,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product improvement questions Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product improvement questions under strict time and resource constraints.",
+      "scenario": "Formulate high-impact tactical improvements for an e-commerce checkout flow balancing fraud prevention friction against conversion velocity.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product improvement questions.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3307,7 +3307,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product design questions Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product design questions under strict time and resource constraints.",
+      "scenario": "Design an intuitive multi-tenant permissions model that scales from 2-person startups to 5,000-seat regulated enterprise organizations.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product design questions.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3393,7 +3393,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: \"How would you improve X?\" Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving \"How would you improve X?\" under strict time and resource constraints.",
+      "scenario": "Identify core structural weaknesses in a collaborative workspace editor and author a staged roadmap addressing performance and ergonomics.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using \"How would you improve X?\".",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3479,7 +3479,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: 0→1 thinking Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving 0→1 thinking under strict time and resource constraints.",
+      "scenario": "Define the minimal viable value proposition for an unproven concept without over-investing in speculative infrastructure or edge-case handling.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using 0→1 thinking.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3565,7 +3565,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: PRD Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving PRD under strict time and resource constraints.",
+      "scenario": "Author a comprehensive PRD specifying functional requirements, out-of-scope boundaries, and release criteria for a high-concurrency payment gateway.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using PRD.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3651,7 +3651,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User stories Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User stories under strict time and resource constraints.",
+      "scenario": "Break down a monolithic epic for real-time collaborative whiteboarding into vertical, independently deliverable user stories.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User stories.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3737,7 +3737,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Acceptance criteria Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Acceptance criteria under strict time and resource constraints.",
+      "scenario": "Establish unambiguous Given-When-Then acceptance criteria that prevent scope creep and edge-case ambiguity during engineering sprint cycles.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Acceptance criteria.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3823,7 +3823,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Use cases Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Use cases under strict time and resource constraints.",
+      "scenario": "Document detailed operational and exceptional use cases for an automated disaster-recovery failover system.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Use cases.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3909,7 +3909,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User flows Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User flows under strict time and resource constraints.",
+      "scenario": "Map non-linear user error flows for OAuth token expiration during active background data exports to eliminate data loss.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User flows.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -3995,7 +3995,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Edge cases Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Edge cases under strict time and resource constraints.",
+      "scenario": "Anticipate and design mitigation paths for clock-skew, network disconnects, and concurrent edits in collaborative workspace sessions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Edge cases.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4081,7 +4081,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Why prioritization matters Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Why prioritization matters under strict time and resource constraints.",
+      "scenario": "Defend saying 'no' to high-profile executive pet features when core platform stability and technical debt threaten uptime SLAs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Why prioritization matters.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4167,7 +4167,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: RICE Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving RICE under strict time and resource constraints.",
+      "scenario": "Score and rank 15 competing roadmap initiatives across Reach, Impact, Confidence, and Effort to break a cross-functional roadmap deadlock.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using RICE.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4253,7 +4253,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: ICE Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving ICE under strict time and resource constraints.",
+      "scenario": "Quickly prioritize 20 growth experiment ideas using Impact, Confidence, and Ease during rapid iterative sprint cycles.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using ICE.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4339,7 +4339,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: MoSCoW Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving MoSCoW under strict time and resource constraints.",
+      "scenario": "Classify sprint deliverables into Must-haves vs Could-haves under a strict unmovable regulatory compliance deadline.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using MoSCoW.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4425,7 +4425,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Kano Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Kano under strict time and resource constraints.",
+      "scenario": "Categorize customer feature requests into Basic expectations, Performance amplifiers, and Delighters to prevent over-engineering table-stakes functionality.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Kano.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4511,7 +4511,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product roadmap Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product roadmap under strict time and resource constraints.",
+      "scenario": "Reconcile engineering capacity constraints against executive commercial commitments into an actionable, quarterly product roadmap.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product roadmap.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4597,7 +4597,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Feature roadmap Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Feature roadmap under strict time and resource constraints.",
+      "scenario": "Transition an inflexible feature-timeline roadmap into flexible theme-based releases that protect engineering from missed artificial deadlines.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Feature roadmap.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4683,7 +4683,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Outcome-based roadmap Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Outcome-based roadmap under strict time and resource constraints.",
+      "scenario": "Structure an executive roadmap around quantifiable customer outcomes and churn-reduction targets rather than raw feature delivery lists.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Outcome-based roadmap.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4769,7 +4769,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Roadmap prioritization Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Roadmap prioritization under strict time and resource constraints.",
+      "scenario": "Resolve high-stakes roadmap contention between sales-driven custom enterprise requests and core platform infrastructure scalability.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Roadmap prioritization.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4855,7 +4855,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Agile fundamentals Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Agile fundamentals under strict time and resource constraints.",
+      "scenario": "Transition an enterprise team from rigid waterfall milestones into empirical, sprint-based feedback loops with cross-functional autonomy.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Agile fundamentals.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -4941,7 +4941,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Scrum Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Scrum under strict time and resource constraints.",
+      "scenario": "Facilitate sprint ceremonies that enforce sprint goal integrity against mid-sprint scope creep from urgent sales escalations.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Scrum.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5027,7 +5027,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Kanban Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Kanban under strict time and resource constraints.",
+      "scenario": "Establish strict Work-In-Progress (WIP) limits across delivery stages to unclog code review bottlenecks and shorten cycle times.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Kanban.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5113,7 +5113,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Sprint & Sprint planning Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Sprint & Sprint planning under strict time and resource constraints.",
+      "scenario": "Negotiate team velocity, tech debt budget, and feature commitments with engineering leads to establish an uncompromised sprint goal.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Sprint & Sprint planning.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5199,7 +5199,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Backlog Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Backlog under strict time and resource constraints.",
+      "scenario": "Audit and prune an unmanaged 200-ticket backlog to surface top customer-impact items and archive obsolete feature requests.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Backlog.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5285,7 +5285,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Refinement Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Refinement under strict time and resource constraints.",
+      "scenario": "Lead backlog refinement sessions that unpack technical ambiguity and produce battle-tested acceptance criteria before sprint entry.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Refinement.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5371,7 +5371,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Daily standup Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Daily standup under strict time and resource constraints.",
+      "scenario": "Re-anchor 15-minute daily standups to focus on resolving critical blockers to the sprint goal rather than passive personal status reports.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Daily standup.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5457,7 +5457,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Sprint review Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Sprint review under strict time and resource constraints.",
+      "scenario": "Demonstrate incremental working software to cross-functional stakeholders and capture actionable feedback for backlog refinement.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Sprint review.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5543,7 +5543,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Retrospective Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Retrospective under strict time and resource constraints.",
+      "scenario": "Facilitate a blameless post-sprint retrospective diagnosing why high-priority user stories spilled over across consecutive sprints.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Retrospective.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5629,7 +5629,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product backlog Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product backlog under strict time and resource constraints.",
+      "scenario": "Structure a multi-tier product backlog that cleanly separates strategic feature themes from immediate bug-triage queues.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product backlog.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5715,7 +5715,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: MVP Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving MVP under strict time and resource constraints.",
+      "scenario": "Define and defend the thinnest possible testable feature set that validates customer demand without building speculative infrastructure.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using MVP.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5801,7 +5801,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Iterative development Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Iterative development under strict time and resource constraints.",
+      "scenario": "Structure vertical release slices that place working software in front of real beta customers every two weeks to de-risk assumptions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Iterative development.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5887,7 +5887,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Stakeholder identification Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Stakeholder identification under strict time and resource constraints.",
+      "scenario": "Map all internal and external stakeholders across legal, compliance, sales, and support who hold veto power over a financial feature launch.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Stakeholder identification.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -5973,7 +5973,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Stakeholder mapping Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Stakeholder mapping under strict time and resource constraints.",
+      "scenario": "Plot organizational stakeholders on an influence-versus-interest matrix to tailor communication cadences and manage launch expectations.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Stakeholder mapping.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6059,7 +6059,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Stakeholder communication Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Stakeholder communication under strict time and resource constraints.",
+      "scenario": "Deliver transparent executive progress updates and trade-off justifications to maintain leadership trust when timelines shift.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Stakeholder communication.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6145,7 +6145,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Product metrics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Product metrics under strict time and resource constraints.",
+      "scenario": "Establish a balanced metric framework connecting daily active usage and feature adoption directly to enterprise annual recurring revenue.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Product metrics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6231,7 +6231,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Input vs output metrics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Input vs output metrics under strict time and resource constraints.",
+      "scenario": "Differentiate high-leverage input metrics like weekly collaboration invites from lagging output metrics like quarterly revenue.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Input vs output metrics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6317,7 +6317,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Leading vs lagging indicators Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Leading vs lagging indicators under strict time and resource constraints.",
+      "scenario": "Identify early behavioral leading indicators that predict enterprise account expansion 6 months before renewal contracts are signed.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Leading vs lagging indicators.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6403,7 +6403,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: North Star Metric Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving North Star Metric under strict time and resource constraints.",
+      "scenario": "Define the single leading metric that best captures value delivered to users and aligns cross-functional team incentives.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using North Star Metric.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6489,7 +6489,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AARRR framework Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AARRR framework under strict time and resource constraints.",
+      "scenario": "Apply the pirate metrics framework (Acquisition, Activation, Retention, Referral, Revenue) to identify the primary bottleneck in user onboarding.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AARRR framework.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6575,7 +6575,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Activation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Activation under strict time and resource constraints.",
+      "scenario": "Discover the 'Aha!' moment that separates retained users from drop-offs and optimize the onboarding flow to accelerate time-to-value.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Activation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6661,7 +6661,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Engagement Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Engagement under strict time and resource constraints.",
+      "scenario": "Measure depth and frequency of core feature interactions to distinguish true engagement from vanity pageview metrics.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Engagement.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6747,7 +6747,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Retention Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Retention under strict time and resource constraints.",
+      "scenario": "Author a diagnosis of flattening vs decaying retention curves to evaluate whether product value is enduring across user segments.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Retention.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6833,7 +6833,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Churn Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Churn under strict time and resource constraints.",
+      "scenario": "Differentiate voluntary payment cancellation from involuntary credit-card failure to implement targeted retention interventions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Churn.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -6919,7 +6919,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Conversion Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Conversion under strict time and resource constraints.",
+      "scenario": "Optimize checkout conversion rates by testing one-click payment flows against multi-step verification safeguards.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Conversion.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7005,7 +7005,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Segmentation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Segmentation under strict time and resource constraints.",
+      "scenario": "Segment customer behavior across company size and technical maturity to uncover why enterprise accounts utilize only 20% of product features.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Segmentation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7091,7 +7091,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Customer lifetime value Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Customer lifetime value under strict time and resource constraints.",
+      "scenario": "Model CLV across organic versus paid acquisition channels to establish sustainable unit economics and payback thresholds.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Customer lifetime value.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7177,7 +7177,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: CAC Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving CAC under strict time and resource constraints.",
+      "scenario": "Audit marketing spend and blended CAC to pinpoint unprofitable paid ad channels and reallocate budget to product-led referral loops.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using CAC.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7263,7 +7263,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Revenue metrics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Revenue metrics under strict time and resource constraints.",
+      "scenario": "Reconcile MRR expansion, contraction, and churn to present a transparent revenue waterfall for quarterly board reviews.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Revenue metrics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7349,7 +7349,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Hypothesis Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Hypothesis under strict time and resource constraints.",
+      "scenario": "Formulate a falsifiable, metric-backed product hypothesis before allocating design and engineering sprint bandwidth.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Hypothesis.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7435,7 +7435,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: A/B testing Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving A/B testing under strict time and resource constraints.",
+      "scenario": "Design an A/B test with appropriate sample size, statistical power, and runtime to measure conversion lift without p-hacking.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using A/B testing.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7521,7 +7521,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Experiment design Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Experiment design under strict time and resource constraints.",
+      "scenario": "Establish guardrail metrics and primary KPIs to ensure an aggressive upsell experiment does not secretly degrade user retention.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Experiment design.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7607,7 +7607,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: SQL fundamentals Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving SQL fundamentals under strict time and resource constraints.",
+      "scenario": "Write SQL queries to join user registration, event tracking, and subscription tables to calculate 7-day feature retention.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using SQL fundamentals.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7693,7 +7693,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: SQL for product analytics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving SQL for product analytics under strict time and resource constraints.",
+      "scenario": "Author complex window functions and funnel queries to trace user drop-off across sequential session events.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using SQL for product analytics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7779,7 +7779,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Excel / Google Sheets Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Excel / Google Sheets under strict time and resource constraints.",
+      "scenario": "Build dynamic financial sensitivity models and cohort retention heatmap tables to project annual recurring revenue growth.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Excel / Google Sheets.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7865,7 +7865,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Data visualization Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Data visualization under strict time and resource constraints.",
+      "scenario": "Transform messy multidimensional telemetry data into intuitive executive dashboards that highlight operational bottlenecks.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Data visualization.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -7951,7 +7951,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Go-to-Market Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Go-to-Market under strict time and resource constraints.",
+      "scenario": "Structure a coordinated GTM launch plan aligning marketing, sales enablement, and product readiness for an enterprise security tier.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Go-to-Market.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8037,7 +8037,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Acquisition Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Acquisition under strict time and resource constraints.",
+      "scenario": "Diversify customer acquisition away from paid ad channels toward viral sharing mechanisms and content-driven organic inbound loops.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Acquisition.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8123,7 +8123,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Activation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Activation under strict time and resource constraints.",
+      "scenario": "Refactor time-to-first-value milestones to ensure 70% of new signups successfully complete core workflow setup on day one.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Activation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8209,7 +8209,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Retention Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Retention under strict time and resource constraints.",
+      "scenario": "Design behavioral habit loops and contextual notification triggers that re-engage dormant users before they permanently churn.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Retention.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8295,7 +8295,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Referral Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Referral under strict time and resource constraints.",
+      "scenario": "Implement a double-sided incentive referral program that drives organic user invites without incentivizing fraudulent spam accounts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Referral.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8381,7 +8381,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Revenue Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Revenue under strict time and resource constraints.",
+      "scenario": "Uncover pricing expansion opportunities by aligning pricing tiers with customer value metrics like active seats or data volume.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Revenue.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8467,7 +8467,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Onboarding Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Onboarding under strict time and resource constraints.",
+      "scenario": "Replace tedious manual configuration with interactive contextual tooltips and pre-populated sample templates to boost activation.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Onboarding.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8553,7 +8553,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Feature adoption Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Feature adoption under strict time and resource constraints.",
+      "scenario": "Diagnose why a major new analytics feature has under 5% adoption and design in-app discovery nudges to drive trial.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Feature adoption.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8639,7 +8639,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: User education Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving User education under strict time and resource constraints.",
+      "scenario": "Develop contextual onboarding tooltips and micro-learning modules to guide non-technical users through advanced configuration.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using User education.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8725,7 +8725,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Engagement Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Engagement under strict time and resource constraints.",
+      "scenario": "Introduce weekly progress digest emails highlighting user milestones to foster continuous product habits.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Engagement.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8811,7 +8811,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Retention strategies Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Retention strategies under strict time and resource constraints.",
+      "scenario": "Establish proactive health scores that alert customer success managers to slipping account usage before cancellation notices.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Retention strategies.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8897,7 +8897,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Customer success Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Customer success under strict time and resource constraints.",
+      "scenario": "Align product telemetry with customer success workflows to automate intervention playbooks for at-risk enterprise accounts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Customer success.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -8983,7 +8983,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Feedback loops Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Feedback loops under strict time and resource constraints.",
+      "scenario": "Close the customer feedback loop by communicating resolved feature requests back to beta participants to drive brand advocacy.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Feedback loops.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9069,7 +9069,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: MVP definition Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving MVP definition under strict time and resource constraints.",
+      "scenario": "Trim speculative features from an initial launch scope to isolate the thinnest slice of product that delivers validated customer value.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using MVP definition.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9155,7 +9155,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: UAT Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving UAT under strict time and resource constraints.",
+      "scenario": "Coordinate User Acceptance Testing with key enterprise beta customers to catch critical regression bugs before broad availability.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using UAT.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9241,7 +9241,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Release planning Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Release planning under strict time and resource constraints.",
+      "scenario": "Establish canary rollout rings and rollback criteria to deploy high-risk backend architectural changes with zero downtime.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Release planning.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9327,7 +9327,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Feature rollout Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Feature rollout under strict time and resource constraints.",
+      "scenario": "Manage feature flag toggles to gradually ramp user exposure from internal dogfooding to 100% production rollout.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Feature rollout.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9413,7 +9413,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: A. AI Fundamentals Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving A. AI Fundamentals under strict time and resource constraints.",
+      "scenario": "Distinguish deterministic software capabilities from probabilistic ML systems to set realistic stakeholder expectations for automation.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using A. AI Fundamentals.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9499,7 +9499,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: B. Generative AI Fundamentals Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving B. Generative AI Fundamentals under strict time and resource constraints.",
+      "scenario": "Evaluate when foundation models provide defensible competitive advantage versus when specialized narrow ML models are superior.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using B. Generative AI Fundamentals.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9585,7 +9585,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: C. Prompt Engineering Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving C. Prompt Engineering under strict time and resource constraints.",
+      "scenario": "Structure system prompts, few-shot examples, and output constraints to eliminate ambiguity and guarantee deterministic JSON schemas.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using C. Prompt Engineering.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9671,7 +9671,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: D. AI Product Discovery Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving D. AI Product Discovery under strict time and resource constraints.",
+      "scenario": "Discover high-friction enterprise workflows where LLMs dramatically reduce operational labor without introducing intolerable error rates.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using D. AI Product Discovery.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9757,7 +9757,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: E. AI Product Designs Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving E. AI Product Designs under strict time and resource constraints.",
+      "scenario": "Design intuitive conversational and co-pilot UI patterns that establish clear user mental models and provide graceful failure recovery.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using E. AI Product Designs.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9843,7 +9843,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: LLM Application Stack Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving LLM Application Stack under strict time and resource constraints.",
+      "scenario": "Architect the modular technology stack combining model APIs, vector stores, caching layers, and evaluation observability tools.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using LLM Application Stack.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -9929,7 +9929,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: RAG Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving RAG under strict time and resource constraints.",
+      "scenario": "Design retrieval-augmented generation pipelines that ground model responses in enterprise documentation while minimizing vector search latency.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using RAG.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10015,7 +10015,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: MCP Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving MCP under strict time and resource constraints.",
+      "scenario": "Specify Model Context Protocol interfaces that allow LLMs to safely read and write to internal operational databases and third-party APIs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using MCP.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10101,7 +10101,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI Evaluation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI Evaluation under strict time and resource constraints.",
+      "scenario": "Build automated golden-dataset evaluation benchmarks to score accuracy, grounding, and tone before shipping model updates.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI Evaluation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10187,7 +10187,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI hallucinations Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI hallucinations under strict time and resource constraints.",
+      "scenario": "Implement strict citation grounding and confidence scoring thresholds to prevent models from generating plausible but fabricated data.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI hallucinations.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10273,7 +10273,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Bias Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Bias under strict time and resource constraints.",
+      "scenario": "Audit training data and model outputs for demographic and operational bias to ensure equitable algorithmic decisions in hiring tools.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Bias.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10359,7 +10359,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI cost structure Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI cost structure under strict time and resource constraints.",
+      "scenario": "Deconstruct fixed infrastructure expenses versus variable token consumption costs to project gross margins for an AI-first product.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI cost structure.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10445,7 +10445,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Token economics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Token economics under strict time and resource constraints.",
+      "scenario": "Optimize prompt templates and context window utilization to cut per-query token expenditure by 40% without losing reasoning quality.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Token economics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10531,7 +10531,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Input vs output tokens Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Input vs output tokens under strict time and resource constraints.",
+      "scenario": "Balance large retrieval context payloads against concise model generation to minimize generation latency and API cost.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Input vs output tokens.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10617,7 +10617,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Inference cost Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Inference cost under strict time and resource constraints.",
+      "scenario": "Model the financial viability of migrating high-volume inference queries from proprietary APIs to self-hosted open-source weights.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Inference cost.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10703,7 +10703,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Latency Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Latency under strict time and resource constraints.",
+      "scenario": "Implement streaming responses and speculative execution to reduce perceived user latency on complex multi-step reasoning tasks.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Latency.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10789,7 +10789,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Throughput Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Throughput under strict time and resource constraints.",
+      "scenario": "Optimize concurrency and request queueing to handle peak enterprise traffic spikes without hitting model rate limits or timeouts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Throughput.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10875,7 +10875,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Model quality vs cost Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Model quality vs cost under strict time and resource constraints.",
+      "scenario": "Conduct empirical benchmarks to determine whether expensive frontier models outperform fine-tuned smaller models on domain extraction.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Model quality vs cost.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -10961,7 +10961,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Model selection Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Model selection under strict time and resource constraints.",
+      "scenario": "Establish objective selection criteria matching task complexity, context length, latency requirements, and budget across competing model families.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Model selection.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11047,7 +11047,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Small vs large models Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Small vs large models under strict time and resource constraints.",
+      "scenario": "Implement hybrid routing where small, fast models handle 80% of classification tasks while frontier models handle complex reasoning.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Small vs large models.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11133,7 +11133,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Open-source vs API models Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Open-source vs API models under strict time and resource constraints.",
+      "scenario": "Evaluate data privacy, hosting overhead, and vendor lock-in when choosing between hosted cloud APIs and self-managed open models.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Open-source vs API models.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11219,7 +11219,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Model routing Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Model routing under strict time and resource constraints.",
+      "scenario": "Build an intelligent router that inspects incoming user queries and directs them to the lowest-cost model capable of solving them.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Model routing.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11305,7 +11305,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Caching Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Caching under strict time and resource constraints.",
+      "scenario": "Implement semantic and exact-match prompt caching to serve repeat queries with zero token cost and sub-50ms latency.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Caching.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11391,7 +11391,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Batching Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Batching under strict time and resource constraints.",
+      "scenario": "Aggregate asynchronous offline processing jobs into bulk batch APIs to take advantage of 50% discount pricing tiers.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Batching.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11477,7 +11477,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Cost optimization Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Cost optimization under strict time and resource constraints.",
+      "scenario": "Audit an AI application's monthly cloud invoice and execute systematic optimizations across caching, prompt length, and model tiering.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Cost optimization.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11563,7 +11563,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Quality-cost-latency trade-off Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Quality-cost-latency trade-off under strict time and resource constraints.",
+      "scenario": "Formulate an executive trade-off matrix balancing output perfection against sub-second response times and unit economics.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Quality-cost-latency trade-off.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11649,7 +11649,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI unit economics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI unit economics under strict time and resource constraints.",
+      "scenario": "Calculate the per-active-user gross margin profile of an AI feature to ensure subscription pricing outpaces inference consumption.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI unit economics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11735,7 +11735,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI pricing models Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI pricing models under strict time and resource constraints.",
+      "scenario": "Design hybrid pricing combining base subscription tiers with consumption-based credits to protect against runaway usage costs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI pricing models.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11821,7 +11821,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Activation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Activation under strict time and resource constraints.",
+      "scenario": "Track the percentage of users who experience meaningful AI output value in their first session and iterate the prompt UX to boost completion.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Activation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11907,7 +11907,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Engagement Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Engagement under strict time and resource constraints.",
+      "scenario": "Measure user edit rate and prompt iteration count to determine whether generated outputs are accepted or discarded.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Engagement.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -11993,7 +11993,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Retention Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Retention under strict time and resource constraints.",
+      "scenario": "Analyze whether AI-assisted workflows produce higher 90-day retention compared to legacy manual workflows.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Retention.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12079,7 +12079,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Conversion Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Conversion under strict time and resource constraints.",
+      "scenario": "A/B test free AI trial limits to maximize freemium-to-paid conversion without incurring unsustainable unmonetized inference costs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Conversion.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12165,7 +12165,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Revenue Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Revenue under strict time and resource constraints.",
+      "scenario": "Quantify revenue attribution from premium AI add-ons and evaluate net revenue retention across AI-enabled accounts.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Revenue.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12251,7 +12251,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI PRD Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI PRD under strict time and resource constraints.",
+      "scenario": "Write an AI-specific PRD detailing probabilistic acceptance thresholds, fallback behaviors, and latency SLAs.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI PRD.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12337,7 +12337,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI user stories Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI user stories under strict time and resource constraints.",
+      "scenario": "Draft user stories that capture probabilistic error states, human-in-the-loop review, and feedback rating interactions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI user stories.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12423,7 +12423,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI acceptance criteria Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI acceptance criteria under strict time and resource constraints.",
+      "scenario": "Define statistical acceptance criteria (e.g. 95% semantic accuracy on benchmark suite) rather than binary deterministic passes.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI acceptance criteria.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12509,7 +12509,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI feature requirements Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI feature requirements under strict time and resource constraints.",
+      "scenario": "Specify telemetry requirements to capture raw prompts, completions, and user thumbs-up/down ratings for continuous model training.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI feature requirements.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12595,7 +12595,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Model requirements Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Model requirements under strict time and resource constraints.",
+      "scenario": "Document necessary model capabilities, context window sizes, reasoning capabilities, and supported modalities for a legal analysis tool.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Model requirements.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12681,7 +12681,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Data requirements Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Data requirements under strict time and resource constraints.",
+      "scenario": "Define data schema, provenance, licensing, and privacy sanitization standards for building a domain-specific fine-tuning corpus.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Data requirements.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12767,7 +12767,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Evaluation requirements Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Evaluation requirements under strict time and resource constraints.",
+      "scenario": "Establish automated regression test suites that run against synthetic and real user queries before any prompt or model update.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Evaluation requirements.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12853,7 +12853,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI technical feasibility Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI technical feasibility under strict time and resource constraints.",
+      "scenario": "Conduct pre-sprint technical spikes with machine learning engineers to determine if current frontier models can reliably extract complex tabular data.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI technical feasibility.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -12939,7 +12939,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: AI architecture basics Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving AI architecture basics under strict time and resource constraints.",
+      "scenario": "Collaborate with tech leads to diagram data flow, vector embedding pipelines, cache hit layers, and fallback handlers.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using AI architecture basics.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13025,7 +13025,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Prototype → POC → MVP Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Prototype → POC → MVP under strict time and resource constraints.",
+      "scenario": "Navigate the progression from quick API prototype to customer proof-of-concept and scalable production MVP.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Prototype → POC → MVP.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13111,7 +13111,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Model experimentation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Model experimentation under strict time and resource constraints.",
+      "scenario": "Run systematic evaluation sweeps comparing prompt variations and temperature settings against an annotated test set.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Model experimentation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13197,7 +13197,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Prompt experimentation Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Prompt experimentation under strict time and resource constraints.",
+      "scenario": "A/B test structured system prompts to optimize instruction following and reduce token consumption across edge cases.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Prompt experimentation.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13283,7 +13283,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Evaluation pipeline Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Evaluation pipeline under strict time and resource constraints.",
+      "scenario": "Automate continuous LLM-as-a-judge evaluation pipelines to monitor production drift and model alignment in real time.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Evaluation pipeline.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13369,7 +13369,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Productionization Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Productionization under strict time and resource constraints.",
+      "scenario": "Deploy guardrails, circuit breakers, and rate limiters to transition a prototype into a resilient enterprise-ready service.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Productionization.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13455,7 +13455,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Monitoring Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Monitoring under strict time and resource constraints.",
+      "scenario": "Set up real-time observability alerts for hallucination rates, token spikes, refusal errors, and P99 latency regressions.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Monitoring.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13541,7 +13541,7 @@ export const INITIAL_CONCEPTS: Concept[] = [
     "approximateDifficulty": "Applied",
     "challengePreview": {
       "title": "Executive Decision Benchmark: Continuous improvement Trade-off Dilemma",
-      "scenario": "You are the Lead Product Manager at a fast-growing B2B/B2C tech platform. Your team must resolve a high-stakes operational dilemma involving Continuous improvement under strict time and resource constraints.",
+      "scenario": "Build flywheel mechanisms that capture user corrections to constantly enrich fine-tuning datasets and benchmark suites.",
       "task": "Analyze the situation, evaluate alternative approaches, and author an Executive Decision Memo establishing a defensible path forward using Continuous improvement.",
       "constraints": [
         "Do not define textbook terms or provide superficial summaries.",
@@ -13617,6 +13617,16 @@ export function getConcepts(domainFilter?: string, searchQuery?: string): Concep
       c.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.underlyingSkill.toLowerCase().includes(searchQuery.toLowerCase()) ||
       c.domain.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesDomain && matchesSearch;
+  });
+}
+
+export function getConceptsByDomain(domain: Domain, search?: string): Concept[] {
+  return INITIAL_CONCEPTS.filter((concept) => {
+    const matchesDomain = !domain || domain === 'ALL' || concept.domain === domain;
+    const matchesSearch = !search ||
+      concept.name.toLowerCase().includes(search.toLowerCase()) ||
+      concept.description.toLowerCase().includes(search.toLowerCase());
     return matchesDomain && matchesSearch;
   });
 }

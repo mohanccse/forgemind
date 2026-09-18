@@ -1,14 +1,119 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Instrument Sans", system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  --color-canvas-base: #FFFFFF;
+  --color-canvas-subtle: #F8FAFC;
+  --color-canvas-elevated: #FFFFFF;
+  --color-surface: #F8F9FF;
+  --color-surface-dim: #CBDBF5;
+  --color-surface-bright: #F8F9FF;
+  --color-surface-container-lowest: #FFFFFF;
+  --color-surface-container-low: #EFF4FF;
+  --color-surface-container: #E5EEFF;
+  --color-surface-container-high: #DCE9FF;
+  --color-surface-container-highest: #D3E4FE;
+  --color-on-surface: #0B1C30;
+  --color-on-surface-variant: #5C3F40;
+  --color-inverse-surface: #213145;
+  --color-inverse-on-surface: #EAF1FF;
+  --color-text-primary: #0F172A;
+  --color-text-secondary: #475569;
+  --color-text-muted: #64748B;
+  --color-border-hairline: #E2E8F0;
+  --color-border-focus: #CBD5E1;
+  --color-outline: #906F70;
+  --color-outline-variant: #E5BDBE;
+  --color-primary: #B80035;
+  --color-primary-container: #E11D48;
+  --color-on-primary: #FFFFFF;
+  --color-on-primary-container: #FFFAF9;
+  --color-primary-fixed: #FFDADA;
+  --color-primary-fixed-dim: #FFB3B6;
+  --color-accent-rose-tint: #FFF1F2;
+  --color-accent-rose-soft: #FFE4E6;
+  --color-secondary: #565E74;
+  --color-secondary-container: #DAE2FD;
+  --color-on-secondary: #FFFFFF;
+  --color-on-secondary-container: #5C647A;
+  --color-tertiary: #B70438;
+  --color-tertiary-container: #DB2B4E;
+  --color-on-tertiary: #FFFFFF;
+  --color-error: #BA1A1A;
+  --color-error-container: #FFDAD6;
+  --color-on-error: #FFFFFF;
+  --color-on-error-container: #93000A;
+
+  --font-sans: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Plus Jakarta Sans", system-ui, sans-serif;
   --font-serif: "Newsreader", Georgia, serif;
   --font-mono: "JetBrains Mono", monospace;
+  --font-headline-sm: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline-md: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline-lg: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-headline-lg-mobile: "Plus Jakarta Sans", system-ui, sans-serif;
+  --font-title-md: "Inter", sans-serif;
+  --font-body-lg: "Inter", sans-serif;
+  --font-body-md: "Inter", sans-serif;
+  --font-body-sm: "Inter", sans-serif;
+  --font-label-md: "Inter", sans-serif;
+  --font-label-sm: "Inter", sans-serif;
+  --font-code-sm: "JetBrains Mono", monospace;
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #0c0d12;
-  color: #e4e5eb;
+  background-color: #F8FAFC;
+  color: #0F172A;
   min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
 }
+
+.material-symbols-outlined {
+  font-family: 'Material Symbols Outlined';
+  font-weight: normal;
+  font-style: normal;
+  font-size: 24px;
+  line-height: 1;
+  letter-spacing: normal;
+  text-transform: none;
+  display: inline-block;
+  white-space: nowrap;
+  word-wrap: normal;
+  direction: ltr;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pt-safe {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.custom-scroller::-webkit-scrollbar {
+  width: 7px;
+}
+.custom-scroller::-webkit-scrollbar-track {
+  background: #F1F5F9;
+  border-radius: 9999px;
+}
+.custom-scroller::-webkit-scrollbar-thumb {
+  background: #CBD5E1;
+  border-radius: 9999px;
+}
+.custom-scroller::-webkit-scrollbar-thumb:hover {
+  background: #94A3B8;
+}
+.custom-scroller {
+  scrollbar-width: thin;
+  scrollbar-color: #CBD5E1 #F1F5F9;
+}
+

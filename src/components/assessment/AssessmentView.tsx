@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useRef, useEffect } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import {
   ArrowLeft,
   Lock,
@@ -17,7 +17,11 @@ import {
   Quote,
   Award,
   ArrowRight,
-  Flag
+  Flag,
+  Sparkles,
+  FileText,
+  Bookmark,
+  AlertTriangle
 } from 'lucide-react';
 import { Concept, ViewTab, GeneratedChallenge } from '../../types';
 import { HintLadderRail } from './HintLadderRail';
@@ -45,171 +49,180 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     sourceType: challenge.sourceType || concept.sourceType || 'LIBRARY'
   });
 
-  // Reference to active step textarea for auto-focus navigation
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
-
-  // Auto-focus target step textarea whenever activeStep changes or view mode toggles
-  useEffect(() => {
-    if (engine.stage === 'attempt' && !engine.viewAllMilestones) {
-      const timer = setTimeout(() => {
-        textareaRef.current?.focus();
-      }, 50);
-      return () => clearTimeout(timer);
-    }
-  }, [engine.activeStep, engine.viewAllMilestones, engine.stage]);
+  const memoTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const [showStepDetails, setShowStepDetails] = useState<boolean>(false);
 
   const confidenceOptions = [
-    { value: 1, label: '1 — Not confident', desc: 'Little to no certainty on independent derivation' },
+    { value: 1, label: '1', desc: 'Little certainty on independent derivation' },
     { value: 2, label: '2', desc: 'Vague recall of general mechanics' },
     { value: 3, label: '3', desc: 'Moderate confidence; understand principles' },
     { value: 4, label: '4', desc: 'High confidence; can navigate constraints' },
-    { value: 5, label: '5 — Very confident', desc: 'Mastery certainty; ready for edge cases' }
+    { value: 5, label: '5', desc: 'Mastery certainty; ready for edge cases' }
   ];
 
   const milestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
   const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
   const totalMilestones = milestones.length;
-  const answeredCount = milestones.filter(
-    (_, idx) => (engine.stepAnswers[String(idx)] || '').trim().length > 0
-  ).length;
 
   const evalResult = engine.evaluationResult || engine.submittedAttempt?.evaluation;
-
   const isCorrect =
     evalResult?.verdict === 'CORRECT' ||
     engine.submittedAttempt?.verdict === 'CORRECT';
 
-  // Step Answer change handler enforcing 2000 character maximum bound
-  const handleStepInput = (idx: number, rawVal: string) => {
-    const maxBound = 2000;
-    const boundedVal = rawVal.length > maxBound ? rawVal.slice(0, maxBound) : rawVal;
-    engine.handleMicroAnswerChange(idx, boundedVal);
+  const wordCount = (engine.response || '').trim()
+    ? (engine.response || '').trim().split(/\s+/).length
+    : 0;
+
+  // Insert section anchor into single memo textarea
+  const handleInsertSection = (sectionTitle: string) => {
+    const textarea = memoTextareaRef.current;
+    const current = engine.response || '';
+    const sectionHeader = `\n\n### ${sectionTitle}\n`;
+    if (textarea) {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const nextVal = current.substring(0, start) + sectionHeader + current.substring(end);
+      engine.handleMemoChange(nextVal);
+      setTimeout(() => {
+        textarea.focus();
+        const nextPos = start + sectionHeader.length;
+        textarea.setSelectionRange(nextPos, nextPos);
+      }, 20);
+    } else {
+      engine.handleMemoChange(current + sectionHeader);
+    }
   };
 
   return (
-    <div id="assessment-view">
-      {/* Top Navigation & Active Topic Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
-        <div className="flex items-center space-x-3">
+    <div id="assessment-view" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 bg-canvas-base min-h-screen">
+      {/* Top Navigation & Context Bar */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-hairline pb-4 mb-6">
+        <div className="flex items-center space-x-2.5 flex-wrap">
           <button
             id="back-to-prove-btn"
             onClick={onBackToProve}
-            className="inline-flex items-center space-x-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors py-1 cursor-pointer"
           >
-            <ArrowLeft className="h-3.5 w-3.5" />
-            <span>
-              {(challenge.sourceType === 'USER_GENERATED' || concept.sourceType === 'USER_GENERATED' || concept.isUserOwned || concept.id === 'custom-concept' || concept.id?.startsWith('custom-'))
-                ? 'Back to Study Material'
-                : 'Back to Concept Preview'}
-            </span>
+            <ArrowLeft className="w-3.5 h-3.5" />
+            <span>Back to Diagnostic Studio</span>
           </button>
-          <span className="text-zinc-700 hidden sm:inline">|</span>
-          <span className="inline-flex items-center space-x-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-mono font-bold text-amber-300">
+          <span className="text-border-focus hidden sm:inline">·</span>
+          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-accent-rose-tint border border-accent-rose-soft text-xs font-mono font-semibold text-primary-container">
             <span>Topic: {concept.name}</span>
           </span>
         </div>
 
-        <div className="flex items-center space-x-3">
-          <div className="flex items-center space-x-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1 text-[11px] font-mono text-emerald-300">
-            <Lock className="h-3 w-3" />
+        <div className="flex items-center space-x-2.5 flex-wrap">
+          <div className="flex items-center space-x-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono text-emerald-800 font-medium">
+            <Lock className="w-3 h-3 text-emerald-600" />
             <span>Zero-Reference Execution Active</span>
           </div>
 
-          <span className="rounded border border-zinc-800 bg-zinc-900/80 px-2 py-0.5 text-[10px] font-mono text-zinc-400">
-            Door: <strong className="text-zinc-300 font-semibold">{(challenge.sourceType === 'USER_GENERATED' || concept.sourceType === 'USER_GENERATED' || concept.isUserOwned) ? 'Door 2 (Custom Upload)' : 'Door 1 (Content Library)'}</strong>
+          <span className="rounded border border-border-hairline bg-canvas-subtle px-2 py-0.5 text-[10px] font-mono text-text-secondary">
+            Door:{' '}
+            <strong className="text-text-primary font-semibold">
+              {challenge.sourceType === 'USER_GENERATED' ||
+              concept.sourceType === 'USER_GENERATED' ||
+              concept.isUserOwned
+                ? 'Door 2 (Custom Upload)'
+                : 'Door 1 (Content Library)'}
+            </strong>
           </span>
 
-          <span className="text-xs text-zinc-500 hidden md:inline">
-            Domain: <strong className="text-zinc-400 font-normal">{concept.domain || 'AI Product Management'}</strong>
+          <span className="text-xs text-text-muted hidden md:inline">
+            Domain: <strong className="text-text-primary font-medium">{concept.domain || 'Product Strategy'}</strong>
           </span>
         </div>
       </div>
 
       {/* Main Challenge Content */}
-      <div className="mt-6">
+      <div className="w-full">
         {/* STAGE 1: CONFIDENCE GATE */}
         {engine.stage === 'confidence' && (
-          <div className="space-y-6">
-            <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-6 sm:p-8">
-              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-4">
+          <div className="max-w-3xl mx-auto space-y-8">
+            <div className="rounded-2xl border border-border-hairline bg-canvas-elevated p-6 sm:p-8 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border-hairline pb-4">
                 <div className="flex items-center space-x-2">
-                  <span className="rounded bg-amber-500/10 border border-amber-500/20 px-2.5 py-0.5 text-xs font-mono font-bold text-amber-300 uppercase">
+                  <span className="rounded bg-accent-rose-tint border border-accent-rose-soft px-2.5 py-0.5 text-xs font-mono font-bold text-primary-container uppercase">
                     TOPIC: {concept.name}
                   </span>
-                  <span className="rounded bg-zinc-800 px-2 py-0.5 text-[11px] font-mono text-zinc-400">
+                  <span className="rounded bg-canvas-subtle border border-border-hairline px-2 py-0.5 text-[11px] font-mono text-text-secondary">
                     {challenge.difficulty}
                   </span>
                 </div>
 
                 <button
                   onClick={onRegenerateChallenge}
-                  className="flex items-center space-x-1 text-xs text-zinc-400 hover:text-zinc-200 transition-colors"
+                  className="flex items-center space-x-1 text-xs text-text-secondary hover:text-text-primary transition-colors cursor-pointer"
                 >
-                  <RefreshCw className="h-3 w-3" />
+                  <RefreshCw className="w-3 h-3" />
                   <span>Regenerate Scenario</span>
                 </button>
               </div>
 
-              <h1 className="mt-4 font-serif text-2xl font-normal text-zinc-100 sm:text-3xl">
+              <h1 className="mt-4 font-display text-2xl sm:text-3xl font-extrabold text-text-primary tracking-tight">
                 {challenge.title}
               </h1>
 
-              <div className="mt-4 rounded-lg border border-zinc-800 bg-[#0c0d12] p-3 text-xs text-zinc-300">
-                <span className="font-mono text-[10px] text-zinc-500 uppercase tracking-wider block mb-0.5">
-                  Target Capability
+              <div className="mt-4 rounded-xl border border-border-hairline bg-canvas-subtle p-3.5 text-xs text-text-secondary">
+                <span className="font-mono text-[10px] text-text-muted uppercase tracking-wider block mb-1 font-semibold">
+                  Target Capability Benchmark
                 </span>
-                {challenge.capabilityTested || concept.underlyingSkill}
+                <span className="text-text-primary font-medium">
+                  {challenge.capabilityTested || concept.underlyingSkill}
+                </span>
               </div>
 
               <div className="mt-6">
-                <h3 className="text-xs font-mono uppercase tracking-wider text-zinc-400">
+                <h3 className="text-xs font-mono uppercase tracking-wider text-text-muted font-bold">
                   Scenario & Problem Context
                 </h3>
-                <p className="mt-2 text-sm leading-relaxed text-zinc-200 whitespace-pre-line">
+                <p className="mt-2 text-sm leading-relaxed text-text-secondary whitespace-pre-line">
                   {challenge.scenario}
                 </p>
               </div>
 
               {challenge.contextData && (
-                <div className="mt-6 rounded-lg border border-zinc-800 bg-zinc-950 p-4">
+                <div className="mt-6 rounded-xl border border-border-hairline bg-canvas-subtle p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <span className="text-[11px] font-mono uppercase tracking-wider text-amber-400">
+                    <span className="text-[11px] font-mono uppercase tracking-wider text-primary-container font-semibold">
                       Operational Telemetry & Parameters
                     </span>
-                    <span className="text-[10px] font-mono text-zinc-500">Immutable Context</span>
+                    <span className="text-[10px] font-mono text-text-muted">Immutable Sandbox</span>
                   </div>
-                  <pre className="overflow-x-auto text-xs font-mono text-zinc-300 whitespace-pre-wrap leading-relaxed">
+                  <pre className="overflow-x-auto text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed">
                     {challenge.contextData}
                   </pre>
                 </div>
               )}
 
-              <div className="mt-6 rounded-lg border border-amber-500/30 bg-amber-500/5 p-4">
-                <div className="flex items-center space-x-2 text-xs font-mono font-medium uppercase tracking-wider text-amber-400 mb-1">
-                  <CheckCircle2 className="h-4 w-4" />
-                  <span>Your Mandate</span>
+              {/* Mandate Card */}
+              <div className="mt-6 rounded-xl border border-accent-rose-soft bg-accent-rose-tint p-4">
+                <div className="flex items-center space-x-2 text-xs font-mono font-bold uppercase tracking-wider text-primary-container mb-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>Executive Mandate</span>
                 </div>
-                <p className="text-sm text-zinc-100 leading-relaxed font-medium">
+                <p className="text-sm text-text-primary leading-relaxed font-medium">
                   {challenge.mandate}
                 </p>
               </div>
             </div>
 
-            {/* CONFIDENCE CALIBRATION GATE */}
+            {/* CONFIDENCE CALIBRATION GATE CARD */}
             <div
               id="confidence-gate-card"
-              className="rounded-xl border border-amber-500/30 bg-gradient-to-b from-[#161208] to-[#0f0e13] p-6 sm:p-8 shadow-xl"
+              className="rounded-2xl border border-border-hairline bg-canvas-elevated p-6 sm:p-8 shadow-sm"
             >
-              <div className="flex items-center space-x-2 text-amber-400 text-xs font-mono uppercase tracking-wider">
-                <ShieldCheck className="h-4 w-4" />
+              <div className="flex items-center space-x-2 text-primary-container text-xs font-mono uppercase tracking-wider font-bold">
+                <ShieldCheck className="w-4 h-4" />
                 <span>Pre-Challenge Calibration</span>
               </div>
 
-              <h2 className="mt-2 text-lg sm:text-xl font-serif text-zinc-100">
-                How confident are you that you can solve this?
+              <h2 className="mt-2 text-lg sm:text-xl font-display font-bold text-text-primary">
+                How confident are you that you can solve this under zero-reference conditions?
               </h2>
 
-              <div className="mt-6 grid grid-cols-1 gap-2.5 sm:grid-cols-5">
+              <div className="mt-5 grid grid-cols-1 sm:grid-cols-5 gap-2.5">
                 {confidenceOptions.map((opt) => {
                   const isSelected = engine.confidenceBeforeAttempt === opt.value;
                   return (
@@ -217,21 +230,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       key={opt.value}
                       type="button"
                       onClick={() => engine.setConfidenceBeforeAttempt(opt.value)}
-                      className={`group relative flex flex-col items-start rounded-lg border p-3.5 text-left transition-all ${
+                      className={`group relative flex flex-col items-start rounded-xl border p-3.5 text-left transition-all cursor-pointer ${
                         isSelected
-                          ? 'border-amber-400 bg-amber-500/15 shadow-md text-amber-200 ring-1 ring-amber-400/50'
-                          : 'border-zinc-800 bg-zinc-900/40 hover:border-zinc-700 hover:bg-zinc-800/50 text-zinc-300'
+                          ? 'border-primary-container bg-accent-rose-tint shadow-xs text-text-primary ring-1 ring-primary-container'
+                          : 'border-border-hairline bg-canvas-subtle hover:bg-canvas-base hover:border-border-focus text-text-secondary'
                       }`}
                     >
                       <div className="flex w-full items-center justify-between">
-                        <span className="font-mono text-sm font-semibold">{opt.label}</span>
+                        <span className="font-mono text-sm font-bold text-text-primary">{opt.label}</span>
                         <span
-                          className={`h-2 w-2 rounded-full ${
-                            isSelected ? 'bg-amber-400' : 'bg-zinc-700'
+                          className={`w-2.5 h-2.5 rounded-full ${
+                            isSelected ? 'bg-primary-container' : 'bg-slate-300'
                           }`}
                         />
                       </div>
-                      <span className="mt-2 text-[11px] leading-tight text-zinc-400">
+                      <span className="mt-2 text-[11px] leading-snug text-text-muted">
                         {opt.desc}
                       </span>
                     </button>
@@ -239,333 +252,322 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                 })}
               </div>
 
-              <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-zinc-800/80 pt-5">
-                <div className="flex items-center space-x-2 text-xs text-zinc-400">
-                  <Lock className="h-3.5 w-3.5 text-emerald-400" />
-                  <span>Independent attempt starts on Step 1. All hints start locked (0/5 Unlocked).</span>
+              <div className="mt-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-t border-border-hairline pt-6">
+                <div className="flex items-center space-x-2 text-xs text-text-muted">
+                  <Lock className="w-3.5 h-3.5 text-emerald-600" />
+                  <span>Independent crucible attempt starts immediately. Hints start gated (0/5).</span>
                 </div>
 
                 <button
                   id="begin-attempt-btn"
                   onClick={engine.handleStartIndependentAttempt}
-                  className="flex items-center justify-center space-x-2 rounded-lg bg-amber-400 px-6 py-3 text-xs font-semibold text-zinc-950 hover:bg-amber-300 transition-all shadow-lg active:scale-[0.99]"
+                  className="flex items-center justify-center space-x-2 rounded-full bg-primary-container px-6 py-2.5 text-xs font-semibold text-white hover:bg-primary-container/90 transition-all shadow-sm active:scale-[0.99] cursor-pointer"
                 >
                   <span>Begin Independent Attempt</span>
-                  <Send className="h-3.5 w-3.5" />
+                  <Send className="w-3.5 h-3.5" />
                 </button>
               </div>
             </div>
           </div>
         )}
 
-        {/* STAGE 2: INDEPENDENT STEP WORKSPACE */}
+        {/* STAGE 2: INDEPENDENT WORKSPACE (03 - workspace) */}
         {engine.stage === 'attempt' && (
           <div className="space-y-6">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-lg border border-emerald-500/30 bg-emerald-950/20 px-4 py-3 text-xs text-emerald-300">
-              <div className="flex items-center space-x-2">
-                <Lock className="h-4 w-4 flex-shrink-0" />
-                <div>
-                  <span className="font-semibold">Independent Attempt Active:</span> Topic: <strong className="text-amber-300">{concept.name}</strong>. Zero-reference mode enforced.
-                </div>
-              </div>
-              <div className="text-zinc-400 font-mono text-[11px]">
-                Confidence: <strong className="text-amber-300">{engine.confidenceBeforeAttempt}/5</strong>
-              </div>
-            </div>
-
-            {/* Independent Column Alignment with Fixed Sticky Positioning */}
-            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
-              {/* Primary Workspace Column (8 Cols) */}
-              <div className="lg:col-span-8 space-y-6 self-start">
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 space-y-4">
-                  <div>
-                    <div className="flex items-center space-x-2 mb-1">
-                      <span className="rounded bg-amber-500/10 border border-amber-500/30 px-2.5 py-0.5 text-xs font-mono font-bold text-amber-300 uppercase">
-                        TOPIC: {concept.name}
-                      </span>
-                      <span className="text-xs font-mono text-zinc-400">• {challenge.difficulty}</span>
-                    </div>
-                    <h2 className="mt-1 font-serif text-lg text-zinc-100">{challenge.title}</h2>
-                  </div>
-
-                  <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-3.5">
-                    <div className="flex items-center space-x-1.5 text-[11px] font-mono font-medium uppercase tracking-wider text-amber-400 mb-1">
-                      <CheckCircle2 className="h-3.5 w-3.5" />
-                      <span>Mandate</span>
-                    </div>
-                    <p className="text-xs text-zinc-200 leading-relaxed font-medium">
-                      {challenge.mandate}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Step Deck Input Area */}
-                <div className="rounded-xl border border-zinc-800 bg-zinc-900/60 p-5 flex flex-col">
-                  <div className="flex flex-wrap items-center justify-between gap-2 border-b border-zinc-800 pb-3">
-                    <div className="flex items-center space-x-2">
-                      <span className="font-mono text-xs uppercase tracking-wider text-amber-300 font-semibold flex items-center space-x-1.5">
-                        <ListChecks className="h-4 w-4" />
-                        <span>Step-by-Step Response</span>
-                      </span>
-                      <span className="text-zinc-600">|</span>
-                      <span className="text-xs text-zinc-400 font-mono">
-                        1-2 lines per step (~160 chars recommended)
-                      </span>
-                    </div>
-
-                    <div className="flex items-center space-x-1 bg-zinc-950/60 border border-zinc-800/80 rounded-md p-1">
-                      <button
-                        type="button"
-                        id="view-toggle-single"
-                        onClick={() => engine.setViewAllMilestones(false)}
-                        className={`rounded px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                          !engine.viewAllMilestones
-                            ? 'bg-amber-400 text-zinc-950 font-semibold'
-                            : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
-                      >
-                        Step Focus
-                      </button>
-                      <button
-                        type="button"
-                        id="view-toggle-all"
-                        onClick={() => engine.setViewAllMilestones(true)}
-                        className={`rounded px-2.5 py-0.5 text-xs font-medium transition-colors ${
-                          engine.viewAllMilestones
-                            ? 'bg-amber-400 text-zinc-950 font-semibold'
-                            : 'text-zinc-400 hover:text-zinc-200'
-                        }`}
-                      >
-                        Show All Steps
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Stepper Navigation Buttons */}
-                  <div className="mt-3 flex-1 space-y-4">
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 scrollbar-none">
-                      {milestones.map((_, idx) => {
-                        const isAnswered = (engine.stepAnswers[String(idx)] || '').trim().length > 0;
-                        const isActive = !engine.viewAllMilestones && engine.activeStep === idx;
-                        return (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => {
-                              engine.setActiveStep(idx);
-                              engine.setViewAllMilestones(false);
-                            }}
-                            className={`flex items-center space-x-1.5 rounded-lg border px-3 py-1.5 text-xs font-mono transition-all flex-shrink-0 ${
-                              isActive
-                                ? 'border-amber-500/60 bg-amber-500/10 text-amber-300 font-semibold shadow-sm'
-                                : isAnswered
-                                ? 'border-emerald-500/30 bg-emerald-500/5 text-emerald-300'
-                                : 'border-zinc-800 bg-zinc-950/40 text-zinc-400 hover:border-zinc-700 hover:text-zinc-200'
-                            }`}
-                          >
-                            {isAnswered && <Check className="h-3 w-3 text-emerald-400 flex-shrink-0" />}
-                            <span>Step {idx + 1}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Step Focus View Mode */}
-                    {!engine.viewAllMilestones && (
-                      <div className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <span className="inline-flex items-center space-x-1.5 rounded bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/30">
-                            <span>Step {engine.activeStep + 1} of {totalMilestones}</span>
-                          </span>
-                          <span className="text-[11px] font-mono text-zinc-500">
-                            {answeredCount} of {totalMilestones} answered
-                          </span>
-                        </div>
-
-                        <div>
-                          <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-amber-400/90">
-                            Step {engine.activeStep + 1}: {milestones[engine.activeStep]}
-                          </h4>
-                          <p className="text-xs text-zinc-200 mt-1 font-sans leading-relaxed font-medium">
-                            {questions[engine.activeStep] || milestones[engine.activeStep]}
-                          </p>
-                        </div>
-
-                        <div className="relative mt-2">
-                          <textarea
-                            ref={textareaRef}
-                            rows={3}
-                            value={engine.stepAnswers[String(engine.activeStep)] || ''}
-                            onChange={(e) => handleStepInput(engine.activeStep, e.target.value)}
-                            placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
-                            className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20 transition-colors"
-                          />
-                          <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
-                            {(() => {
-                              const currLength = (engine.stepAnswers[String(engine.activeStep)] || '').length;
-                              const maxBound = 2000;
-                              const isNearLimit = currLength >= 145;
-                              const isMaxed = currLength >= maxBound;
-                              return (
-                                <span
-                                  className={
-                                    isMaxed
-                                      ? 'text-rose-400 font-bold'
-                                      : isNearLimit
-                                      ? 'text-amber-500 font-semibold'
-                                      : 'text-zinc-500'
-                                  }
-                                >
-                                  {currLength} / 160 characters
-                                </span>
-                              );
-                            })()}
-                            {(engine.stepAnswers[String(engine.activeStep)] || '').trim().length >= 4 && (
-                              <span className="text-emerald-400 flex items-center space-x-1">
-                                <Check className="h-3 w-3" />
-                                <span>Saved</span>
-                              </span>
-                            )}
-                          </div>
-                        </div>
-
-                        {/* Step Navigation Bar with Auto-Focus */}
-                        <div className="flex items-center justify-between pt-2 border-t border-zinc-800/60">
-                          <button
-                            type="button"
-                            disabled={engine.activeStep === 0}
-                            onClick={() => {
-                              const prevIdx = Math.max(0, engine.activeStep - 1);
-                              engine.setActiveStep(prevIdx);
-                            }}
-                            className="inline-flex items-center space-x-1 rounded border border-zinc-800 bg-zinc-900 px-2.5 py-1 text-xs text-zinc-300 hover:bg-zinc-800 disabled:opacity-40"
-                          >
-                            <ChevronLeft className="h-3.5 w-3.5" />
-                            <span>Previous Step</span>
-                          </button>
-
-                          <button
-                            type="button"
-                            disabled={engine.activeStep === totalMilestones - 1}
-                            onClick={() => {
-                              const nextIdx = Math.min(totalMilestones - 1, engine.activeStep + 1);
-                              engine.setActiveStep(nextIdx);
-                            }}
-                            className="inline-flex items-center space-x-1 rounded bg-amber-500/20 hover:bg-amber-500/30 border border-amber-500/30 px-3 py-1 text-xs text-amber-300 font-medium disabled:opacity-40"
-                          >
-                            <span>Next Step</span>
-                            <ChevronRight className="h-3.5 w-3.5" />
-                          </button>
-                        </div>
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+              {/* Primary Column (8 Cols) */}
+              <div className="lg:col-span-8 space-y-5 self-start">
+                {/* Benchmark Title & Pre-Assessment Header Card */}
+                <div className="bg-canvas-elevated rounded-2xl p-5 shadow-sm border border-border-hairline flex flex-col gap-3">
+                  <div className="flex flex-wrap items-start justify-between gap-3">
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2">
+                        <span className="px-2.5 py-0.5 rounded-full bg-accent-rose-tint text-primary-container font-label-sm text-xs font-semibold">
+                          {concept.name}
+                        </span>
+                        <span className="px-2 py-0.5 rounded-full bg-surface-container font-label-sm text-[11px] text-text-secondary">
+                          {challenge.difficulty}
+                        </span>
                       </div>
-                    )}
+                      <h1 className="font-display text-xl sm:text-2xl font-bold text-text-primary tracking-tight mt-1">
+                        {challenge.title}
+                      </h1>
+                      <p className="font-body-sm text-xs text-text-secondary leading-relaxed">
+                        {challenge.capabilityTested || concept.underlyingSkill}
+                      </p>
+                    </div>
 
-                    {/* Show All Steps View Mode */}
-                    {engine.viewAllMilestones && (
-                      <div className="space-y-4">
-                        {milestones.map((m, idx) => {
-                          const val = engine.stepAnswers[String(idx)] || '';
-                          const charCount = val.length;
-                          const isSubstantive = val.trim().length >= 4;
-
+                    {/* Pre-flight Confidence Pill Indicator */}
+                    <div className="flex flex-col items-end gap-1.5 bg-canvas-subtle p-2.5 rounded-xl border border-border-hairline">
+                      <span className="font-label-sm text-[11px] text-text-muted">Pre-flight Confidence</span>
+                      <div className="flex items-center gap-1" id="confidence-pills">
+                        {[1, 2, 3, 4, 5].map((val) => {
+                          const isSelected = engine.confidenceBeforeAttempt === val;
                           return (
-                            <div key={idx} className="rounded-lg border border-zinc-800/80 bg-zinc-950/60 p-4 space-y-3">
-                              <div className="flex items-center justify-between">
-                                <span className="inline-flex items-center space-x-1.5 rounded bg-amber-500/10 px-2 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/30">
-                                  <span>Step {idx + 1} of {totalMilestones}</span>
-                                </span>
-                                {isSubstantive && (
-                                  <span className="text-emerald-400 flex items-center space-x-1 text-[11px] font-mono">
-                                    <Check className="h-3 w-3" />
-                                    <span>Completed</span>
-                                  </span>
-                                )}
-                              </div>
-
-                              <div>
-                                <h4 className="text-[11px] font-mono font-semibold uppercase tracking-wider text-amber-400/90">
-                                  Step {idx + 1}: {m}
-                                </h4>
-                                <p className="text-xs text-zinc-200 mt-1 font-sans leading-relaxed font-medium">
-                                  {questions[idx] || m}
-                                </p>
-                              </div>
-
-                              <div className="relative mt-2">
-                                <textarea
-                                  rows={3}
-                                  value={val}
-                                  onChange={(e) => handleStepInput(idx, e.target.value)}
-                                  placeholder="Answer in 1-2 lines (approx. 160 characters recommended)..."
-                                  className="w-full rounded-lg border border-zinc-800 bg-[#090a0e] p-3 text-xs leading-relaxed text-zinc-100 placeholder-zinc-600 focus:border-amber-400 focus:outline-none focus:ring-1 focus:ring-amber-400/20 transition-colors"
-                                />
-                                <div className="mt-1 flex items-center justify-between text-[10px] font-mono">
-                                  <span
-                                    className={
-                                      charCount >= 145
-                                        ? 'text-amber-500 font-semibold'
-                                        : 'text-zinc-500'
-                                    }
-                                  >
-                                    {charCount} / 160 characters
-                                  </span>
-                                  {isSubstantive && (
-                                    <span className="text-emerald-400 flex items-center space-x-1">
-                                      <Check className="h-3 w-3" />
-                                      <span>Saved</span>
-                                    </span>
-                                  )}
-                                </div>
-                              </div>
-                            </div>
+                            <button
+                              key={val}
+                              type="button"
+                              onClick={() => engine.setConfidenceBeforeAttempt(val)}
+                              className={`w-6 h-6 rounded-full text-[11px] font-semibold flex items-center justify-center transition-all cursor-pointer ${
+                                isSelected
+                                  ? 'bg-primary-container text-white shadow-xs'
+                                  : 'bg-surface-container text-text-secondary hover:bg-slate-200'
+                              }`}
+                            >
+                              {val}
+                            </button>
                           );
                         })}
                       </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Mandate Card */}
+                <div className="bg-surface-container-low rounded-2xl p-5 shadow-sm border border-border-hairline flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <CheckCircle2 className="w-5 h-5 text-primary-container" />
+                    <h2 className="font-title-md text-sm sm:text-base text-text-primary font-bold">
+                      Executive Mandate
+                    </h2>
+                  </div>
+                  <p className="font-body-md text-xs sm:text-sm text-text-secondary leading-relaxed">
+                    {challenge.mandate}
+                  </p>
+                  {milestones.length > 0 && (
+                    <div className="grid grid-cols-1 gap-2 mt-1">
+                      {milestones.map((m, idx) => (
+                        <div
+                          key={idx}
+                          className="flex items-start gap-2.5 p-2.5 rounded-xl bg-canvas-base border border-border-hairline shadow-xs"
+                        >
+                          <span className="font-code-sm text-primary-container font-bold text-xs mt-0.5">
+                            0{idx + 1}
+                          </span>
+                          <span className="font-body-sm text-xs text-text-primary">
+                            {m}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                {/* Unfamiliar Scenario Context Box */}
+                <div className="bg-canvas-elevated rounded-2xl p-5 shadow-sm border border-border-hairline flex flex-col gap-3">
+                  <div className="flex items-center justify-between">
+                    <span className="font-title-md text-sm font-bold text-text-primary">
+                      Scenario Context
+                    </span>
+                    <span className="px-2 py-0.5 rounded-full bg-surface-container text-text-muted font-label-sm text-[10px] tracking-wider uppercase font-semibold">
+                      Live Case
+                    </span>
+                  </div>
+                  <p className="font-body-sm text-xs sm:text-sm text-text-secondary leading-relaxed whitespace-pre-line">
+                    {challenge.scenario}
+                  </p>
+
+                  {challenge.contextData && (
+                    <div className="p-3 rounded-xl bg-canvas-subtle border border-border-hairline text-xs font-code-sm text-text-primary whitespace-pre-wrap leading-relaxed mt-1">
+                      {challenge.contextData}
+                    </div>
+                  )}
+                </div>
+
+                {/* If previous attempt evaluated with gaps */}
+                {engine.submittedAttempt && !isCorrect && (
+                  <div className="bg-accent-rose-tint rounded-2xl p-5 shadow-sm border border-outline-variant flex flex-col gap-3">
+                    <div className="flex items-center justify-between gap-2 pb-2 border-b border-outline-variant/60">
+                      <div className="flex items-center gap-2">
+                        <AlertTriangle className="w-5 h-5 text-primary-container" />
+                        <h3 className="font-title-md text-sm text-text-primary font-bold">
+                          Attempt {engine.submittedAttempt.attempt_number} Evaluated
+                        </h3>
+                        <span className="px-2 py-0.5 rounded-full bg-primary-container text-white font-label-sm text-[10px] uppercase font-bold tracking-wider">
+                          Gaps Detected
+                        </span>
+                      </div>
+                    </div>
+                    {evalResult?.brief_feedback && (
+                      <p className="font-body-sm text-xs text-text-secondary leading-relaxed bg-canvas-base p-3 rounded-xl border border-border-hairline">
+                        {evalResult.brief_feedback}
+                      </p>
+                    )}
+                  </div>
+                )}
+
+                {/* Crucible Memo Editor Canvas */}
+                <div className="bg-canvas-elevated rounded-2xl shadow-sm border border-border-hairline p-5 flex flex-col gap-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pb-2 border-b border-border-hairline">
+                    <div className="flex items-center gap-2">
+                      <FileText className="w-4 h-4 text-primary-container" />
+                      <h3 className="font-title-md text-sm font-bold text-text-primary">
+                        Crucible Memo Canvas
+                      </h3>
+                    </div>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex items-center gap-1.5 font-label-sm text-[11px] text-text-muted">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                        <span id="autosave-status">
+                          {engine.draftSavedTimestamp ? `Autosaved at ${engine.draftSavedTimestamp}` : 'Autosaved'}
+                        </span>
+                      </div>
+                      <div className="px-2.5 py-0.5 rounded-full bg-surface-container font-code-sm text-[11px] text-text-secondary">
+                        <span id="word-count" className="font-semibold text-text-primary">
+                          {wordCount}
+                        </span>{' '}
+                        words
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Section Guide Quick-Tags */}
+                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
+                    {milestones.length > 0 ? (
+                      milestones.map((m, idx) => (
+                        <button
+                          key={idx}
+                          type="button"
+                          onClick={() => handleInsertSection(`${idx + 1}. ${m.toUpperCase()}`)}
+                          className="whitespace-nowrap px-3 py-1 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary text-[11px] font-medium transition-colors border border-border-hairline cursor-pointer"
+                        >
+                          + {idx + 1}. {m.slice(0, 26)}...
+                        </button>
+                      ))
+                    ) : (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertSection('1. CORE BOUNDARY & CONFLICTING SIGNALS')}
+                          className="whitespace-nowrap px-3 py-1 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary text-[11px] font-medium transition-colors border border-border-hairline cursor-pointer"
+                        >
+                          + 1. Boundary & Signals
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertSection('2. PRINCIPLE / ANCHOR')}
+                          className="whitespace-nowrap px-3 py-1 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary text-[11px] font-medium transition-colors border border-border-hairline cursor-pointer"
+                        >
+                          + 2. Anchor
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertSection('3. DEFENSIBLE SEQUENCING PLAN')}
+                          className="whitespace-nowrap px-3 py-1 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary text-[11px] font-medium transition-colors border border-border-hairline cursor-pointer"
+                        >
+                          + 3. Sequencing
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleInsertSection('4. RISK MITIGATION & INCENTIVES')}
+                          className="whitespace-nowrap px-3 py-1 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary text-[11px] font-medium transition-colors border border-border-hairline cursor-pointer"
+                        >
+                          + 4. Alignment
+                        </button>
+                      </>
                     )}
                   </div>
 
+                  {/* Unified Structured Textarea */}
+                  <div className="relative w-full">
+                    <textarea
+                      ref={memoTextareaRef}
+                      id="crucible-memo-textarea"
+                      rows={12}
+                      value={engine.response || ''}
+                      onChange={(e) => engine.handleMemoChange(e.target.value)}
+                      placeholder="Draft your executive memo here. Use the section anchors above to structure your argument..."
+                      className="w-full rounded-xl bg-canvas-subtle p-4 font-body-sm text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-canvas-base focus:ring-2 focus:ring-primary-container/20 focus:border-primary-container transition-all resize-y leading-relaxed border border-border-hairline shadow-inner"
+                    />
+                  </div>
+
+                  {/* Validation Error Alert */}
                   {engine.validationError && (
-                    <div className="mt-3 p-3 rounded-lg border border-amber-500/40 bg-amber-500/10 text-amber-300 text-xs font-mono flex items-center space-x-2">
-                      <AlertCircle className="h-4 w-4 text-amber-400 flex-shrink-0" />
+                    <div className="p-3 rounded-xl border border-primary-container/30 bg-accent-rose-tint text-primary-container text-xs font-mono flex items-center space-x-2">
+                      <AlertCircle className="w-4 h-4 text-primary-container shrink-0" />
                       <span>{engine.validationError}</span>
                     </div>
                   )}
 
-                  {/* Immediate Loading Indicator / Submit Button */}
-                  <div className="mt-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-zinc-800 pt-4">
-                    <button
-                      type="button"
-                      id="submit-attempt-btn"
-                      disabled={engine.isSubmitting || engine.isEvaluating}
-                      onClick={engine.handleSubmitAttempt}
-                      className={`inline-flex items-center justify-center space-x-2 rounded-lg px-6 py-2.5 text-xs font-semibold transition-all shadow-md ${
-                        (engine.isSubmitting || engine.isEvaluating)
-                          ? 'bg-zinc-800 text-amber-300 border border-amber-500/40 cursor-wait'
-                          : 'bg-amber-400 text-zinc-950 hover:bg-amber-300 active:scale-[0.99]'
-                      }`}
-                    >
-                      {(engine.isSubmitting || engine.isEvaluating) ? (
-                        <>
-                          <RefreshCw className="h-3.5 w-3.5 animate-spin text-amber-400" />
-                          <span>Evaluating synthesis...</span>
-                        </>
-                      ) : (
-                        <>
-                          <span>Submit Attempt</span>
-                          <Send className="h-3.5 w-3.5" />
-                        </>
-                      )}
-                    </button>
+                  {/* Action Sub-Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
+                    <div className="flex items-center gap-2">
+                      <button
+                        id="save-draft-btn"
+                        type="button"
+                        onClick={() => {
+                          engine.handleMemoChange(engine.response || '');
+                        }}
+                        className="min-h-[40px] px-4 py-2 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-secondary font-label-md text-xs transition-colors inline-flex items-center gap-1.5 border border-border-hairline cursor-pointer"
+                      >
+                        <Bookmark className="w-3.5 h-3.5 text-text-muted" />
+                        <span>Save Local Draft</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setShowStepDetails(!showStepDetails)}
+                        className="text-[11px] font-mono text-text-muted hover:text-text-primary underline cursor-pointer"
+                      >
+                        {showStepDetails ? 'Hide Step Prompts' : 'View Step-by-Step Prompts'}
+                      </button>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        id="submit-attempt-btn"
+                        type="button"
+                        disabled={engine.isSubmitting || engine.isEvaluating}
+                        onClick={engine.handleSubmitAttempt}
+                        className="min-h-[40px] px-6 py-2 rounded-full bg-primary-container hover:bg-primary-container/90 text-white font-label-md text-xs font-semibold transition-colors inline-flex items-center gap-2 shadow-sm cursor-pointer disabled:opacity-50"
+                      >
+                        {engine.isSubmitting || engine.isEvaluating ? (
+                          <>
+                            <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                            <span>Evaluating synthesis...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>
+                              Submit Attempt {engine.submittedAttempt ? engine.submittedAttempt.attempt_number + 1 : 1}
+                            </span>
+                            <Send className="w-3.5 h-3.5" />
+                          </>
+                        )}
+                      </button>
+                    </div>
                   </div>
+
+                  {/* Optional Step-by-Step prompt guide accordion */}
+                  {showStepDetails && (
+                    <div className="mt-3 p-4 rounded-xl bg-canvas-subtle border border-border-hairline space-y-3">
+                      <span className="font-mono text-[11px] text-text-muted uppercase tracking-wider font-semibold block">
+                        Underlying Benchmark Milestones ({totalMilestones})
+                      </span>
+                      <div className="space-y-2">
+                        {milestones.map((m, idx) => (
+                          <div key={idx} className="text-xs bg-canvas-base p-2.5 rounded-lg border border-border-hairline">
+                            <span className="font-mono text-primary-container font-bold mr-1.5">
+                              Step {idx + 1}:
+                            </span>
+                            <span className="text-text-primary font-medium">{m}</span>
+                            <p className="text-text-secondary mt-1 text-[11px]">
+                              {questions[idx] || m}
+                            </p>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 
-              {/* Right Column: Progressive Hint Rail (Independent Column with Pinned Sticky Positioning) */}
+              {/* Right Column: Progressive Hint Rail (4 Cols) */}
               <div className="lg:col-span-4 self-start">
                 <HintLadderRail
                   challenge={challenge}
                   hintState={engine.hintState}
-                  latestVerdict={engine.evaluationResult?.verdict || null}
+                  latestVerdict={evalResult?.verdict || null}
                   onRequestHint={engine.handleRequestHint}
                   isRequestingHint={engine.isRequestingHint}
                   onRevealOverride={() => engine.setIsOverrideRevealed(!engine.isOverrideRevealed)}
@@ -577,273 +579,297 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
           </div>
         )}
 
-        {/* STAGE 3: EVALUATION OUTPUT & TERMINAL MASTERY */}
-        {engine.stage === 'submitted' && engine.submittedAttempt && (
-          <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 items-start">
+        {/* STAGE 3: EVALUATION OUTPUT (04 - evaluation) */}
+        {engine.stage === 'submitted' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             <div className="lg:col-span-8 space-y-6 self-start">
-              {/* Immediate Loading State Reset Display during evaluation */}
+              {/* Immediate Loading Indicator while evaluating */}
               {(engine.isEvaluating || engine.isSubmitting) && (
-                <div id="evaluating-loading-banner" className="rounded-xl border border-amber-500/30 bg-gradient-to-b from-amber-500/10 to-zinc-900/90 p-8 text-center space-y-4 shadow-xl">
-                  <RefreshCw className="h-8 w-8 text-amber-400 animate-spin mx-auto" />
-                  <h3 className="font-serif text-xl text-zinc-100">Evaluating Synthesis...</h3>
-                  <p className="text-xs text-zinc-400 max-w-md mx-auto leading-relaxed font-sans">
-                    Analyzing demonstrated capabilities, structural reasoning milestones, and quantitative trade-offs against the ground-truth benchmark...
+                <div
+                  id="evaluating-loading-banner"
+                  className="rounded-2xl border border-border-hairline bg-canvas-elevated p-8 sm:p-12 text-center space-y-4 shadow-sm"
+                >
+                  <RefreshCw className="w-8 h-8 text-primary-container animate-spin mx-auto" />
+                  <h3 className="font-display text-xl font-bold text-text-primary">
+                    Evaluating Synthesis against Benchmark...
+                  </h3>
+                  <p className="text-xs text-text-secondary max-w-md mx-auto leading-relaxed">
+                    Analyzing demonstrated capabilities, structural reasoning milestones, and quantitative trade-offs
+                    against the ground-truth rubric.
                   </p>
                 </div>
               )}
 
-              {/* TERMINAL MASTERY COMPLETION CARD (if CORRECT) */}
-              {!engine.isEvaluating && isCorrect && (
-                <div id="capability-verified-card" className="rounded-xl border border-emerald-500/50 bg-gradient-to-b from-emerald-950/40 to-[#0c1210] p-6 sm:p-8 space-y-6 shadow-2xl">
-                  <div className="flex items-center space-x-4">
-                    <div className="flex h-14 w-14 items-center justify-center rounded-2xl border border-emerald-500/40 bg-emerald-500/20 text-emerald-400 shadow-inner">
-                      <Award className="h-7 w-7" />
-                    </div>
-                    <div>
-                      <span className="text-xs font-mono uppercase tracking-widest text-emerald-400 font-bold block">
-                        Capability Demonstrated & Verified
-                      </span>
-                      <h1 className="font-serif text-2xl sm:text-3xl text-zinc-100 font-medium">
-                        Autonomous Mastery Achieved
-                      </h1>
-                    </div>
-                  </div>
-
-                  <p className="text-sm text-zinc-300 leading-relaxed font-sans">
-                    Congratulations! Your unassisted synthesis for <strong className="text-emerald-300 font-semibold">{concept.name}</strong> satisfies all operational criteria without relying on hint assistance.
-                  </p>
-
-                  <div className="rounded-lg border border-emerald-500/30 bg-emerald-950/30 p-4 space-y-3">
-                    <div className="flex items-center justify-between text-xs font-mono text-emerald-300 border-b border-emerald-500/20 pb-2">
-                      <span>Evaluator Decision: CORRECT (COMPLETED)</span>
-                      <span>Confidence: {Math.round(((evalResult?.evaluator_confidence) || 1) * 100)}%</span>
-                    </div>
-                    
-                    <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4 text-xs text-zinc-200 leading-relaxed">
-                      <strong className="text-emerald-300 font-mono block mb-1">Feedback on Understanding:</strong>
-                      {evalResult?.brief_feedback || 'Strong autonomous formulation demonstrating key structural milestones and addressing evaluation constraints directly.'}
-                    </div>
-
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4">
-                        <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Demonstrated ({(evalResult?.demonstrated_capabilities?.length || totalMilestones)}/{(totalMilestones || evalResult?.demonstrated_capabilities?.length || 5)})</span>
+              {/* HERO EVALUATION CARD (04 - evaluation/code.html) */}
+              {!engine.isEvaluating && evalResult && (
+                <>
+                  <article
+                    className="bg-canvas-elevated rounded-2xl border border-border-hairline shadow-sm p-6 sm:p-8"
+                    id="evaluation-results-card"
+                  >
+                    <div className="flex items-start justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-3.5">
+                        <div
+                          className={`w-12 h-12 rounded-xl flex items-center justify-center shrink-0 border ${
+                            isCorrect
+                              ? 'bg-emerald-50 text-emerald-600 border-emerald-200'
+                              : evalResult.verdict === 'PARTIALLY_CORRECT'
+                              ? 'bg-amber-50 text-[#b45309] border-amber-200'
+                              : 'bg-rose-50 text-rose-600 border-rose-200'
+                          }`}
+                        >
+                          {isCorrect ? (
+                            <Award className="w-6 h-6" />
+                          ) : (
+                            <CheckCircle2 className="w-6 h-6" />
+                          )}
                         </div>
-                        {(evalResult?.demonstrated_capabilities?.length ? evalResult.demonstrated_capabilities : milestones).map((c, i) => {
-                          const stepNum = resolveMilestoneStepNumber(c, milestones);
-                          return (
-                            <div key={i} className="text-xs text-emerald-200/90 mt-1.5 flex items-start space-x-1.5">
-                              {stepNum ? (
-                                <span className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/40 shrink-0">
-                                  Step {stepNum}
-                                </span>
-                              ) : (
-                                <span className="text-emerald-400 font-bold">•</span>
-                              )}
-                              <span className="leading-relaxed">{c}</span>
-                            </div>
-                          );
-                        })}
+                        <div>
+                          <p
+                            className={`text-[11px] font-mono tracking-widest uppercase font-bold ${
+                              isCorrect ? 'text-emerald-700' : 'text-[#b45309]'
+                            }`}
+                          >
+                            {isCorrect
+                              ? 'CAPABILITY DEMONSTRATED & VERIFIED'
+                              : 'CRITICAL BENCHMARK GAPS DETECTED'}
+                          </p>
+                          <h1 className="text-2xl sm:text-3xl font-display font-extrabold text-text-primary tracking-tight mt-0.5">
+                            {isCorrect
+                              ? 'Autonomous Mastery Achieved'
+                              : evalResult.verdict === 'PARTIALLY_CORRECT'
+                              ? 'Partially Demonstrated'
+                              : evalResult.verdict === 'NEEDS_CLARIFICATION'
+                              ? 'Clarification Needed'
+                              : 'Revision Required'}
+                          </h1>
+                        </div>
                       </div>
 
-                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4">
-                        <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
-                          <CheckCircle2 className="h-4 w-4" />
-                          <span>Missing ({evalResult?.missing_capabilities?.length || 0})</span>
+                      <div className="hidden sm:flex flex-col items-end">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold border ${
+                            isCorrect
+                              ? 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                              : 'bg-amber-50 text-amber-800 border-amber-200'
+                          }`}
+                        >
+                          {isCorrect ? 'Tier-1 Verified' : 'Revision Needed'}
+                        </span>
+                      </div>
+                    </div>
+
+                    <p className="text-text-secondary text-sm leading-relaxed mb-6 font-normal">
+                      {isCorrect ? (
+                        <>
+                          Congratulations! Your unassisted synthesis for{' '}
+                          <strong className="font-semibold text-text-primary bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                            {concept.name}
+                          </strong>{' '}
+                          satisfies all operational criteria without relying on hint assistance.
+                        </>
+                      ) : (
+                        <>
+                          Your synthesis for{' '}
+                          <strong className="font-semibold text-text-primary bg-amber-50 px-1.5 py-0.5 rounded border border-amber-200">
+                            {concept.name}
+                          </strong>{' '}
+                          revealed structural reasoning gaps against the required rubric.
+                        </>
+                      )}
+                    </p>
+
+                    {/* Evaluator Decision Strip */}
+                    <div
+                      className={`rounded-xl border p-4 font-mono text-xs flex flex-wrap items-center justify-between gap-3 ${
+                        isCorrect
+                          ? 'bg-emerald-50/70 border-emerald-200 text-emerald-900'
+                          : 'bg-canvas-subtle border-border-hairline text-text-primary'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-muted font-medium">Evaluator Decision:</span>
+                        <span className="font-bold tracking-wide flex items-center gap-1.5">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              isCorrect ? 'bg-emerald-500' : 'bg-amber-500'
+                            }`}
+                          />
+                          {evalResult.verdict}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-muted font-medium">Confidence:</span>
+                        <span className="font-semibold bg-canvas-base px-2 py-0.5 rounded border border-border-hairline">
+                          {Math.round((evalResult.evaluator_confidence || 1) * 100)}%
+                        </span>
+                      </div>
+                    </div>
+                  </article>
+
+                  {/* Feedback on Understanding */}
+                  <article className="bg-canvas-elevated rounded-xl border border-border-hairline p-6 shadow-xs">
+                    <div className="flex items-center gap-2 mb-3">
+                      <FileText className="w-4 h-4 text-text-muted" />
+                      <h2 className="text-xs font-mono font-bold tracking-wider uppercase text-text-primary">
+                        Feedback on Understanding
+                      </h2>
+                    </div>
+                    <p className="text-text-secondary text-sm leading-relaxed">
+                      {evalResult.brief_feedback ||
+                        'Strong autonomous formulation addressing evaluation constraints directly.'}
+                    </p>
+                  </article>
+
+                  {/* Dual Named Competency Breakdown */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {/* Column 1: Validated Competencies */}
+                    <article className="bg-canvas-elevated rounded-xl border border-emerald-200 p-5 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border-hairline">
+                          <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
+                            <Check className="w-4 h-4 text-emerald-600" />
+                            <h3 className="font-mono text-xs uppercase tracking-wider font-bold">
+                              Validated Competencies ({evalResult.demonstrated_capabilities?.length || totalMilestones})
+                            </h3>
+                          </div>
+                          <span className="text-[11px] font-mono bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded border border-emerald-200">
+                            Demonstrated
+                          </span>
                         </div>
-                        {(!evalResult?.missing_capabilities || evalResult.missing_capabilities.length === 0) ? (
-                          <div className="text-xs text-emerald-300/80 italic mt-1">• 0 missing — 100% Mastery Verified</div>
-                        ) : (
-                          evalResult.missing_capabilities.map((c, i) => {
+                        <ul className="space-y-3">
+                          {(evalResult.demonstrated_capabilities?.length
+                            ? evalResult.demonstrated_capabilities
+                            : milestones
+                          ).map((c, i) => {
                             const stepNum = resolveMilestoneStepNumber(c, milestones);
                             return (
-                              <div key={i} className="text-xs text-zinc-400 mt-1.5 flex items-start space-x-1.5">
-                                {stepNum ? (
-                                  <span className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/40 shrink-0">
-                                    Step {stepNum}
-                                  </span>
-                                ) : (
-                                  <span className="text-amber-400 font-bold">•</span>
-                                )}
-                                <span className="leading-relaxed">{c}</span>
-                              </div>
+                              <li key={i} className="flex items-start gap-2.5 text-xs text-text-secondary">
+                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold shrink-0 mt-0.5 border border-emerald-200">
+                                  {stepNum ? `Step ${stepNum}` : '✓'}
+                                </span>
+                                <span className="leading-relaxed text-text-primary">{c}</span>
+                              </li>
                             );
-                          })
-                        )}
+                          })}
+                        </ul>
                       </div>
-                    </div>
+                    </article>
 
-                    {evalResult?.evidence && evalResult.evidence.length > 0 && (
-                      <div className="rounded-lg border border-emerald-500/20 bg-emerald-950/40 p-4 mt-2">
-                        <div className="flex items-center space-x-2 text-emerald-300 mb-2 font-mono text-xs font-semibold">
-                          <Quote className="h-3.5 w-3.5" />
-                          <span>Grounded Evidence Audit ({evalResult.evidence.length})</span>
+                    {/* Column 2: Identified Blindspots & Gaps */}
+                    <article className="bg-canvas-elevated rounded-xl border border-border-hairline p-5 shadow-xs flex flex-col justify-between">
+                      <div>
+                        <div className="flex items-center justify-between mb-4 pb-3 border-b border-border-hairline">
+                          <div className="flex items-center gap-2 text-text-primary font-semibold text-sm">
+                            <AlertCircle className="w-4 h-4 text-[#b45309]" />
+                            <h3 className="font-mono text-xs uppercase tracking-wider font-bold">
+                              Identified Blindspots ({evalResult.missing_capabilities?.length || 0})
+                            </h3>
+                          </div>
+                          <span className="text-[11px] font-mono bg-canvas-subtle text-text-secondary font-medium px-2 py-0.5 rounded border border-border-hairline">
+                            Audit Gap
+                          </span>
                         </div>
+                        <ul className="space-y-3">
+                          {!evalResult.missing_capabilities || evalResult.missing_capabilities.length === 0 ? (
+                            <li className="text-xs text-emerald-700 italic py-2">
+                              • 0 missing — 100% operational criteria substantiated.
+                            </li>
+                          ) : (
+                            evalResult.missing_capabilities.map((c, i) => {
+                              const stepNum = resolveMilestoneStepNumber(c, milestones);
+                              return (
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-text-secondary">
+                                  <span className="px-1.5 py-0.5 rounded bg-amber-100 text-[#b45309] font-mono text-[10px] font-bold shrink-0 mt-0.5 border border-amber-200">
+                                    {stepNum ? `Step ${stepNum}` : 'Gap'}
+                                  </span>
+                                  <span className="leading-relaxed">{c}</span>
+                                </li>
+                              );
+                            })
+                          )}
+                        </ul>
+                      </div>
+                    </article>
+                  </div>
+
+                  {/* Grounded Evidence Audit */}
+                  {evalResult.evidence && evalResult.evidence.length > 0 && (
+                    <article className="bg-canvas-elevated rounded-xl border border-border-hairline p-5 shadow-xs">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Quote className="w-4 h-4 text-text-muted" />
+                        <h3 className="font-mono text-xs uppercase tracking-wider text-text-primary font-bold">
+                          Grounded Evidence Audit ({evalResult.evidence.length})
+                        </h3>
+                      </div>
+                      <div className="space-y-2">
                         {evalResult.evidence.map((ev, i) => (
-                          <div key={i} className="rounded border border-emerald-500/20 bg-zinc-950/60 p-2 text-xs font-mono text-emerald-200/90 mt-1">
+                          <div
+                            key={i}
+                            className="rounded-lg border border-border-hairline bg-canvas-subtle p-3 text-xs font-mono text-text-secondary leading-relaxed"
+                          >
                             {ev}
                           </div>
                         ))}
                       </div>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-4 border-t border-emerald-500/20">
-                    <button
-                      onClick={() => onNavigate('evidence')}
-                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 rounded-lg bg-zinc-800 border border-zinc-700 px-5 py-2.5 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
-                    >
-                      <span>View Capability Ledger</span>
-                    </button>
-
-                    <button
-                      id="continue-next-module-btn"
-                      onClick={() => onNavigate('prove')}
-                      className="w-full sm:w-auto inline-flex items-center justify-center space-x-2 rounded-lg bg-emerald-400 px-6 py-2.5 text-xs font-semibold text-zinc-950 hover:bg-emerald-300 transition-all shadow-lg"
-                    >
-                      <span>Continue to Next Module</span>
-                      <ArrowRight className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {/* STANDARD EVALUATION RESULT DISPLAY (PARTIALLY_CORRECT / WRONG_APPROACH / NEEDS_CLARIFICATION) */}
-              {!engine.isEvaluating && !isCorrect && (
-                <div className="rounded-xl border border-zinc-800 bg-gradient-to-b from-zinc-900/60 to-[#0e1014] p-6 sm:p-8 space-y-6">
-                  <div className="flex items-center space-x-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-400">
-                      <CheckCircle2 className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <span className="text-[11px] font-mono text-amber-400 uppercase tracking-wider font-semibold">
-                        Attempt #{engine.submittedAttempt.attempt_number} Evaluated
-                      </span>
-                      <h1 className="font-serif text-2xl text-zinc-100">
-                        Topic: {concept.name}
-                      </h1>
-                    </div>
-                  </div>
-
-                  {evalResult && (
-                    <div className="mt-6 rounded-xl border border-zinc-800 bg-zinc-950/80 p-5 space-y-6">
-                      <div className="flex items-center space-x-3 border-b border-zinc-800 pb-4">
-                        <span
-                          className={`rounded px-2.5 py-1 text-xs font-mono uppercase tracking-wider font-semibold border ${
-                            evalResult.verdict === 'PARTIALLY_CORRECT'
-                              ? 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-                              : evalResult.verdict === 'WRONG_APPROACH'
-                              ? 'bg-rose-500/10 border-rose-500/30 text-rose-300'
-                              : 'bg-violet-500/10 border-violet-500/30 text-violet-300'
-                          }`}
-                        >
-                          Verdict: {evalResult.verdict.replace('_', ' ')}
-                        </span>
-                      </div>
-
-                      <div className="rounded-lg border border-zinc-800 bg-zinc-900/40 p-4 text-xs text-zinc-200 leading-relaxed">
-                        <strong className="text-amber-400 font-mono block mb-1">Feedback on Understanding:</strong>
-                        {evalResult.brief_feedback}
-                      </div>
-
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-                          <div className="flex items-center space-x-2 text-emerald-400 mb-2 font-mono text-xs font-semibold">
-                            <CheckCircle2 className="h-4 w-4" />
-                            <span>Demonstrated ({evalResult.demonstrated_capabilities?.length || 0}/{totalMilestones})</span>
-                          </div>
-                          {evalResult.demonstrated_capabilities?.map((c, i) => {
-                            const stepNum = resolveMilestoneStepNumber(c, milestones);
-                            return (
-                              <div key={i} className="text-xs text-zinc-300 mt-1.5 flex items-start space-x-1.5">
-                                {stepNum ? (
-                                  <span className="inline-flex items-center rounded bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-emerald-300 border border-emerald-500/40 shrink-0">
-                                    Step {stepNum}
-                                  </span>
-                                ) : (
-                                  <span className="text-emerald-400 font-bold">•</span>
-                                )}
-                                <span className="leading-relaxed">{c}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-
-                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-                          <div className="flex items-center space-x-2 text-amber-400 mb-2 font-mono text-xs font-semibold">
-                            <AlertCircle className="h-4 w-4" />
-                            <span>Missing ({evalResult.missing_capabilities?.length || 0})</span>
-                          </div>
-                          {evalResult.missing_capabilities?.map((c, i) => {
-                            const stepNum = resolveMilestoneStepNumber(c, milestones);
-                            return (
-                              <div key={i} className="text-xs text-zinc-400 mt-1.5 flex items-start space-x-1.5">
-                                {stepNum ? (
-                                  <span className="inline-flex items-center rounded bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-mono font-semibold text-amber-300 border border-amber-500/40 shrink-0">
-                                    Step {stepNum}
-                                  </span>
-                                ) : (
-                                  <span className="text-amber-400 font-bold">•</span>
-                                )}
-                                <span className="leading-relaxed">{c}</span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-
-                      {evalResult.evidence && evalResult.evidence.length > 0 && (
-                        <div className="rounded-lg border border-zinc-800 bg-zinc-900/30 p-4">
-                          <div className="flex items-center space-x-2 text-amber-300 mb-2 font-mono text-xs font-semibold">
-                            <Quote className="h-3.5 w-3.5" />
-                            <span>Grounded Evidence Audit ({evalResult.evidence.length})</span>
-                          </div>
-                          {evalResult.evidence.map((ev, i) => (
-                            <div key={i} className="rounded border border-zinc-800/60 bg-zinc-950/60 p-2 text-xs font-mono text-zinc-300 mt-1">
-                              {ev}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
+                    </article>
                   )}
 
-                  <div className="mt-6 flex flex-wrap items-center gap-3">
-                    <button
-                      onClick={() => onNavigate('evidence')}
-                      className="rounded-lg bg-amber-400 px-5 py-2 text-xs font-semibold text-zinc-950 hover:bg-amber-300 transition-colors"
-                    >
-                      View in My Evidence
-                    </button>
+                  {/* Evaluation Action Buttons */}
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-4 border-t border-border-hairline">
+                    <div className="flex flex-wrap items-center gap-2.5">
+                      <button
+                        onClick={() => onNavigate('evidence')}
+                        className="px-5 py-2 rounded-full bg-canvas-subtle hover:bg-surface-container text-text-primary font-label-md text-xs font-semibold transition-colors border border-border-hairline cursor-pointer"
+                      >
+                        View in My Evidence
+                      </button>
 
-                    <button
-                      onClick={engine.handleRetryAttempt}
-                      className="inline-flex items-center space-x-2 rounded-lg border border-zinc-700 bg-zinc-800 px-4 py-2 text-xs font-medium text-zinc-200 hover:bg-zinc-700 transition-colors"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" />
-                      <span>Revise & Retry Attempt</span>
-                    </button>
+                      {!isCorrect && (
+                        <button
+                          onClick={engine.handleRetryAttempt}
+                          className="inline-flex items-center space-x-1.5 px-5 py-2 rounded-full bg-primary-container text-white font-label-md text-xs font-semibold hover:bg-primary-container/90 transition-colors shadow-xs cursor-pointer"
+                        >
+                          <RotateCcw className="w-3.5 h-3.5" />
+                          <span>Revise & Retry Attempt</span>
+                        </button>
+                      )}
 
-                    <button
-                      onClick={() => {
-                        const reason = prompt('Please state the reason for disputing this evaluation verdict:');
-                        if (reason && reason.trim().length > 0) {
-                          engine.handleFlagReview(reason.trim());
-                          alert('Verdict flagged for review. Your feedback has been logged in session history.');
-                        }
-                      }}
-                      className="inline-flex items-center space-x-1.5 rounded-lg border border-zinc-800 bg-zinc-950 px-3.5 py-2 text-xs font-mono text-zinc-400 hover:text-zinc-200 hover:border-zinc-700 transition-colors"
-                    >
-                      <Flag className="h-3.5 w-3.5 text-zinc-400" />
-                      <span>{engine.submittedAttempt?.evaluation_flagged ? 'Flagged for Review' : 'Flag this Evaluation'}</span>
-                    </button>
+                      <button
+                        onClick={() => {
+                          const reason = prompt('Please state the reason for disputing this evaluation verdict:');
+                          if (reason && reason.trim().length > 0) {
+                            engine.handleFlagReview(reason.trim());
+                            alert('Verdict flagged for review. Your feedback has been logged in session history.');
+                          }
+                        }}
+                        className="inline-flex items-center space-x-1.5 px-3.5 py-2 rounded-full border border-border-hairline bg-canvas-base text-text-muted hover:text-text-primary hover:border-border-focus text-xs font-mono transition-colors cursor-pointer"
+                      >
+                        <Flag className="w-3.5 h-3.5" />
+                        <span>
+                          {engine.submittedAttempt?.evaluation_flagged
+                            ? 'Flagged for Review'
+                            : 'Flag this Evaluation'}
+                        </span>
+                      </button>
+                    </div>
+
+                    {isCorrect && (
+                      <button
+                        id="continue-next-module-btn"
+                        onClick={() => onNavigate('prove')}
+                        className="inline-flex items-center space-x-2 px-6 py-2 rounded-full bg-emerald-600 text-white font-label-md text-xs font-semibold hover:bg-emerald-500 transition-all shadow-sm cursor-pointer"
+                      >
+                        <span>Continue to Next Module</span>
+                        <ArrowRight className="w-3.5 h-3.5" />
+                      </button>
+                    )}
                   </div>
-                </div>
+                </>
               )}
             </div>
 
-            {/* Right Column: Progressive Hint Rail (Independent Column with Pinned Sticky Positioning) */}
+            {/* Right Column: Progressive Hint Rail (4 Cols) */}
             <div className="lg:col-span-4 self-start">
               <HintLadderRail
                 challenge={challenge}
@@ -862,3 +888,4 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
     </div>
   );
 };
+

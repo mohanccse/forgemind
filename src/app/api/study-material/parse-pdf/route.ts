@@ -344,7 +344,7 @@ async function parsePdfBuffer(buffer: Buffer, fileName: string): Promise<{
     if (ai) {
       const base64Str = buffer.toString('base64');
       const response = await ai.models.generateContent({
-        model: 'gemini-3.8-flash',
+        model: 'gemini-3.5-flash',
         contents: [
           {
             role: 'user',

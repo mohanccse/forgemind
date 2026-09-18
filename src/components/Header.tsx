@@ -30,114 +30,112 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user: _u
   };
   ========================================================================= */
 
+  const isStudioActive =
+    currentTab === 'home' ||
+    currentTab === 'prove' ||
+    currentTab === 'concept-preview' ||
+    currentTab === 'challenge';
+  const isTrackActive = currentTab === 'track';
+  const isEvidenceActive = currentTab === 'evidence';
+  const isProfileActive = currentTab === 'profile' || currentTab === 'account';
+
   return (
-    <header id="main-header" className="sticky top-0 z-40 w-full border-b border-zinc-800/80 bg-[#0c0d12]/90 backdrop-blur-md">
-      <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
-        {/* Brand */}
-        <div className="flex items-center space-x-3 sm:space-x-6">
-          <button
-            id="brand-home-btn"
-            onClick={() => onNavigate('home')}
-            className="group flex items-center space-x-2.5 sm:space-x-3 text-left transition-opacity hover:opacity-90"
-          >
-            <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)] transition-all group-hover:border-amber-500/60">
-              <img
-                src="/forgemind-icon.png"
-                alt="ForgeMind Logo"
-                className="h-full w-full object-cover"
-              />
-            </div>
-            <div>
-              <div className="flex items-center space-x-2">
-                <span className="font-serif text-base sm:text-lg font-semibold tracking-tight text-zinc-100">
-                  ForgeMind
-                </span>
-                <span className="hidden rounded bg-zinc-800/80 px-1.5 py-0.5 text-[10px] font-medium tracking-wider text-zinc-400 uppercase sm:inline-block">
-                  De-Tutorializer
-                </span>
+    <>
+      {/* Top Desktop & Mobile Header */}
+      <header
+        id="main-header"
+        className="sticky top-0 z-50 w-full border-b border-border-hairline bg-canvas-base/90 backdrop-blur-xl shadow-[0_1px_8px_rgba(0,0,0,0.03)] pt-safe"
+      >
+        <div className="mx-auto flex h-16 max-w-7xl items-center justify-between px-3 sm:px-6 lg:px-8">
+          {/* Brand Wordmark & Mode Badge */}
+          <div className="flex items-center space-x-3 sm:space-x-5">
+            <button
+              id="brand-home-btn"
+              onClick={() => onNavigate('home')}
+              className="group flex items-center space-x-2.5 text-left transition-opacity hover:opacity-90"
+            >
+              <div className="relative flex h-8 w-8 sm:h-9 sm:w-9 shrink-0 items-center justify-center">
+                <img
+                  src="/forgemind-icon.png"
+                  alt="ForgeMind Logo"
+                  className="h-full w-full object-contain"
+                />
               </div>
-              <p className="hidden text-[11px] text-zinc-500 md:block">
-                Prove you can use it
-              </p>
-            </div>
-          </button>
+              <div>
+                <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap">
+                  <span className="font-headline-sm text-base sm:text-lg font-bold tracking-tight text-text-primary">
+                    ForgeMind
+                  </span>
+                  <span className="rounded-full bg-canvas-subtle px-2.5 py-0.5 font-code-sm text-[10px] font-semibold uppercase tracking-wider text-text-secondary ring-1 ring-border-hairline">
+                    THE PM DE-TUTORIALIZER
+                  </span>
+                </div>
+                <p className="hidden text-[11px] italic text-text-muted sm:block font-serif">
+                  Prove you can use it
+                </p>
+              </div>
+            </button>
 
-          {/* Navigation Links */}
-          <nav className="flex items-center space-x-1 pl-2 sm:pl-4 border-l border-zinc-800">
+            {/* Navigation Links */}
+            <nav className="flex items-center space-x-1 pl-3 sm:pl-4 border-l border-border-hairline">
+              <button
+                id="nav-studio-btn"
+                onClick={() => onNavigate('home')}
+                className={`rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+                  isStudioActive
+                    ? 'bg-accent-rose-tint text-primary-container font-semibold shadow-xs ring-1 ring-accent-rose-soft'
+                    : 'text-text-secondary hover:bg-surface-container hover:text-text-primary'
+                }`}
+              >
+                Studio
+              </button>
+              <button
+                id="nav-track-btn"
+                onClick={() => onNavigate('track')}
+                className={`rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+                  isTrackActive
+                    ? 'bg-accent-rose-tint text-primary-container font-semibold shadow-xs ring-1 ring-accent-rose-soft'
+                    : 'text-text-secondary hover:bg-surface-container hover:text-text-primary'
+                }`}
+              >
+                Track
+              </button>
+              <button
+                id="nav-evidence-btn"
+                onClick={() => onNavigate('evidence')}
+                className={`flex items-center space-x-1.5 rounded-full px-3 py-1.5 text-xs sm:text-sm font-medium transition-all ${
+                  isEvidenceActive
+                    ? 'bg-accent-rose-tint text-primary-container font-semibold shadow-xs ring-1 ring-accent-rose-soft'
+                    : 'text-text-secondary hover:bg-surface-container hover:text-text-primary'
+                }`}
+              >
+                <ShieldCheck className="h-3.5 w-3.5 text-primary-container" />
+                <span>Evidence Vault</span>
+              </button>
+            </nav>
+          </div>
+
+          {/* Right Actions: Profile Avatar */}
+          <div className="flex items-center space-x-2">
             <button
-              id="nav-prove-btn"
-              onClick={() => onNavigate('prove')}
-              className={`rounded-md px-2.5 sm:px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all ${
-                currentTab === 'prove' || currentTab === 'challenge' || currentTab === 'concept-preview'
-                  ? 'bg-zinc-800 text-amber-300 font-semibold shadow-inner'
-                  : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
+              id="header-profile-btn"
+              onClick={() => onNavigate('profile')}
+              title="Learner Profile & Rigor Settings"
+              className={`flex items-center gap-1.5 pl-1 pr-2.5 py-1 rounded-full border text-xs font-medium transition-all ${
+                isProfileActive
+                  ? 'border-primary-container bg-accent-rose-tint text-primary-container'
+                  : 'border-border-hairline bg-canvas-elevated text-text-secondary hover:text-text-primary hover:bg-canvas-subtle'
               }`}
             >
-              Prove
+              <div className="w-6 h-6 rounded-full bg-primary-container text-on-primary flex items-center justify-center font-code-sm text-[11px] font-bold shadow-xs">
+                M
+              </div>
+              <span className="hidden sm:inline font-code-sm text-[11px]">@mohanccse</span>
             </button>
-            <button
-              id="nav-evidence-btn"
-              onClick={() => onNavigate('evidence')}
-              className={`flex items-center space-x-1 sm:space-x-1.5 rounded-md px-2.5 sm:px-3.5 py-1.5 text-xs sm:text-sm font-medium transition-all ${
-                currentTab === 'evidence'
-                  ? 'bg-zinc-800 text-amber-300 font-semibold shadow-inner'
-                  : 'text-zinc-400 hover:bg-zinc-800/60 hover:text-zinc-200'
-              }`}
-            >
-              <ShieldCheck className="h-3.5 w-3.5 sm:h-4 sm:w-4 opacity-70" />
-              <span className="hidden sm:inline">My Evidence</span>
-              <span className="sm:hidden">Evidence</span>
-            </button>
-          </nav>
+          </div>
         </div>
-
-        {/* Actions: Add Study Material (Door 2 Primary Action - Reallocated to Anchor Right Side) */}
-        <div className="flex items-center space-x-2 sm:space-x-3">
-          <button
-            id="header-add-material-btn"
-            onClick={() => onNavigate('material')}
-            className={`flex items-center space-x-1.5 rounded-lg border px-2.5 sm:px-3.5 py-1.5 text-xs font-medium transition-all ${
-              currentTab === 'material'
-                ? 'border-amber-500/50 bg-amber-500/10 text-amber-300 shadow-[0_0_12px_rgba(245,158,11,0.15)]'
-                : 'border-zinc-700/80 bg-zinc-900/90 text-zinc-200 hover:border-amber-500/40 hover:bg-zinc-800 hover:text-amber-200'
-            }`}
-          >
-            <Plus className="h-3.5 w-3.5 text-amber-400" />
-            <span className="hidden sm:inline">Add Study Material</span>
-            <span className="sm:hidden">Add Material</span>
-          </button>
-
-          {/* =========================================================================
-              [TEMPORARILY COMMENTED OUT FOR USER RESEARCH & FRICTIONLESS REVIEW SESSIONS]
-              To restore Google sign-in and Account button at any time, uncomment below:
-              ========================================================================= */}
-          {/*
-          {_user ? (
-            <button
-              id="nav-account-btn"
-              onClick={() => onNavigate('account')}
-              className={`flex items-center space-x-1.5 rounded-lg border px-2.5 sm:px-3 py-1.5 text-xs font-medium transition-all ${
-                currentTab === 'account'
-                  ? 'border-amber-500/50 bg-amber-500/10 text-amber-300'
-                  : 'border-zinc-800 bg-zinc-900 text-zinc-300 hover:bg-zinc-800'
-              }`}
-            >
-              <User className="h-3.5 w-3.5 text-amber-400 shrink-0" />
-              <span className="max-w-[80px] sm:max-w-[120px] truncate">{_user.email?.split('@')[0] || 'Account'}</span>
-            </button>
-          ) : (
-            <button
-              id="google-login-btn"
-              onClick={handleGoogleLogin}
-              className="flex items-center space-x-1.5 sm:space-x-2 rounded-lg bg-amber-400 px-2.5 sm:px-3.5 py-1.5 text-xs font-semibold text-zinc-950 hover:bg-amber-300 transition-colors shadow"
-            >
-              <LogIn className="h-3.5 w-3.5 shrink-0" />
-              <span>Sign in with Google</span>
-            </button>
-          )}
-          */}
-        </div>
-      </div>
-    </header>
+      </header>
+    </>
   );
 };
+

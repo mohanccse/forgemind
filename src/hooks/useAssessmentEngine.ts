@@ -202,6 +202,37 @@ export function useAssessmentEngine({
     [challenge, concept, confidenceBeforeAttempt, stage, validationError]
   );
 
+  // Handle direct memo changes
+  const handleMemoChange = useCallback(
+    (val: string) => {
+      setResponse(val);
+      if (validationError) setValidationError(null);
+
+      if (challenge) {
+        const activeStage: 'confidence' | 'attempt' | 'submitted' = stage === 'submitted' ? 'attempt' : stage;
+        const now = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        const sessionPayload = {
+          confidence_before_attempt: confidenceBeforeAttempt,
+          response: val,
+          stage: activeStage,
+          stepAnswers,
+          microAnswers: stepAnswers,
+          lastSaved: now
+        };
+        saveAttemptDraft(challenge.id, sessionPayload);
+        setDraftSavedTimestamp(now);
+        try {
+          if (typeof window !== 'undefined' && window.sessionStorage) {
+            sessionStorage.setItem(`fm_sess_${challenge.id}`, JSON.stringify(sessionPayload));
+          }
+        } catch {
+          // ignore
+        }
+      }
+    },
+    [challenge, confidenceBeforeAttempt, stage, stepAnswers, validationError]
+  );
+
   // Transition from Confidence Gate to Independent Attempt
   const handleStartIndependentAttempt = useCallback(() => {
     setStage('attempt');
@@ -235,26 +266,64 @@ export function useAssessmentEngine({
     const milestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
     const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
 
-    // Client-Side Input Validation: Block if any step answer is under 4 substantive characters
-    const invalidStepDetails: { stepNum: number; reason: string }[] = [];
-    milestones.forEach((_, idx) => {
-      const text = (stepAnswers[String(idx)] || '').trim();
-      const check = isSubstantiveInput(text);
-      if (!check.valid) {
-        invalidStepDetails.push({
-          stepNum: idx + 1,
-          reason: check.reason || 'Please provide a substantive answer addressing the milestone.'
-        });
-      }
-    });
+    const isDirectMemo = (response || '').trim().length >= 20;
+    let microResponsesPayload: { milestone: string; question: string; answer: string }[] = [];
 
-    if (invalidStepDetails.length > 0) {
-      const firstError = invalidStepDetails[0];
-      const stepList = invalidStepDetails.map((s) => `Step ${s.stepNum}`).join(', ');
-      setValidationError(
-        `Validation failed for ${stepList}: ${firstError.reason}`
-      );
-      return;
+    if (isDirectMemo) {
+      // Validate direct memo input
+      const check = isSubstantiveInput(response.trim());
+      if (!check.valid) {
+        setValidationError(`Memo validation failed: ${check.reason}`);
+        return;
+      }
+
+      // If user structured using section markers, map to milestones
+      const sectionRegex = /(?:###\s*\d+[.:\s]+|(?:\r?\n|^)\s*\d+[.:\s]+|STEP\s*\d+[.:\s]+)/gi;
+      const parts = response.split(sectionRegex).filter((p) => p.trim().length > 0);
+
+      microResponsesPayload = milestones.map((m, idx) => {
+        let ans = '';
+        if (parts.length >= milestones.length && parts[idx]) {
+          ans = parts[idx].trim();
+        } else if (stepAnswers[String(idx)] && stepAnswers[String(idx)].trim().length > 0) {
+          ans = stepAnswers[String(idx)].trim();
+        } else {
+          ans = response.trim();
+        }
+        return {
+          milestone: m,
+          question: questions[idx] || m,
+          answer: ans
+        };
+      });
+    } else {
+      // Client-Side Input Validation: Block if any step answer is under 4 substantive characters
+      const invalidStepDetails: { stepNum: number; reason: string }[] = [];
+      milestones.forEach((_, idx) => {
+        const text = (stepAnswers[String(idx)] || '').trim();
+        const check = isSubstantiveInput(text);
+        if (!check.valid) {
+          invalidStepDetails.push({
+            stepNum: idx + 1,
+            reason: check.reason || 'Please provide a substantive answer addressing the milestone.'
+          });
+        }
+      });
+
+      if (invalidStepDetails.length > 0) {
+        const firstError = invalidStepDetails[0];
+        const stepList = invalidStepDetails.map((s) => `Step ${s.stepNum}`).join(', ');
+        setValidationError(
+          `Validation failed for ${stepList}: ${firstError.reason}`
+        );
+        return;
+      }
+
+      microResponsesPayload = milestones.map((m, idx) => ({
+        milestone: m,
+        question: questions[idx] || m,
+        answer: (stepAnswers[String(idx)] || '').trim()
+      }));
     }
 
     setValidationError(null);
@@ -272,12 +341,6 @@ export function useAssessmentEngine({
       const attemptNumber = getNextAttemptNumber(concept.id, challenge.id);
       const attemptId = `att_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
       const createdAt = new Date().toISOString();
-
-      const microResponsesPayload = milestones.map((m, idx) => ({
-        milestone: m,
-        question: questions[idx] || m,
-        answer: (stepAnswers[String(idx)] || '').trim()
-      }));
 
       const finalResponseText =
         response.trim() ||
@@ -454,6 +517,7 @@ export function useAssessmentEngine({
     isOverrideRevealed,
     setIsOverrideRevealed,
     handleMicroAnswerChange,
+    handleMemoChange,
     handleStartIndependentAttempt,
     handleSubmitAttempt,
     handleRequestHint,

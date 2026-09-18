@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import crypto from 'crypto';
 import { Type } from '@google/genai';
 import { getGenAI, executeWithTimeoutAndRetry } from '@/lib/gemini';
+import { executeLLM } from '@/lib/llm-client';
 import { validateEvaluationResult } from '@/utils/evaluationValidator';
 import { sanitizeText, LEARNER_ATTEMPT_LIMITS, isFillerPhrase } from '@/utils/sanitizer';
 
@@ -71,105 +72,16 @@ function evaluateHeuristic(
   sourceType: string
 ): any {
   const learnerText = extractLearnerAnswersOnly(attempt).trim();
-  const lower = learnerText.toLowerCase();
-
-  const isKeyboardMash =
-    /asdfghjkl|qwertyuiop|zxcvbnm|123456|abcdef/i.test(lower) ||
-    (lower.length > 10 && new Set(lower.replace(/[^a-z]/g, '')).size < 4);
-  const isGenericFiller = isFillerPhrase(learnerText);
-
   const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
-  const microResponses: any[] = attempt.micro_responses || [];
-
-  let substantiveStepCount = 0;
-  if (microResponses.length > 0) {
-    microResponses.forEach((mr: any) => {
-      const ans = (mr.answer || '').trim();
-      if (ans.length >= 12 && !isFillerPhrase(ans)) {
-        substantiveStepCount++;
-      }
-    });
-  }
-
-  // Non-substantive or low-effort filler input -> MUST return NEEDS_CLARIFICATION
-  if (learnerText.length < 60 || isKeyboardMash || isGenericFiller || (microResponses.length > 0 && substantiveStepCount < Math.ceil(microResponses.length / 2))) {
-    return {
-      verdict: 'NEEDS_CLARIFICATION',
-      demonstrated_capabilities: [],
-      missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
-      evidence: [learnerText ? `Submitted text is non-substantive filler or incomplete: "${learnerText.substring(0, 120)}"` : 'Empty response provided.'],
-      brief_feedback: 'The submission consists of generic placeholder or non-substantive text ("This is it"). Please provide an explicit, structured response addressing the mandate.'
-    };
-  }
-
   const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
   const evidenceQuotes = sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' '));
 
-  const demonstrated: string[] = [];
-  const missing: string[] = [];
-  let hasOffTopicContent = false;
-
-  if (microResponses.length > 0) {
-    microResponses.forEach((mr: any, idx: number) => {
-      const milestoneText = mr.milestone || structuralMilestones[idx] || `Step ${idx + 1}`;
-      const ans = (mr.answer || '').trim();
-      const check = checkMilestoneDomainRelevance(ans, concept, milestoneText);
-      
-      if (check.demonstrated) {
-        demonstrated.push(milestoneText);
-      } else {
-        missing.push(milestoneText);
-        if (check.isOffTopic) hasOffTopicContent = true;
-      }
-    });
-
-    structuralMilestones.forEach((m: string, idx: number) => {
-      if (idx >= microResponses.length && !demonstrated.includes(m)) {
-        missing.push(m);
-      }
-    });
-  } else {
-    structuralMilestones.forEach((m: string) => {
-      const check = checkMilestoneDomainRelevance(learnerText, concept, m);
-      if (check.demonstrated) {
-        demonstrated.push(m);
-      } else {
-        missing.push(m);
-        if (check.isOffTopic) hasOffTopicContent = true;
-      }
-    });
-  }
-
-  const demonstratedCount = demonstrated.length;
-  const totalCount = Math.max(structuralMilestones.length, 1);
-
-  let verdict = 'PARTIALLY_CORRECT';
-  if (demonstratedCount === totalCount && learnerText.length >= 150 && !hasOffTopicContent) {
-    verdict = 'CORRECT';
-  } else if (demonstratedCount > 0) {
-    verdict = 'PARTIALLY_CORRECT';
-  } else if (hasOffTopicContent || isGenericFiller || isKeyboardMash) {
-    verdict = 'NEEDS_CLARIFICATION';
-  } else if (demonstratedCount === 0) {
-    verdict = 'WRONG_APPROACH';
-  }
-
-  if (verdict === 'CORRECT' && missing.length > 0) {
-    verdict = 'PARTIALLY_CORRECT';
-  }
-
   return {
-    verdict,
-    demonstrated_capabilities: demonstrated.length > 0 ? demonstrated : [],
-    missing_capabilities: missing.length > 0 ? missing : ['None identified'],
-    evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [`Formulation provided: "${learnerText.substring(0, 100)}..."`],
-    brief_feedback: verdict === 'CORRECT'
-      ? 'Strong autonomous formulation demonstrating key structural milestones and addressing evaluation constraints directly.'
-      : verdict === 'PARTIALLY_CORRECT'
-      ? 'Good initial reasoning demonstrated on core parameters, but certain key constraints or quantitative trade-offs remain incomplete.'
-      : verdict === 'WRONG_APPROACH'
-      ? 'The approach does not address the required structural constraints or exhibits fundamental conceptual divergence.'
-      : 'Insufficient evidence to evaluate full capability milestones. Clarify your specific trade-off metrics and calculation methodology.'
+    verdict: 'NEEDS_CLARIFICATION',
+    demonstrated_capabilities: [],
+    missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
+    evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [learnerText ? `Formulation provided: "${learnerText.substring(0, 100)}..."` : 'Empty response provided.'],
+    brief_feedback: 'Evaluation service temporarily degraded — please retry'
   };
 }
 
@@ -254,10 +166,8 @@ export async function POST(request: Request) {
       });
     }
 
-    const ai = getGenAI();
-    if (ai) {
-      try {
-        const systemInstruction = `You are the ForgeMind Semantic Evaluator. Your sole responsibility is to evaluate a learner's independent attempt against the challenge requirements and capability milestones.
+    try {
+      const systemInstruction = `You are the ForgeMind Semantic Evaluator. Your sole responsibility is to evaluate a learner's independent attempt against the challenge requirements and capability milestones.
 
 ### GUARDRAIL: CANARY TOKEN
 Canary Token: ${canaryToken}
@@ -283,16 +193,16 @@ ${isUserGenerated
   : 'NOTE: This is a LIBRARY challenge (Door 1) with established benchmark milestones.'
 }`;
 
-        const structuredResponsesText = (attempt.micro_responses && attempt.micro_responses.length > 0)
-          ? attempt.micro_responses.map((m: any, idx: number) =>
-              `--- STEP ${idx + 1} ---
+      const structuredResponsesText = (attempt.micro_responses && attempt.micro_responses.length > 0)
+        ? attempt.micro_responses.map((m: any, idx: number) =>
+            `--- STEP ${idx + 1} ---
 [SYSTEM CONTEXT - NOT WRITTEN BY LEARNER] Target Milestone: ${m.milestone}
 [SYSTEM CONTEXT - NOT WRITTEN BY LEARNER] Question: ${m.question}
 ACTUAL LEARNER SUBMITTED ANSWER: """${m.answer || ''}"""`
-            ).join('\n\n')
-          : `ACTUAL LEARNER SUBMITTED ANSWER: """${extractLearnerAnswersOnly(attempt)}"""`;
+          ).join('\n\n')
+        : `ACTUAL LEARNER SUBMITTED ANSWER: """${extractLearnerAnswersOnly(attempt)}"""`;
 
-        const prompt = `
+      const prompt = `
 CHALLENGE DETAILS:
 - Title: ${challenge.title}
 - Domain: ${challenge.domain || concept.domain}
@@ -319,62 +229,54 @@ ${structuredResponsesText}
 Evaluate the learner's unassisted response now.
 Return JSON matching schema.`;
 
-        const response = await executeWithTimeoutAndRetry(async () => {
-          return await ai.models.generateContent({
-            model: 'gemini-3.8-flash',
-            contents: prompt,
-            config: {
-              systemInstruction,
-              temperature: 0.1,
-              responseMimeType: 'application/json',
-              responseSchema: {
-                type: Type.OBJECT,
-                properties: {
-                  verdict: {
-                    type: Type.STRING,
-                    enum: ['CORRECT', 'PARTIALLY_CORRECT', 'WRONG_APPROACH', 'NEEDS_CLARIFICATION'],
-                    description: 'Exactly one verdict'
-                  },
-                  demonstrated_capabilities: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: 'Specific capabilities or milestones clearly demonstrated in the learner response'
-                  },
-                  missing_capabilities: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: 'Capabilities or milestones that were missed, misunderstood, or unaddressed'
-                  },
-                  evidence: {
-                    type: Type.ARRAY,
-                    items: { type: Type.STRING },
-                    description: 'Direct grounded quotes from the learner typed response'
-                  },
-                  brief_feedback: {
-                    type: Type.STRING,
-                    description: 'Short evaluation rationale'
-                  }
-                },
-                required: ['verdict', 'demonstrated_capabilities', 'missing_capabilities', 'evidence', 'brief_feedback']
-              }
+      const llmResult = await executeLLM({
+        systemPrompt: systemInstruction,
+        userPrompt: prompt,
+        jsonMode: true,
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            verdict: {
+              type: Type.STRING,
+              enum: ['CORRECT', 'PARTIALLY_CORRECT', 'WRONG_APPROACH', 'NEEDS_CLARIFICATION'],
+              description: 'Exactly one verdict'
+            },
+            demonstrated_capabilities: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: 'Specific capabilities or milestones clearly demonstrated in the learner response'
+            },
+            missing_capabilities: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: 'Capabilities or milestones that were missed, misunderstood, or unaddressed'
+            },
+            evidence: {
+              type: Type.ARRAY,
+              items: { type: Type.STRING },
+              description: 'Direct grounded quotes from the learner typed response'
+            },
+            brief_feedback: {
+              type: Type.STRING,
+              description: 'Short evaluation rationale'
             }
-          });
-        });
-
-        const responseTextRaw = response.text || '';
-        const parsed = JSON.parse(responseTextRaw);
-        const validation = validateEvaluationResult(parsed);
-
-        if (validation.isValid && validation.sanitized) {
-          return NextResponse.json({
-            success: true,
-            evaluation: validation.sanitized,
-            source: 'gemini'
-          });
+          },
+          required: ['verdict', 'demonstrated_capabilities', 'missing_capabilities', 'evidence', 'brief_feedback']
         }
-      } catch (err: any) {
-        console.warn('Gemini LLM evaluation failed or timed out, using fallback evaluator:', err);
+      });
+
+      const parsed = typeof llmResult.data === 'object' && llmResult.data !== null ? llmResult.data : {};
+      const validation = validateEvaluationResult(parsed, canaryToken);
+
+      if (validation.isValid && validation.sanitized) {
+        return NextResponse.json({
+          success: true,
+          evaluation: validation.sanitized,
+          source: llmResult.providerUsed
+        });
       }
+    } catch (err: any) {
+      console.error('[Assessment Evaluation LLM Failure] All LLM providers failed. Falling back to heuristic evaluator:', err);
     }
 
     const fallbackEval = evaluateHeuristic(challenge, concept, attempt, effectiveSourceType);

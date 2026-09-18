@@ -21,11 +21,19 @@ export async function POST(
 
     const learnerId = learner_id || altLearnerId || 'default_learner';
 
-    let challenge =
-      (await getChallengeFromDb(challengeId)) ||
-      CURATED_NOVEL_CHALLENGES[conceptId] ||
-      CURATED_NOVEL_CHALLENGES[challengeId] ||
-      clientChallenge;
+    let challenge: any = null;
+    try {
+      challenge = await getChallengeFromDb(challengeId);
+    } catch (e) {
+      console.warn('DB challenge fetch warning:', e);
+    }
+
+    if (!challenge) {
+      challenge =
+        CURATED_NOVEL_CHALLENGES[conceptId] ||
+        CURATED_NOVEL_CHALLENGES[challengeId] ||
+        clientChallenge;
+    }
 
     if (!challenge) {
       const found = Object.values(CURATED_NOVEL_CHALLENGES).find(
@@ -41,9 +49,19 @@ export async function POST(
       );
     }
 
-    await saveChallengeToDb(challenge);
+    try {
+      await saveChallengeToDb(challenge);
+    } catch (e) {
+      console.warn('DB challenge save warning:', e);
+    }
 
-    let hintState = await getHintStateFromDb(learnerId, challengeId, conceptId || challenge.conceptId);
+    let hintState: any = null;
+    try {
+      hintState = await getHintStateFromDb(learnerId, challengeId, conceptId || challenge.conceptId);
+    } catch (e) {
+      console.warn('DB hint state fetch warning:', e);
+    }
+
     if (!hintState) {
       hintState = {
         challenge_id: challengeId,
@@ -57,14 +75,22 @@ export async function POST(
         solution_revealed: false,
         evaluation_flagged: false
       };
-      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+      try {
+        await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+      } catch (e) {
+        console.warn('DB hint state save warning:', e);
+      }
     }
 
     if (lastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
       hintState.progression_frozen = true;
       hintState.frozen_reason =
         'Evaluation returned NEEDS_CLARIFICATION. Progression is frozen until a clarified attempt is submitted.';
-      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+      try {
+        await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+      } catch (e) {
+        console.warn('DB hint state save warning:', e);
+      }
       return NextResponse.json(
         {
           success: false,
@@ -124,7 +150,7 @@ export async function POST(
           error: 'Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry attempt.',
           state: hintState
         },
-        { status: 400 }
+        { status: 403 }
       );
     }
 
@@ -142,7 +168,11 @@ export async function POST(
       hintState.solution_revealed_at = new Date().toISOString();
     }
 
-    await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+    try {
+      await saveHintStateToDb(learnerId, challengeId, { ...hintState, challenge });
+    } catch (e) {
+      console.warn('DB hint state save warning:', e);
+    }
 
     return NextResponse.json({
       success: true,

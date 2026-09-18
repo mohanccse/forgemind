@@ -10,11 +10,9 @@ import { ViewTab, Concept } from './types';
 import { INITIAL_CONCEPTS, getConceptById } from './data/concepts';
 import { Header } from './components/Header';
 import { HomePage } from './components/HomePage';
-import { ConceptExplorerPage } from './components/ConceptExplorerPage';
-import { ConceptPreviewPage } from './components/ConceptPreviewPage';
-import { StudyMaterialPage } from './components/StudyMaterialPage';
 import { ChallengePage } from './components/ChallengePage';
 import { EvidencePage } from './components/EvidencePage';
+import { TrackPage } from './components/TrackPage';
 import { AccountPage } from './components/AccountPage';
 import { clearPersistedActiveChallenge, clearAttemptDraft } from './services/attemptService';
 import { resetHintStateForConcept } from './services/hintService';
@@ -45,7 +43,20 @@ export default function App() {
   useEffect(() => {
     try {
       const saved = sessionStorage.getItem('forgemind_tab');
-      if (saved && ['home', 'prove', 'concept-preview', 'material', 'challenge', 'evidence', 'account'].includes(saved)) {
+      if (
+        saved &&
+        [
+          'home',
+          'prove',
+          'concept-preview',
+          'material',
+          'challenge',
+          'evidence',
+          'track',
+          'profile',
+          'account'
+        ].includes(saved)
+      ) {
         setCurrentTab(saved as ViewTab);
       }
       const savedConceptId = sessionStorage.getItem('forgemind_concept_id');
@@ -105,14 +116,17 @@ export default function App() {
   };
 
   const handleSelectFeaturedConcept = (conceptId: string) => {
-    const concept = getConceptById(conceptId);
+    let concept = getConceptById(conceptId);
+    if (!concept && INITIAL_CONCEPTS.length > 0) {
+      concept = INITIAL_CONCEPTS[0];
+    }
     if (concept) {
       clearPersistedActiveChallenge(concept.id);
       resetHintStateForConcept(concept.id);
       clearAttemptDraft(concept.id);
       setActiveConcept(concept);
     }
-    setCurrentTab('concept-preview');
+    setCurrentTab('challenge');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -126,39 +140,18 @@ export default function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#0c0d12] text-[#e4e5eb] flex flex-col selection:bg-amber-500/20 selection:text-amber-200">
+    <div className="min-h-screen bg-canvas-base text-text-primary flex flex-col selection:bg-accent-rose-soft selection:text-primary-container">
       {/* Navigation Header */}
       <Header currentTab={currentTab} onNavigate={handleNavigate} user={authUser} />
 
       {/* Main Viewport */}
       <main className="flex-1">
-        {currentTab === 'home' && (
+        {(currentTab === 'home' || currentTab === 'prove' || currentTab === 'concept-preview') && (
           <HomePage
             onNavigate={handleNavigate}
             onSelectFeaturedConcept={handleSelectFeaturedConcept}
-          />
-        )}
-
-        {currentTab === 'prove' && (
-          <ConceptExplorerPage
-            onSelectConcept={handleSelectConcept}
-            onNavigate={handleNavigate}
-          />
-        )}
-
-        {currentTab === 'concept-preview' && (
-          <ConceptPreviewPage
-            concept={activeConcept}
-            onBackToExplorer={() => handleNavigate('prove')}
-            onProveThis={handleProveThis}
-            onNavigate={handleNavigate}
-          />
-        )}
-
-        {currentTab === 'material' && (
-          <StudyMaterialPage
-            onNavigate={handleNavigate}
             onConceptConfirmed={handleConceptConfirmed}
+            initialIngestionMode={currentTab === 'prove' ? 'library' : undefined}
           />
         )}
 
@@ -166,12 +159,7 @@ export default function App() {
           <ChallengePage
             concept={activeConcept}
             onBackToProve={() => {
-              const isDoor2 =
-                activeConcept?.sourceType === 'USER_GENERATED' ||
-                activeConcept?.isUserOwned ||
-                activeConcept?.id === 'custom-concept' ||
-                activeConcept?.id?.startsWith('custom-');
-              handleNavigate(isDoor2 ? 'material' : 'concept-preview');
+              handleNavigate('home');
             }}
             onNavigate={handleNavigate}
           />
@@ -181,48 +169,50 @@ export default function App() {
           <EvidencePage onNavigate={handleNavigate} />
         )}
 
-        {currentTab === 'account' && (
+        {currentTab === 'track' && (
+          <TrackPage onNavigate={handleNavigate} />
+        )}
+
+        {(currentTab === 'profile' || currentTab === 'account') && (
           <AccountPage onNavigate={handleNavigate} user={authUser} />
         )}
       </main>
 
-      {/* Minimal, Credible Footer */}
-      <footer className="border-t border-zinc-900 bg-[#090a0e] py-8 text-xs text-zinc-500">
+      {/* Editorial DocKit Light Footer */}
+      <footer className="border-t border-border-hairline bg-canvas-subtle py-8 text-xs font-body-sm text-text-secondary">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
           <div className="flex items-center space-x-3">
-            <img src="/forgemind-icon.png" alt="ForgeMind" className="h-5 w-5 rounded object-cover shadow-sm" />
-            <span className="font-serif font-medium text-zinc-300">ForgeMind</span>
-            <span className="text-zinc-700">|</span>
-            <span className="italic text-zinc-400">"You learned it. Now prove you can use it."</span>
+            <img src="/forgemind-icon.png" alt="ForgeMind" className="h-6 w-6 object-contain" />
+            <span className="font-display font-bold text-text-primary">ForgeMind</span>
+            <span className="text-border-hairline">|</span>
+            <span className="font-body-sm italic text-text-muted">&ldquo;You learned it. Now prove you can use it.&rdquo;</span>
           </div>
 
-          <div className="flex items-center space-x-6">
+          <div className="flex items-center space-x-6 font-label-sm text-xs">
             <button
-              onClick={() => handleNavigate('prove')}
-              className="hover:text-zinc-300 transition-colors"
+              onClick={() => handleNavigate('home')}
+              className="hover:text-text-primary transition-colors cursor-pointer"
             >
-              Prove
+              Studio
             </button>
             <button
-              onClick={() => handleNavigate('material')}
-              className="hover:text-zinc-300 transition-colors"
+              onClick={() => handleNavigate('track')}
+              className="hover:text-text-primary transition-colors cursor-pointer"
             >
-              Study Material
+              Track
             </button>
             <button
               onClick={() => handleNavigate('evidence')}
-              className="hover:text-zinc-300 transition-colors"
+              className="hover:text-text-primary transition-colors cursor-pointer"
             >
-              My Evidence
+              Evidence Vault
             </button>
-            {authUser && (
-              <button
-                onClick={() => handleNavigate('account')}
-                className="hover:text-zinc-300 transition-colors text-amber-400 font-medium"
-              >
-                Account
-              </button>
-            )}
+            <button
+              onClick={() => handleNavigate('profile')}
+              className="hover:text-text-primary transition-colors cursor-pointer text-primary-container font-semibold"
+            >
+              Profile
+            </button>
           </div>
         </div>
       </footer>
