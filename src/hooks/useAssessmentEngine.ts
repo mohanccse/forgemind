@@ -9,7 +9,7 @@ import {
   ChallengeHintState,
   ChallengeSourceType
 } from '../types';
-import { isSubstantiveInput } from '../utils/sanitizer';
+import { isSubstantiveInput, LEARNER_ATTEMPT_LIMITS } from '../utils/sanitizer';
 import {
   getOrCreateLearnerId,
   getOrCreateSessionId,
@@ -233,6 +233,15 @@ export function useAssessmentEngine({
     [challenge, confidenceBeforeAttempt, stage, stepAnswers, validationError]
   );
 
+  // Auto-trim response to character limit
+  const handleTrimToLimit = useCallback(() => {
+    if (!response) return;
+    const trimmed = response.slice(0, LEARNER_ATTEMPT_LIMITS.MAX_CHARS);
+    handleMemoChange(trimmed);
+    setValidationError(null);
+    setEvaluationError(null);
+  }, [response, handleMemoChange]);
+
   // Transition from Confidence Gate to Independent Attempt
   const handleStartIndependentAttempt = useCallback(() => {
     setStage('attempt');
@@ -262,6 +271,14 @@ export function useAssessmentEngine({
   // Submit attempt with IMMEDIATE EVALUATION RESET (clears stale feedback banners immediately)
   const handleSubmitAttempt = useCallback(async () => {
     if (!challenge || isSubmitting) return;
+
+    const rawLen = (response || '').trim().length;
+    if (rawLen > LEARNER_ATTEMPT_LIMITS.MAX_CHARS) {
+      setValidationError(
+        `Your memo is ${rawLen.toLocaleString()} characters, which exceeds the ${LEARNER_ATTEMPT_LIMITS.MAX_CHARS.toLocaleString()}-character limit. Please trim your text or click "Auto-Trim to 10k".`
+      );
+      return;
+    }
 
     const milestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
     const questions = challenge.microQuestions || milestones.map((m) => `Target Step: ${m}`);
@@ -399,11 +416,13 @@ export function useAssessmentEngine({
           setHintState(updatedState);
         } else {
           setEvaluationError(res.error || 'Evaluation could not be completed.');
+          setStage('attempt');
         }
       }
     } catch (err: any) {
       console.error('Submission failed:', err);
-      setValidationError(err.message || 'Submission failed. Please try again.');
+      setEvaluationError(err.message || 'Submission failed. Please try again.');
+      setStage('attempt');
     } finally {
       setIsSubmitting(false);
       setIsEvaluating(false);
@@ -518,6 +537,7 @@ export function useAssessmentEngine({
     setIsOverrideRevealed,
     handleMicroAnswerChange,
     handleMemoChange,
+    handleTrimToLimit,
     handleStartIndependentAttempt,
     handleSubmitAttempt,
     handleRequestHint,

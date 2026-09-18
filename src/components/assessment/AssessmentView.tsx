@@ -564,6 +564,42 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                       placeholder="Draft your executive memo here. Use the section anchors above to structure your argument..."
                       className="w-full rounded-xl bg-canvas-subtle p-4 font-body-sm text-xs sm:text-sm text-text-primary placeholder:text-text-muted focus:outline-none focus:bg-canvas-base focus:ring-2 focus:ring-primary-container/20 focus:border-primary-container transition-all resize-y leading-relaxed border border-border-hairline shadow-inner"
                     />
+                    {/* Live Character Counter & Auto-Trim Safety Net */}
+                    <div className="flex items-center justify-between mt-1.5 px-1">
+                      <div className="text-[11px] font-mono flex items-center gap-2">
+                        <span
+                          className={
+                            (engine.response || '').length > 10000
+                              ? 'text-rose-600 font-bold'
+                              : (engine.response || '').length > 8500
+                              ? 'text-amber-600 font-semibold'
+                              : 'text-text-muted'
+                          }
+                        >
+                          {(engine.response || '').length.toLocaleString()} / 10,000 characters
+                        </span>
+                        {(engine.response || '').length > 8500 && (engine.response || '').length <= 10000 && (
+                          <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full border border-amber-200">
+                            Approaching limit
+                          </span>
+                        )}
+                        {(engine.response || '').length > 10000 && (
+                          <span className="text-[10px] text-rose-700 bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200 font-bold">
+                            {((engine.response || '').length - 10000).toLocaleString()} chars over ceiling
+                          </span>
+                        )}
+                      </div>
+
+                      {(engine.response || '').length > 10000 && engine.handleTrimToLimit && (
+                        <button
+                          type="button"
+                          onClick={engine.handleTrimToLimit}
+                          className="text-[11px] font-mono text-primary-container hover:text-primary-container/80 underline font-semibold cursor-pointer"
+                        >
+                          Auto-Trim to 10k
+                        </button>
+                      )}
+                    </div>
                   </div>
 
                   {/* Validation or Evaluation Error Alert */}
@@ -682,6 +718,29 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     against the ground-truth rubric.
                   </p>
                 </div>
+              )}
+
+              {/* Error Fallback Card if Evaluation Failed */}
+              {!engine.isEvaluating && !evalResult && (
+                <article className="bg-canvas-elevated rounded-2xl border border-rose-200 p-8 text-center space-y-4 shadow-sm">
+                  <div className="w-12 h-12 rounded-xl bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center mx-auto">
+                    <AlertCircle className="w-6 h-6" />
+                  </div>
+                  <div className="space-y-1">
+                    <h2 className="text-xl font-display font-bold text-text-primary">Evaluation Incomplete</h2>
+                    <p className="text-xs text-text-secondary max-w-md mx-auto leading-relaxed">
+                      {engine.evaluationError || 'The evaluation could not be processed. Your responses have been preserved.'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => engine.setStage('attempt')}
+                    className="inline-flex items-center space-x-1.5 px-6 py-2.5 rounded-full bg-primary-container text-white text-xs font-semibold hover:bg-primary-container/90 transition-colors shadow-sm cursor-pointer"
+                  >
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    <span>Return to Editor & Revise</span>
+                  </button>
+                </article>
               )}
 
               {/* HERO EVALUATION CARD (04 - evaluation/code.html) */}
