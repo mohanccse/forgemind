@@ -58,7 +58,7 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user: _u
                 <img
                   src="/forgemind-icon.png"
                   alt="ForgeMind Logo"
-                  className="h-full w-full object-contain"
+                  className="h-full w-full object-contain rounded-lg shadow-xs"
                 />
               </div>
               <div>

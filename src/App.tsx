@@ -182,7 +182,7 @@ export default function App() {
       <footer className="border-t border-border-hairline bg-canvas-subtle py-8 text-xs font-body-sm text-text-secondary">
         <div className="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-4 sm:flex-row sm:px-6 lg:px-8">
           <div className="flex items-center space-x-3">
-            <img src="/forgemind-icon.png" alt="ForgeMind" className="h-6 w-6 object-contain" />
+            <img src="/forgemind-icon.png" alt="ForgeMind" className="h-6 w-6 object-contain rounded-md shadow-xs" />
             <span className="font-display font-bold text-text-primary">ForgeMind</span>
             <span className="text-border-hairline">|</span>
             <span className="font-body-sm italic text-text-muted">&ldquo;You learned it. Now prove you can use it.&rdquo;</span>
