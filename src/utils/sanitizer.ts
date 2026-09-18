@@ -50,7 +50,7 @@ export const STUDY_MATERIAL_LIMITS = {
 };
 
 export const LEARNER_ATTEMPT_LIMITS = {
-  MAX_CHARS: 2000,
+  MAX_CHARS: 10000,
   MIN_CHARS: 4
 };
 
@@ -62,7 +62,7 @@ export const COMMON_FILLER_PHRASES = [
   'asdf', 'qwerty', 'zxcv', '1234', 'abcd', 'fdsa', 'ytrewq', 'vcxz',
   'aaaa', 'ssss', 'dddd', 'ffff', 'xxxx', 'zzzz', 'qqqq', 'n/a', 'na',
   'none', 'nothing', 'no idea', 'skip', 'pass', 'whatever', 'foo', 'bar',
-  'baz', 'abc', 'xyz', 'testing', 'done', 'finished'
+  'baz', 'abc', 'xyz', 'testing 123', 'done', 'finished'
 ];
 
 /**

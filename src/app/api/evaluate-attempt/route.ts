@@ -33,7 +33,7 @@ function checkMilestoneDomainRelevance(
 
   const isFillerRepetition =
     isFillerPhrase(text) ||
-    /\b(important because it is|metric that is north star|guides the star|placeholder|test|asdf)\b/i.test(lower);
+    /\b(important because it is|metric that is north star|guides the star|placeholder|test\s+test|testing\s+123|asdf)\b/i.test(lower);
 
   if (text.length < 20 || isFillerRepetition) {
     return { demonstrated: false, isOffTopic: false };
@@ -78,32 +78,76 @@ function checkMilestoneDomainRelevance(
     return { demonstrated: false, isOffTopic: false };
   }
 
-  // Milestone-specific capability relevance for NSM framework
   const lowerMilestone = (milestoneText || '').toLowerCase();
 
+  // Mom Test & User Discovery Domain Evaluation
+  const isMomTestConcept = /\b(mom\s+test|customer\s+discovery|user\s+interview|discovery|interviews?)\b/i.test(conceptNameDomain);
+  const isMomTestMilestone = /\b(mom\s+test|interview|boundary|leading\s+question|bias|hypothetical|past\s+behavior)\b/i.test(lowerMilestone);
+
+  if (isMomTestConcept || isMomTestMilestone) {
+    if (/\b(boundary|operational\s+risks?|bias|leading)\b/i.test(lowerMilestone)) {
+      const matchesMomTestBoundary = /\b(past\s+behavior|leading\s+questions?|hypothetical|bias(ed)?|confirmation\s+bias|boundar(y|ies)|risks?|unbiased|watch\s+what\s+they\s+do|real\s+life)\b/i.test(cleanLower);
+      if (matchesMomTestBoundary) {
+        return { demonstrated: true, isOffTopic: false };
+      }
+    }
+
+    if (/\b(trade-?off|matrix|compare|priorit)\b/i.test(lowerMilestone)) {
+      const matchesMomTestTradeoff = /\b(evidence|quality|relevance|effort|impact|prioriti[sz]|compare|trade-?off|decision|criteria|matrix)\b/i.test(cleanLower);
+      if (matchesMomTestTradeoff) {
+        return { demonstrated: true, isOffTopic: false };
+      }
+    }
+
+    if (/\b(phased|action\s+plan|sequenc|speed|quality)\b/i.test(lowerMilestone)) {
+      const matchesMomTestPhased = /\b(interview|validate|recurring|synthesi[sz]|test\s+assumptions|progressive(ly)?|phase(d)?|before\s+committing|solution|step)\b/i.test(cleanLower);
+      if (matchesMomTestPhased) {
+        return { demonstrated: true, isOffTopic: false };
+      }
+    }
+
+    if (/\b(quantitative|metrics?|post-?launch|validation)\b/i.test(lowerMilestone)) {
+      const matchesMomTestMetrics = /\b(measurable|behavioral|frequency|conversion|adoption|retention|task\s+success|validat(e|ion)|metric|outcome)\b/i.test(cleanLower);
+      if (matchesMomTestMetrics) {
+        return { demonstrated: true, isOffTopic: false };
+      }
+    }
+  }
+
+  // Milestone-specific capability relevance for NSM framework
   const isValueMilestone = /\b(singular|value-aligned|north star|core utility)\b/i.test(lowerMilestone);
   if (isValueMilestone) {
     const matchesValueAnswer = /\b(active|completed|derived|delivered|utility|customer value|scope|threshold)\b/i.test(cleanLower);
-    return { demonstrated: matchesValueAnswer, isOffTopic: false };
+    if (matchesValueAnswer) return { demonstrated: true, isOffTopic: false };
   }
 
   const isInputMilestone = /\b(input|driving|decomposition|sub-metric|driver)\b/i.test(lowerMilestone);
   if (isInputMilestone) {
     const matchesInputAnswer = /\b(input|inputs|driver|drivers|initiated|templates|count per|events|frequency|rate)\b/i.test(cleanLower);
-    return { demonstrated: matchesInputAnswer, isOffTopic: false };
+    if (matchesInputAnswer) return { demonstrated: true, isOffTopic: false };
   }
 
   const isCounterMilestone = /\b(counter-?metric|protective|guardrail|perverse\s+incentive)/i.test(lowerMilestone);
   if (isCounterMilestone) {
     const matchesCounterAnswer = /\b(guardrail|counter-?metric|retention|churn|conversion|satisfaction|quality|operational\s*cost)/i.test(cleanLower);
-    return { demonstrated: matchesCounterAnswer, isOffTopic: false };
+    if (matchesCounterAnswer) return { demonstrated: true, isOffTopic: false };
   }
 
-  const isGamingMilestone = /\b(gaming|blindspot|failure\s+mode|operational\s+risk)/i.test(lowerMilestone);
+  const isGamingMilestone = /\b(gaming|blindspot|failure\s+mode)/i.test(lowerMilestone);
   if (isGamingMilestone) {
     const matchesGamingAnswer = /\b(gaming|perverse|manipulat|unintended|blindspot|short-term|fraud|cheat)/i.test(cleanLower);
-    return { demonstrated: matchesGamingAnswer, isOffTopic: false };
+    if (matchesGamingAnswer) return { demonstrated: true, isOffTopic: false };
   }
+
+  // Word-stem matching helper (e.g. validat* matches validate & validation, boundar* matches boundary & boundaries)
+  const matchesStem = (word: string, targetText: string): boolean => {
+    if (targetText.includes(word)) return true;
+    if (word.length >= 5) {
+      const stem = word.slice(0, word.length - 2);
+      if (stem.length >= 4 && targetText.includes(stem)) return true;
+    }
+    return false;
+  };
 
   // General milestone keyword & analytical term matching (deduplicated)
   const targetWords = Array.from(new Set(
@@ -114,10 +158,10 @@ function checkMilestoneDomainRelevance(
       .filter(w => w.length >= 4 && !['defines', 'clear', 'constructs', 'formulates', 'establishes', 'step', 'target', 'using', 'with', 'from', 'this', 'that', 'have', 'what', 'when', 'where', 'which', 'concept', 'topic', 'important', 'plan', 'action', 'phased', 'metrics', 'quantitative'].includes(w))
   ));
 
-  const matchedKeywords = targetWords.filter(w => cleanLower.includes(w));
-  const analyticalTerms = cleanLower.match(/\b(trade-?off|bottleneck|constraint|telemetry|gaming|counter-metric|incentive|guardrail|retention|conversion|sensitivity|threshold|ratio|latency|throughput)\b/gi) || [];
+  const matchedKeywords = targetWords.filter(w => matchesStem(w, cleanLower));
+  const analyticalTerms = cleanLower.match(/\b(trade-?off|bottleneck|constraint|telemetry|gaming|counter-metric|incentive|guardrail|retention|conversion|sensitivity|threshold|ratio|latency|throughput|behavior|hypothesis|interview|validation|validate|evidence|decision)\b/gi) || [];
 
-  if (matchedKeywords.length >= 2 || (matchedKeywords.length >= 1 && analyticalTerms.length >= 1)) {
+  if (matchedKeywords.length >= 2 || (matchedKeywords.length >= 1 && analyticalTerms.length >= 1) || analyticalTerms.length >= 2) {
     return { demonstrated: true, isOffTopic: false };
   }
 
@@ -175,17 +219,27 @@ function evaluateHeuristic(
   }
 
   const isFiller = isFillerPhrase(learnerText) ||
-    /\b(important because it is|metric that is north star|placeholder|test|asdf)\b/i.test(learnerText.toLowerCase()) ||
+    /\b(important because it is|metric that is north star|placeholder|test\s+test|testing\s+123|asdf)\b/i.test(learnerText.toLowerCase()) ||
     learnerText.length < 35;
+
+  const hasSpecificGrounding =
+    /\b(\d+%|\$\d+|\d+\s*(users?|teams?|projects?|k|m|h|min|sec|ms|x)\b|[0-9]{2,}|wac|arr|mrr)\b/i.test(learnerText);
 
   let verdict: 'CORRECT' | 'PARTIALLY_CORRECT' | 'WRONG_APPROACH' | 'NEEDS_CLARIFICATION' = 'NEEDS_CLARIFICATION';
   if (demonstrated.length > 0 && missing.length > 0) {
     verdict = 'PARTIALLY_CORRECT';
   } else if (demonstrated.length > 0 && missing.length === 0) {
-    verdict = 'CORRECT';
+    if (hasSpecificGrounding) {
+      verdict = 'CORRECT';
+    } else {
+      verdict = 'PARTIALLY_CORRECT';
+      missing.push('Scenario-specific quantitative grounding or named parameters');
+    }
   } else if (isFiller) {
     verdict = 'NEEDS_CLARIFICATION';
   } else {
+    // CARDINAL RULE: Substantive attempts (> 35 chars) with 0 demonstrated milestones
+    // are WRONG_APPROACH, NEVER NEEDS_CLARIFICATION, preserving hint unlocking.
     verdict = 'WRONG_APPROACH';
   }
 

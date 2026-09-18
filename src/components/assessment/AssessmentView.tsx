@@ -566,11 +566,11 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                     />
                   </div>
 
-                  {/* Validation Error Alert */}
-                  {engine.validationError && (
+                  {/* Validation or Evaluation Error Alert */}
+                  {(engine.validationError || engine.evaluationError) && (
                     <div className="p-3 rounded-xl border border-primary-container/30 bg-accent-rose-tint text-primary-container text-xs font-mono flex items-center space-x-2">
                       <AlertCircle className="w-4 h-4 text-primary-container shrink-0" />
-                      <span>{engine.validationError}</span>
+                      <span>{engine.validationError || engine.evaluationError}</span>
                     </div>
                   )}
 
