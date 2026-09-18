@@ -84,6 +84,15 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
       systemPrompt: systemInstruction,
       userPrompt: promptContent,
       jsonMode: true,
+      traceName: 'generate-challenge',
+      metadata: {
+        concept_id: conceptId,
+        concept_name: concept.name,
+        domain: concept.domain,
+        source_type: sourceType,
+        difficulty: targetDifficulty
+      },
+      tags: ['generate-challenge', sourceType],
       responseSchema: {
         type: Type.OBJECT,
         properties: {

@@ -1,4 +1,5 @@
 import { getGenAI, executeWithTimeoutAndRetry } from './gemini';
+import { Langfuse } from 'langfuse';
 
 export type LLMProvider = 'gemini' | 'openrouter' | 'nvidia-nim';
 
@@ -8,6 +9,9 @@ export interface LLMOptions {
   jsonMode?: boolean;
   responseSchema?: any;
   preferredProvider?: LLMProvider;
+  traceName?: string;
+  metadata?: Record<string, any>;
+  tags?: string[];
 }
 
 export interface LLMResult {
@@ -15,6 +19,28 @@ export interface LLMResult {
   rawText: string;
   providerUsed: LLMProvider;
   modelUsed?: string;
+}
+
+let langfuseSingleton: Langfuse | null = null;
+
+function getLangfuseClient(): Langfuse | null {
+  if (langfuseSingleton) return langfuseSingleton;
+  const publicKey = process.env.LANGFUSE_PUBLIC_KEY;
+  const secretKey = process.env.LANGFUSE_SECRET_KEY;
+  if (!publicKey || !secretKey || publicKey.includes('placeholder')) {
+    return null;
+  }
+  try {
+    langfuseSingleton = new Langfuse({
+      publicKey,
+      secretKey,
+      baseUrl: process.env.LANGFUSE_HOST || 'https://cloud.langfuse.com'
+    });
+    return langfuseSingleton;
+  } catch (err) {
+    console.warn('[Langfuse] Non-blocking initialization failure:', err);
+    return null;
+  }
 }
 
 function cleanJsonText(rawText: string): string {
@@ -199,8 +225,41 @@ export async function executeLLM(options: LLMOptions): Promise<LLMResult> {
     userPrompt,
     jsonMode = true,
     responseSchema,
-    preferredProvider
+    preferredProvider,
+    traceName = 'llm-call',
+    metadata,
+    tags
   } = options;
+
+  const startTime = Date.now();
+  const langfuse = getLangfuseClient();
+  let trace: any = null;
+  let generation: any = null;
+
+  if (langfuse) {
+    try {
+      trace = langfuse.trace({
+        name: traceName,
+        metadata: {
+          ...metadata,
+          jsonMode,
+          preferredProvider
+        },
+        tags
+      });
+
+      generation = trace.generation({
+        name: traceName,
+        input: {
+          systemPrompt: (systemPrompt || '').slice(0, 2000),
+          userPrompt: (userPrompt || '').slice(0, 2000)
+        },
+        startTime: new Date(startTime)
+      });
+    } catch (traceErr) {
+      console.warn('[Langfuse] Non-blocking trace start error:', traceErr);
+    }
+  }
 
   const defaultProviders: LLMProvider[] = ['gemini', 'openrouter', 'nvidia-nim'];
   let providersToTry: LLMProvider[];
@@ -235,6 +294,24 @@ export async function executeLLM(options: LLMOptions): Promise<LLMResult> {
       }
 
       const modelName = provider === 'gemini' ? 'gemini-3.5-flash' : provider === 'openrouter' ? 'google/gemma-4-31b-it:free' : 'moonshotai/kimi-k3';
+      const latencyMs = Date.now() - startTime;
+
+      if (generation) {
+        try {
+          generation.end({
+            output: typeof rawText === 'string' ? rawText.slice(0, 2000) : rawText,
+            model: modelName,
+            metadata: {
+              providerUsed: provider,
+              latencyMs
+            },
+            endTime: new Date()
+          });
+          await langfuse?.flushAsync().catch(() => {});
+        } catch (genErr) {
+          console.warn('[Langfuse] Non-blocking generation end error:', genErr);
+        }
+      }
 
       return {
         data: parsedData,
@@ -252,6 +329,36 @@ export async function executeLLM(options: LLMOptions): Promise<LLMResult> {
             : 'All LLM providers exhausted.'
         }`
       );
+
+      if (trace) {
+        try {
+          trace.event({
+            name: `fallback-error-${provider}`,
+            level: 'WARNING',
+            statusMessage: errorMsg,
+            metadata: {
+              provider,
+              error: errorMsg,
+              attemptIndex: i
+            }
+          });
+        } catch (eventErr) {
+          console.warn('[Langfuse] Non-blocking fallback event error:', eventErr);
+        }
+      }
+    }
+  }
+
+  if (generation) {
+    try {
+      generation.end({
+        level: 'ERROR',
+        statusMessage: lastError?.message || 'All providers failed',
+        endTime: new Date()
+      });
+      await langfuse?.flushAsync().catch(() => {});
+    } catch (genErr) {
+      console.warn('[Langfuse] Non-blocking generation error end:', genErr);
     }
   }
 

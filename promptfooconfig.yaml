@@ -1,0 +1,34 @@
+evaluateOptions:
+  maxConcurrency: 2
+  delay: 1000
+
+providers:
+  - id: google:gemini-3.5-flash
+    config:
+      apiKey: '{{env.GEMINI_API_KEY}}'
+      timeoutMs: 15000
+  - id: openai:chat:google/gemma-4-31b-it:free
+    config:
+      apiBaseUrl: https://openrouter.ai/api/v1
+      apiKey: '{{env.OPENROUTER_API_KEY}}'
+      timeoutMs: 15000
+  - id: openai:chat:moonshotai/kimi-k3
+    config:
+      apiBaseUrl: https://integrate.api.nvidia.com/v1
+      apiKey: '{{env.NVIDIA_NIM_API_KEY}}'
+      timeoutMs: 15000
+
+prompts:
+  - file://src/prompts/evaluatorPrompt.txt
+
+defaultTest:
+  vars:
+    canary_token: "FM_CANARY_BENCHMARK_PROMPTFOO_001"
+    scenario: "A fintech startup is scaling an enterprise B2B workflow collaboration platform with an authoritative North Star Metric framework."
+    milestones: |
+      - Identifies a singular customer-value-aligned North Star Metric
+      - Defines mutually exclusive input metrics driving the NSM
+      - Identifies operational gaming risks or metric blindspots
+      - Establishes protective counter-metrics to avoid perverse incentives
+
+tests: file://tests/promptfoo/evaluation-cases.yaml

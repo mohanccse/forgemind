@@ -344,6 +344,16 @@ Return JSON matching schema.`;
         systemPrompt: systemInstruction,
         userPrompt: prompt,
         jsonMode: true,
+        traceName: 'assessment-evaluate',
+        metadata: {
+          learner_id: attempt.learner_id,
+          challenge_id: challenge.id,
+          attempt_number: attempt.attempt_number || 1,
+          session_id: attempt.session_id,
+          attempt_id: attempt.attempt_id,
+          source_type: effectiveSourceType
+        },
+        tags: ['assessment-evaluate', effectiveSourceType],
         responseSchema: {
           type: Type.OBJECT,
           properties: {
