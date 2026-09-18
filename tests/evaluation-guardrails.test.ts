@@ -468,5 +468,127 @@ describe('ForgeMind Evaluation & Security Guardrails', () => {
         'Demonstrated capabilities must be strictly empty for filler text'
       );
     });
+
+    it('Test 5.4: (Pattern 1 - wrong-milestone step) returns PARTIALLY_CORRECT (never NEEDS_CLARIFICATION) and records Step 3 as missing', async () => {
+      const pattern1Payload = {
+        challenge: mock4StepChallenge,
+        concept: mockNsmConcept,
+        attempt: {
+          attempt_id: `att-pattern1-${Date.now()}`,
+          session_id: 'sess-p1-001',
+          learner_id: 'learner-p1-test',
+          response: 'Step 1: Define the North Star Metric\'s scope, success thresholds, and guardrails while identifying risks like gaming, short-term optimization, and data-quality issues.\nStep 2: The product solution could therefore be showing shipping costs earlier, rather than building an entirely new checkout flow.\nStep 3: Product sense is a Product Manager\'s ability to understand what should be built, why it should be built, for whom, and how it can create value for both users and the business.\nStep 4: Track North Star movement alongside guardrails such as retention, conversion, satisfaction, quality, and operational costs to confirm sustainable impact.',
+          micro_responses: [
+            {
+              milestone: 'Identifies a singular customer-value-aligned North Star Metric',
+              question: 'Define the North Star Metric for the platform.',
+              answer: 'Define the North Star Metric\'s scope, success thresholds, and guardrails while identifying risks like gaming, short-term optimization, and data-quality issues.'
+            },
+            {
+              milestone: 'Defines mutually exclusive input metrics driving the NSM',
+              question: 'Identify 3 input metrics driving the NSM.',
+              answer: 'The product solution could therefore be showing shipping costs earlier, rather than building an entirely new checkout flow.'
+            },
+            {
+              milestone: 'Identifies operational gaming risks or metric blindspots',
+              question: 'What operational gaming risks or blindspots exist?',
+              answer: 'Product sense is a Product Manager\'s ability to understand what should be built, why it should be built, for whom, and how it can create value for both users and the business.'
+            },
+            {
+              milestone: 'Establishes protective counter-metrics to avoid perverse incentives',
+              question: 'What counter-metrics protect against perverse incentives?',
+              answer: 'Track North Star movement alongside guardrails such as retention, conversion, satisfaction, quality, and operational costs to confirm sustainable impact.'
+            }
+          ],
+          confidence_before_attempt: 3
+        }
+      };
+
+      const request = new Request('http://localhost:3000/api/evaluate-attempt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pattern1Payload)
+      });
+
+      const response = await evaluateAttemptPost(request);
+      assert.equal(response.status, 200);
+
+      const body = await response.json();
+      assert.equal(body.success, true);
+      const evalResult = body.evaluation;
+
+      assert.equal(
+        evalResult.verdict,
+        'PARTIALLY_CORRECT',
+        `Pattern 1 must return PARTIALLY_CORRECT (attempted real milestones with one wrong-topic step), got ${evalResult.verdict}`
+      );
+      assert.notEqual(evalResult.verdict, 'NEEDS_CLARIFICATION', 'Pattern 1 must NEVER return NEEDS_CLARIFICATION');
+
+      // Step 3 (operational gaming risks / product sense divergence) must be identified in missing_capabilities or feedback
+      const step3Missed = evalResult.missing_capabilities?.some((m: string) =>
+        m.toLowerCase().includes('gaming') ||
+        m.toLowerCase().includes('blindspot') ||
+        m.toLowerCase().includes('step 3') ||
+        m.toLowerCase().includes('operational')
+      ) || evalResult.brief_feedback?.toLowerCase().includes('step 3') || evalResult.brief_feedback?.toLowerCase().includes('product sense');
+
+      assert.ok(step3Missed, 'Step 3 must appear in missing_capabilities or be cited as missing/unaddressed');
+    });
+
+    it('Test 5.5: (Pattern 2 - all on-topic but all generic) returns WRONG_APPROACH or PARTIALLY_CORRECT, never CORRECT and never NEEDS_CLARIFICATION', async () => {
+      const pattern2Payload = {
+        challenge: mock4StepChallenge,
+        concept: mockNsmConcept,
+        attempt: {
+          attempt_id: `att-pattern2-${Date.now()}`,
+          session_id: 'sess-p2-001',
+          learner_id: 'learner-p2-test',
+          response: 'Step 1: Define the North Star Metric\'s scope, success thresholds, and guardrails while identifying risks like gaming, short-term optimization, and data-quality issues.\nStep 2: Compare options using customer value, business impact, feasibility, risk, and strategic alignment to make a transparent, evidence-based decision.\nStep 3: Start with a controlled MVP, validate the metric with real usage, address quality risks, then scale gradually based on evidence and stakeholder alignment.\nStep 4: Track North Star movement alongside guardrails such as retention, conversion, satisfaction, quality, and operational costs to confirm sustainable impact.',
+          micro_responses: [
+            {
+              milestone: 'Identifies a singular customer-value-aligned North Star Metric',
+              question: 'Define the North Star Metric for the platform.',
+              answer: 'Define the North Star Metric\'s scope, success thresholds, and guardrails while identifying risks like gaming, short-term optimization, and data-quality issues.'
+            },
+            {
+              milestone: 'Defines mutually exclusive input metrics driving the NSM',
+              question: 'Identify 3 input metrics driving the NSM.',
+              answer: 'Compare options using customer value, business impact, feasibility, risk, and strategic alignment to make a transparent, evidence-based decision.'
+            },
+            {
+              milestone: 'Identifies operational gaming risks or metric blindspots',
+              question: 'What operational gaming risks or blindspots exist?',
+              answer: 'Start with a controlled MVP, validate the metric with real usage, address quality risks, then scale gradually based on evidence and stakeholder alignment.'
+            },
+            {
+              milestone: 'Establishes protective counter-metrics to avoid perverse incentives',
+              question: 'What counter-metrics protect against perverse incentives?',
+              answer: 'Track North Star movement alongside guardrails such as retention, conversion, satisfaction, quality, and operational costs to confirm sustainable impact.'
+            }
+          ],
+          confidence_before_attempt: 3
+        }
+      };
+
+      const request = new Request('http://localhost:3000/api/evaluate-attempt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(pattern2Payload)
+      });
+
+      const response = await evaluateAttemptPost(request);
+      assert.equal(response.status, 200);
+
+      const body = await response.json();
+      assert.equal(body.success, true);
+      const evalResult = body.evaluation;
+
+      assert.ok(
+        ['WRONG_APPROACH', 'PARTIALLY_CORRECT'].includes(evalResult.verdict),
+        `Pattern 2 must return WRONG_APPROACH or PARTIALLY_CORRECT for ungrounded generic attempt, got ${evalResult.verdict}`
+      );
+      assert.notEqual(evalResult.verdict, 'CORRECT', 'Pattern 2 must NEVER return CORRECT (zero scenario-specific grounding)');
+      assert.notEqual(evalResult.verdict, 'NEEDS_CLARIFICATION', 'Pattern 2 must NEVER return NEEDS_CLARIFICATION');
+    });
   });
 });

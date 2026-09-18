@@ -423,7 +423,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                   </div>
 
                   {/* Section Guide Quick-Tags */}
-                  <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar">
+                  <div className="flex items-center gap-1.5 overflow-x-auto sm:flex-wrap pb-1.5 no-scrollbar">
                     {milestones.length > 0 ? (
                       milestones.map((m, idx) => (
                         <button
@@ -730,7 +730,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           <div className="flex items-center gap-2 text-emerald-800 font-semibold text-sm">
                             <Check className="w-4 h-4 text-emerald-600" />
                             <h3 className="font-mono text-xs uppercase tracking-wider font-bold">
-                              Validated Competencies ({evalResult.demonstrated_capabilities?.length || totalMilestones})
+                              Validated Competencies ({evalResult.demonstrated_capabilities?.length || 0})
                             </h3>
                           </div>
                           <span className="text-[11px] font-mono bg-emerald-50 text-emerald-700 font-medium px-2 py-0.5 rounded border border-emerald-200">
@@ -738,20 +738,21 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
                           </span>
                         </div>
                         <ul className="space-y-3">
-                          {(evalResult.demonstrated_capabilities?.length
-                            ? evalResult.demonstrated_capabilities
-                            : milestones
-                          ).map((c, i) => {
-                            const stepNum = resolveMilestoneStepNumber(c, milestones);
-                            return (
-                              <li key={i} className="flex items-start gap-2.5 text-xs text-text-secondary">
-                                <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold shrink-0 mt-0.5 border border-emerald-200">
-                                  {stepNum ? `Step ${stepNum}` : '✓'}
-                                </span>
-                                <span className="leading-relaxed text-text-primary">{c}</span>
-                              </li>
-                            );
-                          })}
+                          {(evalResult.demonstrated_capabilities || []).length === 0 ? (
+                            <li className="text-xs text-text-secondary italic py-2">No milestones fully demonstrated yet.</li>
+                          ) : (
+                            evalResult.demonstrated_capabilities.map((c, i) => {
+                              const stepNum = resolveMilestoneStepNumber(c, milestones);
+                              return (
+                                <li key={i} className="flex items-start gap-2.5 text-xs text-text-secondary">
+                                  <span className="px-1.5 py-0.5 rounded bg-emerald-100 text-emerald-800 font-mono text-[10px] font-bold shrink-0 mt-0.5 border border-emerald-200">
+                                    {stepNum ? `Step ${stepNum}` : '✓'}
+                                  </span>
+                                  <span className="leading-relaxed text-text-primary">{c}</span>
+                                </li>
+                              );
+                            })
+                          )}
                         </ul>
                       </div>
                     </article>
