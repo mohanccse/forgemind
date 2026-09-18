@@ -1,4 +1,4 @@
-import { getGenAI } from './gemini';
+import { getGenAI, executeWithTimeoutAndRetry } from './gemini';
 
 export type LLMProvider = 'gemini' | 'openrouter' | 'nvidia-nim';
 
@@ -14,6 +14,7 @@ export interface LLMResult {
   data: any;
   rawText: string;
   providerUsed: LLMProvider;
+  modelUsed?: string;
 }
 
 function cleanJsonText(rawText: string): string {
@@ -61,11 +62,13 @@ async function callGemini(
   }
 
   // Model name: 'gemini-3.5-flash'
-  const response = await ai.models.generateContent({
-    model: 'gemini-3.5-flash',
-    contents: userPrompt,
-    config
-  });
+  const response: any = await executeWithTimeoutAndRetry(async () => {
+    return await ai.models.generateContent({
+      model: 'gemini-3.5-flash',
+      contents: userPrompt,
+      config
+    });
+  }, 25000, 2);
 
   const text = response.text || '';
   if (!text.trim()) {
@@ -231,10 +234,13 @@ export async function executeLLM(options: LLMOptions): Promise<LLMResult> {
         parsedData = JSON.parse(cleaned);
       }
 
+      const modelName = provider === 'gemini' ? 'gemini-3.5-flash' : provider === 'openrouter' ? 'google/gemma-4-31b-it:free' : 'moonshotai/kimi-k3';
+
       return {
         data: parsedData,
         rawText,
-        providerUsed: provider
+        providerUsed: provider,
+        modelUsed: modelName
       };
     } catch (err: any) {
       lastError = err;

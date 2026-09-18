@@ -5,6 +5,7 @@ import { getGenAI, executeWithTimeoutAndRetry } from '@/lib/gemini';
 import { executeLLM } from '@/lib/llm-client';
 import { validateEvaluationResult } from '@/utils/evaluationValidator';
 import { sanitizeText, LEARNER_ATTEMPT_LIMITS, isFillerPhrase } from '@/utils/sanitizer';
+import { saveAttemptToDb } from '@/lib/supabase-store';
 
 /**
  * Extracts ONLY actual learner submitted answers, stripping out system context,
@@ -72,16 +73,66 @@ function evaluateHeuristic(
   sourceType: string
 ): any {
   const learnerText = extractLearnerAnswersOnly(attempt).trim();
-  const structuralMilestones = challenge.structuralMilestones || concept.reasoningMilestones || [];
-  const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
-  const evidenceQuotes = sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' '));
+  const structuralMilestones: string[] = challenge.structuralMilestones || concept.reasoningMilestones || [];
+
+  const demonstrated: string[] = [];
+  const missing: string[] = [];
+  const evidenceQuotes: string[] = [];
+
+  if (attempt.micro_responses && Array.isArray(attempt.micro_responses) && attempt.micro_responses.length > 0) {
+    for (let i = 0; i < attempt.micro_responses.length; i++) {
+      const step = attempt.micro_responses[i];
+      const milestone = step.milestone || structuralMilestones[i] || `Milestone ${i + 1}`;
+      const answer = (step.answer || '').trim();
+      const relevance = checkMilestoneDomainRelevance(answer, concept, milestone);
+      if (relevance.demonstrated && !relevance.isOffTopic) {
+        demonstrated.push(milestone);
+        if (answer.length > 15) {
+          evidenceQuotes.push(answer.substring(0, 120));
+        }
+      } else {
+        missing.push(milestone);
+      }
+    }
+  } else {
+    for (const milestone of structuralMilestones) {
+      const relevance = checkMilestoneDomainRelevance(learnerText, concept, milestone);
+      if (relevance.demonstrated && !relevance.isOffTopic) {
+        demonstrated.push(milestone);
+      } else {
+        missing.push(milestone);
+      }
+    }
+    const sentences = learnerText.split(/(?<=[.?!:\n])\s+/).filter((s: string) => s.trim().length > 15);
+    evidenceQuotes.push(...sentences.slice(0, 3).map((s: string) => s.trim().replace(/\n+/g, ' ')));
+  }
+
+  let verdict: 'CORRECT' | 'PARTIALLY_CORRECT' | 'WRONG_APPROACH' | 'NEEDS_CLARIFICATION' = 'NEEDS_CLARIFICATION';
+  if (demonstrated.length > 0 && missing.length > 0) {
+    verdict = 'PARTIALLY_CORRECT';
+  } else if (demonstrated.length > 0 && missing.length === 0) {
+    verdict = 'CORRECT';
+  } else if (isFillerPhrase(learnerText) || learnerText.length < 30) {
+    verdict = 'NEEDS_CLARIFICATION';
+  } else {
+    verdict = 'WRONG_APPROACH';
+  }
+
+  const score = structuralMilestones.length > 0
+    ? Math.round((demonstrated.length / structuralMilestones.length) * 100)
+    : (verdict === 'CORRECT' ? 100 : verdict === 'PARTIALLY_CORRECT' ? 50 : 0);
 
   return {
-    verdict: 'NEEDS_CLARIFICATION',
-    demonstrated_capabilities: [],
-    missing_capabilities: structuralMilestones.length > 0 ? structuralMilestones : (concept.capabilities?.slice(0, 3) || ['Detailed trade-off analysis']),
+    verdict,
+    demonstrated_capabilities: demonstrated,
+    missing_capabilities: missing.length > 0 ? missing : (structuralMilestones.length > 0 ? structuralMilestones : ['Detailed trade-off analysis']),
     evidence: evidenceQuotes.length > 0 ? evidenceQuotes : [learnerText ? `Formulation provided: "${learnerText.substring(0, 100)}..."` : 'Empty response provided.'],
-    brief_feedback: 'Evaluation service temporarily degraded — please retry'
+    brief_feedback: verdict === 'PARTIALLY_CORRECT'
+      ? `Demonstrated ${demonstrated.length} of ${structuralMilestones.length || 4} milestones.`
+      : verdict === 'CORRECT'
+      ? 'All required milestones demonstrated.'
+      : 'Evaluation completed via deterministic capability safeguard.',
+    defensibility_score: score
   };
 }
 
@@ -115,7 +166,40 @@ export async function POST(request: Request) {
       );
     }
 
+    const startTime = Date.now();
+
+    async function persistAttemptSafely(params: {
+      verdict: string;
+      evaluatorConfidence?: number;
+      injectionDetected?: boolean;
+      latencyMs: number;
+      modelName: string;
+    }) {
+      try {
+        await saveAttemptToDb({
+          attempt_id: attempt.attempt_id,
+          session_id: attempt.session_id,
+          learner_id: attempt.learner_id,
+          challenge_id: challenge.id,
+          attempt_number: attempt.attempt_number || 1,
+          answer: attempt.response,
+          verdict: params.verdict,
+          evaluator_confidence: params.evaluatorConfidence ?? 1.0,
+          injection_detected: Boolean(params.injectionDetected),
+          latency_ms: params.latencyMs,
+          model_name: params.modelName
+        });
+      } catch (err: any) {
+        console.warn('[Supabase Store] Non-blocking attempt persistence warning:', err?.message || err);
+      }
+    }
+
     if (responseText.length === 0) {
+      await persistAttemptSafely({
+        verdict: 'NEEDS_CLARIFICATION',
+        latencyMs: Date.now() - startTime,
+        modelName: 'heuristic-evaluator'
+      });
       return NextResponse.json({
         success: true,
         evaluation: {
@@ -153,6 +237,12 @@ export async function POST(request: Request) {
       lowerLearnerAnswers.includes('jailbreak');
 
     if (isAdversarial) {
+      await persistAttemptSafely({
+        verdict: 'NEEDS_CLARIFICATION',
+        injectionDetected: true,
+        latencyMs: Date.now() - startTime,
+        modelName: 'quarantine'
+      });
       return NextResponse.json({
         success: true,
         evaluation: {
@@ -269,6 +359,12 @@ Return JSON matching schema.`;
       const validation = validateEvaluationResult(parsed, canaryToken);
 
       if (validation.isValid && validation.sanitized) {
+        await persistAttemptSafely({
+          verdict: validation.sanitized.verdict,
+          evaluatorConfidence: 1.0,
+          latencyMs: Date.now() - startTime,
+          modelName: llmResult.modelUsed || llmResult.providerUsed
+        });
         return NextResponse.json({
           success: true,
           evaluation: validation.sanitized,
@@ -280,6 +376,11 @@ Return JSON matching schema.`;
     }
 
     const fallbackEval = evaluateHeuristic(challenge, concept, attempt, effectiveSourceType);
+    await persistAttemptSafely({
+      verdict: fallbackEval.verdict,
+      latencyMs: Date.now() - startTime,
+      modelName: 'heuristic-evaluator'
+    });
     return NextResponse.json({
       success: true,
       evaluation: fallbackEval,

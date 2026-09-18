@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { Type } from '@google/genai';
 import { getGenAI } from '@/lib/gemini';
+import { executeLLM } from '@/lib/llm-client';
 import { saveChallengeToDb, getChallengeFromDb } from '@/lib/supabase-store';
 import { CURATED_NOVEL_CHALLENGES } from '@/data/curatedNovelChallenges';
 import { validateGeneratedChallenge } from '@/utils/challengeValidator';
@@ -79,121 +80,73 @@ Target Difficulty: ${targetDifficulty}
 
 Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situation must independently apply this concept to solve an authentic dilemma. Make sure the scenario is novel, realistic, contains trade-offs, and produces the required 5-tier hint ladder, microQuestions, and hidden metadata.`;
 
-    const ai = getGenAI();
-    if (!ai) {
-      // Fallback to domain-matched curated challenge if GEMINI_API_KEY is not configured
-      let fallbackKey = 'rice-prioritization';
-      if (concept.domain === 'SQL / Data') fallbackKey = 'sql-joins';
-      if (concept.domain === 'AI / Technology') fallbackKey = 'rag-triad-evaluation';
-
-      const curatedFallback = CURATED_NOVEL_CHALLENGES[fallbackKey] || CURATED_NOVEL_CHALLENGES['rice-prioritization'];
-      if (curatedFallback) {
-        const adapted = {
-          ...curatedFallback,
-          id: `fallback-${conceptId}-${Date.now()}`,
-          conceptId,
-          conceptName: concept.name,
-          domain: concept.domain || curatedFallback.domain
-        };
-        await saveChallengeToDb(adapted);
-        return NextResponse.json({
-          success: true,
-          challenge: adapted,
-          source: 'curated-fallback',
-          notice: 'GEMINI_API_KEY is not configured in .env.local. Served domain-matched challenge baseline so execution is not blocked.'
-        });
-      }
-
-      const syntheticFallback = createSyntheticChallengeFromConcept(concept, targetDifficulty, sourceType);
-      await saveChallengeToDb(syntheticFallback);
-      return NextResponse.json({
-        success: true,
-        challenge: syntheticFallback,
-        source: 'synthetic-recovery',
-        notice: 'Served resilient synthetic challenge baseline matching extracted concept capability model.'
-      });
-    }
-
-    const response = await ai.models.generateContent({
-      model: 'gemini-3.5-flash',
-      contents: promptContent,
-      config: {
-        systemInstruction,
-        responseMimeType: 'application/json',
-        responseSchema: {
-          type: Type.OBJECT,
-          properties: {
-            title: { type: Type.STRING, description: 'Engaging, professional title for the novel challenge' },
-            scenario: { type: Type.STRING, description: 'Detailed unfamiliar workplace scenario setting the stage' },
-            contextData: { type: Type.STRING, description: 'Telemetry, figures, metrics, schemas, or constraints data' },
-            mandate: { type: Type.STRING, description: 'Explicit specific instructions on what the learner must produce' },
-            constraints: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Hard boundaries, constraints, or guardrails for the solution'
-            },
-            expectedOutputFormat: { type: Type.STRING, description: 'Expected deliverable structure (e.g. Decision Memo)' },
-            capabilityTested: { type: Type.STRING, description: 'Underlying operational capability evaluated' },
-            structuralMilestones: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Key sequential reasoning milestones needed to solve this'
-            },
-            microQuestions: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Array of 3-5 short 1-line targeted prompts, corresponding 1-to-1 with structuralMilestones'
-            },
-            acceptableAlternativeReasoning: {
-              type: Type.ARRAY,
-              items: { type: Type.STRING },
-              description: 'Valid alternative paths or trade-off resolutions'
-            },
-            referenceSolution: { type: Type.STRING, description: 'Complete model answer and trade-off defense' },
-            hints: {
-              type: Type.ARRAY,
-              items: {
-                type: Type.OBJECT,
-                properties: {
-                  tier: { type: Type.INTEGER, description: '1 to 5' },
-                  type: { type: Type.STRING, description: 'Nudge | Direction | Concept reminder | Structural guidance | Solution reveal' },
-                  title: { type: Type.STRING, description: 'Short hint title' },
-                  hint: { type: Type.STRING, description: 'The progressive hint text' },
-                  penaltyDescription: { type: Type.STRING, description: 'e.g. -5% on Raw Independence' }
-                },
-                required: ['tier', 'type', 'title', 'hint', 'penaltyDescription']
-              },
-              description: 'Exactly 5 progressive hints matching the hint ladder'
-            }
+    const llmResult = await executeLLM({
+      systemPrompt: systemInstruction,
+      userPrompt: promptContent,
+      jsonMode: true,
+      responseSchema: {
+        type: Type.OBJECT,
+        properties: {
+          title: { type: Type.STRING, description: 'Engaging, professional title for the novel challenge' },
+          scenario: { type: Type.STRING, description: 'Detailed unfamiliar workplace scenario setting the stage' },
+          contextData: { type: Type.STRING, description: 'Telemetry, figures, metrics, schemas, or constraints data' },
+          mandate: { type: Type.STRING, description: 'Explicit specific instructions on what the learner must produce' },
+          constraints: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Hard boundaries, constraints, or guardrails for the solution'
           },
-          required: [
-            'title',
-            'scenario',
-            'mandate',
-            'constraints',
-            'expectedOutputFormat',
-            'capabilityTested',
-            'structuralMilestones',
-            'microQuestions',
-            'acceptableAlternativeReasoning',
-            'referenceSolution',
-            'hints'
-          ]
-        }
+          expectedOutputFormat: { type: Type.STRING, description: 'Expected deliverable structure (e.g. Decision Memo)' },
+          capabilityTested: { type: Type.STRING, description: 'Underlying operational capability evaluated' },
+          structuralMilestones: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Key sequential reasoning milestones needed to solve this'
+          },
+          microQuestions: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Array of 3-5 short 1-line targeted prompts, corresponding 1-to-1 with structuralMilestones'
+          },
+          acceptableAlternativeReasoning: {
+            type: Type.ARRAY,
+            items: { type: Type.STRING },
+            description: 'Valid alternative paths or trade-off resolutions'
+          },
+          referenceSolution: { type: Type.STRING, description: 'Complete model answer and trade-off defense' },
+          hints: {
+            type: Type.ARRAY,
+            items: {
+              type: Type.OBJECT,
+              properties: {
+                tier: { type: Type.INTEGER, description: '1 to 5' },
+                type: { type: Type.STRING, description: 'Nudge | Direction | Concept reminder | Structural guidance | Solution reveal' },
+                title: { type: Type.STRING, description: 'Short hint title' },
+                hint: { type: Type.STRING, description: 'The progressive hint text' },
+                penaltyDescription: { type: Type.STRING, description: 'e.g. -5% on Raw Independence' }
+              },
+              required: ['tier', 'type', 'title', 'hint', 'penaltyDescription']
+            },
+            description: 'Exactly 5 progressive hints matching the hint ladder'
+          }
+        },
+        required: [
+          'title',
+          'scenario',
+          'mandate',
+          'constraints',
+          'expectedOutputFormat',
+          'capabilityTested',
+          'structuralMilestones',
+          'microQuestions',
+          'acceptableAlternativeReasoning',
+          'referenceSolution',
+          'hints'
+        ]
       }
     });
 
-    const rawText = response.text?.trim();
-    if (!rawText) {
-      throw new Error('Empty response received from Gemini model.');
-    }
-
-    let parsedData: any;
-    try {
-      parsedData = JSON.parse(rawText);
-    } catch (parseErr) {
-      throw new Error('Malformed JSON output received from AI model.');
-    }
+    const parsedData = typeof llmResult.data === 'object' && llmResult.data !== null ? llmResult.data : JSON.parse(llmResult.rawText);
 
     const challenge = {
       ...parsedData,
@@ -230,7 +183,7 @@ Generate a GENUINELY NOVEL scenario where a professional in an unfamiliar situat
 
     return NextResponse.json({
       challenge,
-      source: 'gemini'
+      source: llmResult.providerUsed
     });
   } catch (error: any) {
     console.warn('AI challenge generation failed or rate limited in Next.js route, switching to synthetic recovery:', error.message || error);

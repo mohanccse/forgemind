@@ -186,7 +186,7 @@ export async function saveAttemptToDb(attemptData: {
       model_name: attemptData.model_name || 'gemini',
       model_version: 'v1',
       generation_latency_ms: 0
-    }], { onConflict: 'id' });
+    }], { onConflict: 'id', ignoreDuplicates: true });
 
     await supabase.from('sessions').upsert([{
       id: sessionUuid,
@@ -195,7 +195,7 @@ export async function saveAttemptToDb(attemptData: {
       tier_4_unlocked: false,
       status: 'active',
       updated_at: new Date().toISOString()
-    }], { onConflict: 'id' });
+    }], { onConflict: 'id', ignoreDuplicates: true });
   }
 
   const validVerdicts = ['CORRECT', 'PARTIALLY_CORRECT', 'WRONG_APPROACH', 'NEEDS_CLARIFICATION'];
@@ -224,6 +224,40 @@ export async function saveAttemptToDb(attemptData: {
   }
 
   return attemptUuid;
+}
+
+/**
+ * Queries the attempts table in Supabase for all recorded attempts matching
+ * the learner_id and challenge_id (via derived session UUID).
+ * Returns the total attempt count and the verdict of the most recent attempt.
+ */
+export async function getAttemptsFromDb(
+  learnerId: string,
+  challengeId: string
+): Promise<{ count: number; latestVerdict: string | null }> {
+  try {
+    const supabase = getSupabaseServerClient();
+    const rawSessionKey = `${learnerId}:${challengeId}`;
+    const sessionUuid = toUuid(rawSessionKey);
+
+    const { data, error } = await supabase
+      .from('attempts')
+      .select('verdict, created_at')
+      .eq('session_id', sessionUuid)
+      .order('created_at', { ascending: false });
+
+    if (error || !data || data.length === 0) {
+      return { count: 0, latestVerdict: null };
+    }
+
+    return {
+      count: data.length,
+      latestVerdict: data[0].verdict || null
+    };
+  } catch (err: any) {
+    console.warn('Supabase getAttemptsFromDb warning:', err?.message || err);
+    return { count: 0, latestVerdict: null };
+  }
 }
 
 /**

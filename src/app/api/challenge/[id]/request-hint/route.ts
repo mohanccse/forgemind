@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { saveChallengeToDb, getChallengeFromDb, saveHintStateToDb, getHintStateFromDb } from '@/lib/supabase-store';
+import { saveChallengeToDb, getChallengeFromDb, saveHintStateToDb, getHintStateFromDb, getAttemptsFromDb } from '@/lib/supabase-store';
 import { CURATED_NOVEL_CHALLENGES } from '@/data/curatedNovelChallenges';
 
 export async function POST(
@@ -28,18 +28,21 @@ export async function POST(
       console.warn('DB challenge fetch warning:', e);
     }
 
-    if (!challenge) {
-      challenge =
+    if (!challenge || !challenge.referenceSolution) {
+      const fallback =
         CURATED_NOVEL_CHALLENGES[conceptId] ||
         CURATED_NOVEL_CHALLENGES[challengeId] ||
         clientChallenge;
+      if (fallback) {
+        challenge = { ...challenge, ...fallback };
+      }
     }
 
     if (!challenge) {
       const found = Object.values(CURATED_NOVEL_CHALLENGES).find(
         (c: any) => c.id === challengeId || c.conceptId === conceptId
       );
-      if (found) challenge = found;
+      if (found) challenge = { ...challenge, ...found };
     }
 
     if (!challenge) {
@@ -82,7 +85,10 @@ export async function POST(
       }
     }
 
-    if (lastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
+    const { count: serverAttemptCount, latestVerdict: serverLastVerdict } = await getAttemptsFromDb(learnerId, challengeId);
+    const effectiveLastVerdict = serverLastVerdict !== null ? serverLastVerdict : lastVerdict;
+
+    if (effectiveLastVerdict === 'NEEDS_CLARIFICATION' || hintState.progression_frozen) {
       hintState.progression_frozen = true;
       hintState.frozen_reason =
         'Evaluation returned NEEDS_CLARIFICATION. Progression is frozen until a clarified attempt is submitted.';
@@ -102,7 +108,7 @@ export async function POST(
       );
     }
 
-    if (lastVerdict === 'CORRECT') {
+    if (effectiveLastVerdict === 'CORRECT') {
       return NextResponse.json(
         {
           success: false,
@@ -121,6 +127,17 @@ export async function POST(
       );
     }
 
+    if (targetTier === 5 && (serverAttemptCount < 4 || hintState.current_tier < 4)) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting at least 4 attempts (recorded: ${serverAttemptCount}).`,
+          state: hintState
+        },
+        { status: 403 }
+      );
+    }
+
     if (targetTier !== hintState.current_tier + 1) {
       return NextResponse.json(
         {
@@ -132,25 +149,14 @@ export async function POST(
       );
     }
 
-    if (hintState.current_tier >= 1 && attemptNumber <= hintState.last_unlocked_at_attempt) {
+    if (targetTier >= 2 && serverAttemptCount < targetTier - 1) {
       return NextResponse.json(
         {
           success: false,
-          error: `Submit a retry attempt after viewing Tier ${hintState.current_tier} before requesting Tier ${targetTier}.`,
+          error: `Submit a retry attempt after viewing Tier ${hintState.current_tier} before requesting Tier ${targetTier}. (Requires at least ${targetTier - 1} attempt(s), recorded: ${serverAttemptCount}).`,
           state: hintState
         },
         { status: 400 }
-      );
-    }
-
-    if (targetTier === 5 && (hintState.current_tier < 4 || attemptNumber <= hintState.last_unlocked_at_attempt)) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: 'Tier 5 (Solution Reveal) is not available before completing progression through Tier 4 and submitting a retry attempt.',
-          state: hintState
-        },
-        { status: 403 }
       );
     }
 
@@ -160,7 +166,7 @@ export async function POST(
     if (!hintState.unlocked_tiers.includes(targetTier)) {
       hintState.unlocked_tiers.push(targetTier);
     }
-    hintState.last_unlocked_at_attempt = attemptNumber;
+    hintState.last_unlocked_at_attempt = serverAttemptCount;
     hintState.attempts_since_last_hint = 0;
 
     if (targetTier === 5) {
@@ -174,6 +180,8 @@ export async function POST(
       console.warn('DB hint state save warning:', e);
     }
 
+    const effectiveSolution = challenge?.referenceSolution || challenge?.tier_5_solution || clientChallenge?.referenceSolution;
+
     return NextResponse.json({
       success: true,
       tier: targetTier,
@@ -181,10 +189,10 @@ export async function POST(
         tier: targetTier,
         type: targetTier === 1 ? 'Nudge' : targetTier === 2 ? 'Direction' : targetTier === 3 ? 'Concept reminder' : targetTier === 4 ? 'Structural guidance' : 'Solution reveal',
         title: `Tier ${targetTier} Guidance`,
-        hint: targetTier === 5 ? challenge.referenceSolution : 'Guidance unlocked.',
+        hint: targetTier === 5 ? effectiveSolution : 'Guidance unlocked.',
         penaltyDescription: targetTier === 1 ? '-5%' : targetTier === 2 ? '-12%' : targetTier === 3 ? '-20%' : targetTier === 4 ? '-35%' : '-60%'
       },
-      solution: targetTier === 5 ? challenge.referenceSolution : undefined,
+      solution: targetTier === 5 ? effectiveSolution : undefined,
       solution_revealed: targetTier === 5,
       state: hintState
     });
