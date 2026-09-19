@@ -391,9 +391,9 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
             <span>Back to Home</span>
           </button>
         </div>
-        <div className="inline-flex items-center space-x-2 rounded-full border border-amber-500/20 bg-amber-500/5 px-3 py-0.5 text-xs font-medium text-amber-300">
+        <div className="inline-flex items-center space-x-2 rounded-full border border-primary-container/20 bg-accent-rose-tint px-3 py-0.5 text-xs font-semibold text-primary-container">
           <Layers className="h-3.5 w-3.5" />
-          <span>Door 2: Bring My Own Study Material</span>
+          <span>Bring Your Material</span>
         </div>
         <h1 className="mt-3 font-serif text-3xl font-normal text-zinc-100 sm:text-4xl">
           Bring what you studied
@@ -1111,7 +1111,7 @@ export const StudyMaterialPage: React.FC<StudyMaterialPageProps> = ({
       {/* Door 2 Pipeline Flow Architecture Indicator */}
       <div className="mt-14 border-t border-zinc-800/80 pt-6">
         <div className="text-[10px] font-mono tracking-widest uppercase text-zinc-500 mb-3">
-          Door 2 Execution Architecture
+          Bring Your Material Pipeline Architecture
         </div>
         <div className="flex flex-wrap items-center gap-2 text-[11px] font-mono text-zinc-400">
           <span className="rounded bg-zinc-900 border border-zinc-800 px-2 py-1 text-zinc-300">Study Material</span>

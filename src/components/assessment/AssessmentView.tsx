@@ -100,40 +100,41 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
   return (
     <div id="assessment-view" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 bg-canvas-base min-h-screen">
       {/* Top Navigation & Context Bar */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-border-hairline pb-4 mb-6">
-        <div className="flex items-center space-x-2.5 flex-wrap">
+      <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-6 border-b border-border-hairline pb-4 mb-6">
+        <div className="flex items-center gap-3 flex-wrap">
           <button
             id="back-to-prove-btn"
             onClick={onBackToProve}
-            className="inline-flex items-center space-x-1.5 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors py-1 cursor-pointer"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors py-1 cursor-pointer whitespace-nowrap"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Diagnostic Studio</span>
           </button>
           <span className="text-border-focus hidden sm:inline">·</span>
-          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-xs font-mono font-bold text-amber-950 shadow-xs">
-            <span>Topic: {concept.name}</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-xs font-mono font-bold text-amber-950 shadow-xs whitespace-nowrap">
+            <span>Topic:</span>
+            <span>{concept.name}</span>
           </span>
         </div>
 
-        <div className="flex items-center space-x-2.5 flex-wrap">
-          <div className="flex items-center space-x-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono text-emerald-950 font-bold shadow-xs">
-            <Lock className="w-3 h-3 text-emerald-800" />
+        <div className="flex items-center gap-3 flex-wrap">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[11px] font-mono text-emerald-950 font-bold shadow-xs whitespace-nowrap">
+            <Lock className="w-3 h-3 text-emerald-800 shrink-0" />
             <span>Zero-Reference Execution Active</span>
           </div>
 
-          <span className="rounded border border-border-hairline bg-canvas-subtle px-2 py-0.5 text-[10px] font-mono text-text-secondary">
-            Door:{' '}
+          <span className="inline-flex items-center rounded-md border border-border-hairline bg-canvas-subtle px-2.5 py-1 text-[11px] font-mono text-text-secondary whitespace-nowrap shadow-2xs">
+            <span className="text-text-muted mr-1">Source:</span>
             <strong className="text-text-primary font-semibold">
               {challenge.sourceType === 'USER_GENERATED' ||
               concept.sourceType === 'USER_GENERATED' ||
               concept.isUserOwned
-                ? 'Door 2 (Custom Upload)'
-                : 'Door 1 (Content Library)'}
+                ? 'Bring Your Material'
+                : 'Curated Library'}
             </strong>
           </span>
 
-          <span className="text-xs text-text-secondary font-bold hidden md:inline">
+          <span className="text-xs text-text-secondary font-bold whitespace-nowrap hidden lg:inline">
             Domain: <strong className="text-text-primary font-bold">{concept.domain || 'Product Strategy'}</strong>
           </span>
         </div>
