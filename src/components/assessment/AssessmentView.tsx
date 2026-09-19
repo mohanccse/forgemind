@@ -99,31 +99,31 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
 
   return (
     <div id="assessment-view" className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 bg-canvas-base min-h-screen">
-      {/* Top Navigation & Context Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-y-3 gap-x-6 border-b border-border-hairline pb-4 mb-6">
-        <div className="flex items-center gap-3 flex-wrap">
+      {/* Top Navigation & Context Bar - STRICT SINGLE LINE */}
+      <div className="flex items-center justify-between gap-4 border-b border-border-hairline pb-4 mb-6 overflow-x-auto no-scrollbar flex-nowrap">
+        <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
           <button
             id="back-to-prove-btn"
             onClick={onBackToProve}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors py-1 cursor-pointer whitespace-nowrap"
+            className="inline-flex items-center gap-1.5 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors py-1 cursor-pointer whitespace-nowrap shrink-0"
           >
-            <ArrowLeft className="w-3.5 h-3.5" />
+            <ArrowLeft className="w-3.5 h-3.5 shrink-0" />
             <span>Back to Diagnostic Studio</span>
           </button>
-          <span className="text-border-focus hidden sm:inline">·</span>
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-xs font-mono font-bold text-amber-950 shadow-xs whitespace-nowrap">
+          <span className="text-border-focus shrink-0">·</span>
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-xs font-mono font-bold text-amber-950 shadow-xs whitespace-nowrap shrink-0">
             <span>Topic:</span>
             <span>{concept.name}</span>
           </span>
         </div>
 
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-1 text-[11px] font-mono text-emerald-950 font-bold shadow-xs whitespace-nowrap">
+        <div className="flex items-center gap-2.5 shrink-0 flex-nowrap">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono text-emerald-950 font-bold shadow-xs whitespace-nowrap shrink-0">
             <Lock className="w-3 h-3 text-emerald-800 shrink-0" />
             <span>Zero-Reference Execution Active</span>
           </div>
 
-          <span className="inline-flex items-center rounded-md border border-border-hairline bg-canvas-subtle px-2.5 py-1 text-[11px] font-mono text-text-secondary whitespace-nowrap shadow-2xs">
+          <span className="inline-flex items-center rounded-md border border-border-hairline bg-canvas-subtle px-2 py-0.5 text-[10px] font-mono text-text-secondary whitespace-nowrap shrink-0">
             <span className="text-text-muted mr-1">Source:</span>
             <strong className="text-text-primary font-semibold">
               {challenge.sourceType === 'USER_GENERATED' ||
@@ -134,7 +134,7 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
             </strong>
           </span>
 
-          <span className="text-xs text-text-secondary font-bold whitespace-nowrap hidden lg:inline">
+          <span className="text-xs text-text-secondary font-bold whitespace-nowrap shrink-0">
             Domain: <strong className="text-text-primary font-bold">{concept.domain || 'Product Strategy'}</strong>
           </span>
         </div>
