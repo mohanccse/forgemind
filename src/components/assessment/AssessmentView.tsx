@@ -105,20 +105,20 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
           <button
             id="back-to-prove-btn"
             onClick={onBackToProve}
-            className="inline-flex items-center space-x-1.5 text-xs font-semibold text-text-secondary hover:text-text-primary transition-colors py-1 cursor-pointer"
+            className="inline-flex items-center space-x-1.5 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors py-1 cursor-pointer"
           >
             <ArrowLeft className="w-3.5 h-3.5" />
             <span>Back to Diagnostic Studio</span>
           </button>
           <span className="text-border-focus hidden sm:inline">·</span>
-          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-accent-rose-tint border border-accent-rose-soft text-xs font-mono font-semibold text-primary-container">
+          <span className="inline-flex items-center space-x-1 px-2.5 py-1 rounded-md bg-amber-50 border border-amber-300 text-xs font-mono font-bold text-amber-950 shadow-xs">
             <span>Topic: {concept.name}</span>
           </span>
         </div>
 
         <div className="flex items-center space-x-2.5 flex-wrap">
-          <div className="flex items-center space-x-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono text-emerald-800 font-medium">
-            <Lock className="w-3 h-3 text-emerald-600" />
+          <div className="flex items-center space-x-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono text-emerald-950 font-bold shadow-xs">
+            <Lock className="w-3 h-3 text-emerald-800" />
             <span>Zero-Reference Execution Active</span>
           </div>
 
@@ -133,8 +133,8 @@ export const AssessmentView: React.FC<AssessmentViewProps> = ({
             </strong>
           </span>
 
-          <span className="text-xs text-text-muted hidden md:inline">
-            Domain: <strong className="text-text-primary font-medium">{concept.domain || 'Product Strategy'}</strong>
+          <span className="text-xs text-text-secondary font-bold hidden md:inline">
+            Domain: <strong className="text-text-primary font-bold">{concept.domain || 'Product Strategy'}</strong>
           </span>
         </div>
       </div>

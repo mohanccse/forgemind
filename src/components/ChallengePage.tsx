@@ -659,12 +659,12 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
     <div id="challenge-page" className="mx-auto max-w-6xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Top Navigation & Status Bar (shown during loading or error before AssessmentView mounts) */}
       {(isLoading || (generationError && !challenge)) && (
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-zinc-800/80 pb-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border-hairline pb-4">
           <div className="flex items-center space-x-3">
             <button
               id="back-to-prove-btn"
               onClick={handleBackToProve}
-              className="inline-flex items-center space-x-2 text-xs font-medium text-zinc-400 hover:text-zinc-200 transition-colors"
+              className="inline-flex items-center space-x-2 text-xs font-bold text-text-primary hover:text-text-secondary transition-colors cursor-pointer"
             >
               <ArrowLeft className="h-3.5 w-3.5" />
               <span>
@@ -673,20 +673,20 @@ export const ChallengePage: React.FC<ChallengePageProps> = ({
                   : 'Back to Concept Preview'}
               </span>
             </button>
-            <span className="text-zinc-700 hidden sm:inline">|</span>
-            <span className="inline-flex items-center space-x-1.5 rounded-md border border-amber-500/30 bg-amber-500/10 px-2.5 py-1 text-xs font-mono font-bold text-amber-300">
+            <span className="text-border-hairline hidden sm:inline">|</span>
+            <span className="inline-flex items-center space-x-1.5 rounded-md border border-amber-300 bg-amber-50 px-2.5 py-1 text-xs font-mono font-bold text-amber-950 shadow-xs">
               <span>Topic: {concept.name}</span>
             </span>
           </div>
 
           <div className="flex items-center space-x-3">
-            <div className="flex items-center space-x-1.5 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-2.5 py-1 text-[11px] font-mono text-emerald-300">
-              <Lock className="h-3 w-3" />
+            <div className="flex items-center space-x-1.5 rounded-full border border-emerald-300 bg-emerald-50 px-2.5 py-1 text-[11px] font-mono font-bold text-emerald-950 shadow-xs">
+              <Lock className="h-3 w-3 text-emerald-800" />
               <span>Zero-Reference Execution Active</span>
             </div>
 
-            <span className="text-xs text-zinc-500 hidden md:inline">
-              Domain: <strong className="text-zinc-400 font-normal">{concept.domain}</strong>
+            <span className="text-xs text-text-secondary font-bold hidden md:inline">
+              Domain: <strong className="text-text-primary font-bold">{concept.domain}</strong>
             </span>
           </div>
         </div>

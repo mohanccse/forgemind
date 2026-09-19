@@ -61,18 +61,13 @@ export const Header: React.FC<HeaderProps> = ({ currentTab, onNavigate, user: _u
                   className="h-full w-full object-contain rounded-lg shadow-xs"
                 />
               </div>
-              <div>
-                <div className="flex items-center space-x-1.5 sm:space-x-2 flex-wrap">
-                  <span className="font-headline-sm text-base sm:text-lg font-bold tracking-tight text-text-primary">
-                    ForgeMind
-                  </span>
-                  <span className="rounded-full bg-canvas-subtle px-2.5 py-0.5 font-code-sm text-[10px] font-semibold uppercase tracking-wider text-text-secondary ring-1 ring-border-hairline">
-                    THE PM DE-TUTORIALIZER
-                  </span>
-                </div>
-                <p className="hidden text-[11px] italic text-text-muted sm:block font-serif">
-                  Prove you can use it
-                </p>
+              <div className="flex flex-col">
+                <span className="font-headline-sm text-base sm:text-lg font-bold tracking-tight text-text-primary leading-tight">
+                  ForgeMind
+                </span>
+                <span className="font-code-sm text-[9px] sm:text-[10px] font-bold uppercase tracking-widest text-text-secondary leading-tight mt-0.5">
+                  THE PM DE-TUTORIALIZER
+                </span>
               </div>
             </button>
 
